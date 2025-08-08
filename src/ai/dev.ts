@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/categorize-expense.ts';
+// Les flux Genkit seront importés ici.

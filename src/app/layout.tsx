@@ -3,8 +3,8 @@ import './globals.css';
 import { AppLayout } from '@/components/AppLayout';
 
 export const metadata: Metadata = {
-  title: 'ExpenseTrack',
-  description: 'Suivi des dépenses des tâches',
+  title: 'Nouvelle App',
+  description: 'Une application construite avec Firebase Studio',
 };
 
 export default function RootLayout({
