@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import { Input } from '@/components/ui/input';
 import type { Task } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 function BilledTaskRow({ task }: { task: Task }) {
   const { updateBilledTaskDetails } = useTaskStore();
@@ -41,7 +42,7 @@ function BilledTaskRow({ task }: { task: Task }) {
           type="number"
           value={approvedAmount}
           onChange={(e) => setApprovedAmount(e.target.value)}
-          className="h-8 w-24"
+          className="h-8 w-24 mx-auto"
           placeholder="0.00"
         />
       </TableCell>
@@ -50,7 +51,7 @@ function BilledTaskRow({ task }: { task: Task }) {
           type="number"
           value={advance}
           onChange={(e) => setAdvance(e.target.value)}
-          className="h-8 w-24"
+          className="h-8 w-24 mx-auto"
           placeholder="Tasbiq"
         />
       </TableCell>
@@ -59,7 +60,7 @@ function BilledTaskRow({ task }: { task: Task }) {
           type="number"
           value={commission}
           onChange={(e) => setCommission(e.target.value)}
-          className="h-8 w-24"
+          className="h-8 w-24 mx-auto"
           placeholder="L3omola"
         />
       </TableCell>
@@ -70,8 +71,62 @@ function BilledTaskRow({ task }: { task: Task }) {
   );
 }
 
+function MobileBilledTaskCard({ task }: { task: Task }) {
+    const { updateBilledTaskDetails } = useTaskStore();
+    const [approvedAmount, setApprovedAmount] = React.useState(task.approvedAmount ?? '');
+    const [advance, setAdvance] = React.useState(task.advance ?? '');
+    const [commission, setCommission] = React.useState(task.commission ?? '');
+
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+        updateBilledTaskDetails(task.id, {
+            approvedAmount: Number(approvedAmount) || 0,
+            advance: Number(advance) || 0,
+            commission: Number(commission) || 0,
+        });
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [approvedAmount, advance, commission, task.id, updateBilledTaskDetails]);
+
+    const totalExpenses = task.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const difference = (Number(approvedAmount) || 0) - totalExpenses;
+
+    return (
+        <Card>
+            <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                    <p className="font-bold">{task.taskNumber}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(task.date).toLocaleDateString('fr-FR')} - {task.city}</p>
+                </div>
+                 <div className="flex justify-between items-center border-t pt-2">
+                    <p className="text-sm">Dépenses</p>
+                    <p className="font-medium">{totalExpenses.toFixed(2)} €</p>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                    <label htmlFor={`approved-${task.id}`}  className="text-sm">Montant Approuvé</label>
+                    <Input id={`approved-${task.id}`} type="number" value={approvedAmount} onChange={(e) => setApprovedAmount(e.target.value)} className="h-8 w-24" placeholder="0.00"/>
+                </div>
+                 <div className="flex justify-between items-center border-t pt-2">
+                    <label htmlFor={`advance-${task.id}`}  className="text-sm">Avance (Tasbiq)</label>
+                    <Input id={`advance-${task.id}`} type="number" value={advance} onChange={(e) => setAdvance(e.target.value)} className="h-8 w-24" placeholder="Tasbiq"/>
+                </div>
+                 <div className="flex justify-between items-center border-t pt-2">
+                    <label htmlFor={`commission-${task.id}`} className="text-sm">Commission (L3omola)</label>
+                    <Input id={`commission-${task.id}`} type="number" value={commission} onChange={(e) => setCommission(e.target.value)} className="h-8 w-24" placeholder="L3omola"/>
+                </div>
+                 <div className="flex justify-between items-center border-t pt-2">
+                    <p className="text-sm font-bold">Différence</p>
+                    <p className={`font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>{difference.toFixed(2)} €</p>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+
 export default function BilledClient() {
   const { tasks, isInitialized } = useTaskStore();
+  const isMobile = useIsMobile();
 
   const billedTasks = React.useMemo(() => tasks.filter(t => t.status === 'billed'), [tasks]);
   
@@ -102,6 +157,17 @@ export default function BilledClient() {
           <CardTitle>Total des dépenses facturées: {totalExpenses.toFixed(2)} €</CardTitle>
         </CardHeader>
         <CardContent>
+          {isMobile ? (
+             <div className="space-y-4">
+              {billedTasks.length > 0 ? (
+                 billedTasks.map(task => <MobileBilledTaskCard key={task.id} task={task} />)
+              ) : (
+                <div className="text-center h-24 flex items-center justify-center">
+                  <p>Aucune tâche facturée</p>
+                </div>
+              )}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -109,9 +175,9 @@ export default function BilledClient() {
                 <TableHead>Ville</TableHead>
                 <TableHead>N° Tâche</TableHead>
                 <TableHead className="text-right">Dépenses</TableHead>
-                <TableHead>Montant Approuvé</TableHead>
-                <TableHead>Avance (Tasbiq)</TableHead>
-                <TableHead>Commission (L3omola)</TableHead>
+                <TableHead className="text-center">Montant Approuvé</TableHead>
+                <TableHead className="text-center">Avance (Tasbiq)</TableHead>
+                <TableHead className="text-center">Commission (L3omola)</TableHead>
                 <TableHead className="text-right">Différence</TableHead>
               </TableRow>
             </TableHeader>
@@ -131,6 +197,7 @@ export default function BilledClient() {
                 </TableRow>
              </TableFooter>
           </Table>
+          )}
            <p className="text-xs text-muted-foreground mt-2">La différence est calculée comme suit : Montant Approuvé - Dépenses.</p>
         </CardContent>
       </Card>
