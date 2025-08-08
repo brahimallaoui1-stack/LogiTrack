@@ -34,7 +34,7 @@ export default function Home() {
        <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Tableau de Bord</h1>
         <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[90px] md:w-[180px]">
             <SelectValue placeholder="Sélectionner une période" />
           </SelectTrigger>
           <SelectContent>
