@@ -1,15 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer } from "recharts"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   ChartConfig,
   ChartContainer,
@@ -72,7 +65,6 @@ export function TaskDistributionChart({ tasks }: TaskDistributionChartProps) {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Legend />
         </PieChart>
       </ChartContainer>
   )
