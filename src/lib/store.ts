@@ -30,7 +30,7 @@ const initialTasks: Task[] = [
     status: 'unbilled',
     expenses: [
       { id: 'exp-1-1', type: 'Repas', amount: 25.50 },
-      { id: 'exp-1-2', type: 'Taxi', amount: 42.00, receiptUrl: 'https://placehold.co/600x400.png', receiptFilename: 'taxi.png', data-ai-hint: 'receipt invoice' },
+      { id: 'exp-1-2', type: 'Taxi', amount: 42.00, receiptUrl: 'https://placehold.co/600x400.png', receiptFilename: 'taxi.png' },
     ],
   },
   {
@@ -45,7 +45,7 @@ const initialTasks: Task[] = [
     returnVehiclePlate: 'EF-456-GH',
     status: 'unbilled',
     expenses: [
-      { id: 'exp-2-1', type: 'Hébergement', amount: 120.00, receiptUrl: 'https://placehold.co/600x400.png', receiptFilename: 'hotel.png', data-ai-hint: 'receipt invoice' },
+      { id: 'exp-2-1', type: 'Hébergement', amount: 120.00, receiptUrl: 'https://placehold.co/600x400.png', receiptFilename: 'hotel.png' },
     ],
   },
    {
