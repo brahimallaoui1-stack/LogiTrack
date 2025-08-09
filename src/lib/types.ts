@@ -8,6 +8,7 @@ export interface Expense {
   montant: number;
   remarque?: string;
   status: ExpenseStatus;
+  processedDate?: string;
 }
 
 export interface SubMission {

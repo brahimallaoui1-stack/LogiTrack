@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from 'date-fns';
 
 type EnrichedExpense = Expense & {
     missionDate?: string;
@@ -62,22 +63,28 @@ export default function DepensesPage() {
     }, [allExpenses, filterStatus]);
     
     const groupedProcessedExpenses = useMemo(() => {
-      if (filterStatus !== 'Comptabilisé') return [];
+        if (filterStatus !== 'Comptabilisé') return [];
 
-      const grouped: Record<string, { totalAmount: number, taskId: string }> = {};
+        const groupedByDate: Record<string, { totalAmount: number, taskIds: string[] }> = {};
 
-      filteredExpenses.forEach(expense => {
-          if (!grouped[expense.taskId]) {
-              grouped[expense.taskId] = { totalAmount: 0, taskId: expense.taskId };
-          }
-          grouped[expense.taskId].totalAmount += expense.montant;
-      });
+        filteredExpenses.forEach(expense => {
+            if (expense.processedDate) {
+                const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
+                if (!groupedByDate[dateKey]) {
+                    groupedByDate[dateKey] = { totalAmount: 0, taskIds: [] };
+                }
+                groupedByDate[dateKey].totalAmount += expense.montant;
+                if (!groupedByDate[dateKey].taskIds.includes(expense.taskId)) {
+                    groupedByDate[dateKey].taskIds.push(expense.taskId);
+                }
+            }
+        });
 
-      return Object.values(grouped).map(group => ({
-        id: group.taskId,
-        processedDate: new Date().toISOString(), // This should be the real date
-        totalAmount: group.totalAmount
-      }))
+        return Object.entries(groupedByDate).map(([date, group]) => ({
+            id: date,
+            processedDate: date,
+            totalAmount: group.totalAmount
+        }));
     }, [filteredExpenses, filterStatus]);
 
 
@@ -102,11 +109,11 @@ export default function DepensesPage() {
         }).format(amount) + ' MAD';
     };
 
-    const handleView = (taskId: string) => {
+    const handleView = (id: string) => {
         if (filterStatus === 'Sans compte') {
-            router.push(`/missions/view/${taskId}?from=depenses`);
+            router.push(`/missions/view/${id}?from=depenses`);
         } else {
-             router.push(`/depenses/view/${taskId}`);
+             router.push(`/depenses/view/${id}`);
         }
     };
 

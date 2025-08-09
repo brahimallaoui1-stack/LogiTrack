@@ -56,7 +56,7 @@ export const useTaskStore = create<TaskState>()(
         set((state) => ({
           tasks: state.tasks.map((task) => {
             if (task.id === taskId && task.expenses) {
-              const updatedExpenses = task.expenses.map(exp => ({ ...exp, status: newStatus }));
+              const updatedExpenses = task.expenses.map(exp => ({ ...exp, status: newStatus, processedDate: new Date().toISOString() }));
               return { ...task, expenses: updatedExpenses };
             }
             return task;

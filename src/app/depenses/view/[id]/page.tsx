@@ -10,6 +10,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
 import type { Expense } from "@/lib/types";
+import { parse, isValid, format } from "date-fns";
 
 type EnrichedExpense = Expense & {
     missionDate?: string;
@@ -19,29 +20,52 @@ type EnrichedExpense = Expense & {
 export default function ViewProcessedExpensesPage() {
     const router = useRouter();
     const params = useParams();
-    const { id } = params;
+    const { id } = params; // This can be a taskId or a date string 'yyyy-MM-dd'
 
     const { tasks } = useTaskStore((state) => ({
         tasks: state.tasks,
     }));
 
-    const processedExpenses = useMemo(() => {
-        const task = tasks.find(t => t.id === id);
-        if (!task || !task.expenses) return [];
+    const isDateId = useMemo(() => {
+      const date = parse(id as string, 'yyyy-MM-dd', new Date());
+      return isValid(date);
+    }, [id])
 
-        return task.expenses
-            .filter(exp => exp.status === 'Comptabilisé')
+    const processedExpenses = useMemo(() => {
+      let relevantTasks = [];
+      if (isDateId) {
+        relevantTasks = tasks.filter(task => 
+          task.expenses?.some(exp => 
+            exp.status === 'Comptabilisé' && exp.processedDate && format(new Date(exp.processedDate), 'yyyy-MM-dd') === id
+          )
+        );
+      } else {
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          relevantTasks.push(task);
+        }
+      }
+
+      if (relevantTasks.length === 0) return [];
+      
+      const allExpenses: EnrichedExpense[] = [];
+      relevantTasks.forEach(task => {
+        const expenses = task.expenses
+            ?.filter(exp => exp.status === 'Comptabilisé')
             .map(expense => {
-                 const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
+                const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
                 const ville = task.city === 'Casablanca' ? task.city : task.subMissions?.[0]?.city || 'Hors Casablanca';
                 return {
                     ...expense,
                     missionDate: missionDate,
                     ville: ville,
                 }
-            });
+            }) || [];
+        allExpenses.push(...expenses);
+      });
+      return allExpenses;
 
-    }, [tasks, id]);
+    }, [tasks, id, isDateId]);
 
      const totalAmount = useMemo(() => {
         return processedExpenses.reduce((total, expense) => total + expense.montant, 0);
@@ -60,7 +84,7 @@ export default function ViewProcessedExpensesPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Aucune dépense trouvée</CardTitle>
-                        <CardDescription>Aucune dépense traitée n'a été trouvée pour cette mission.</CardDescription>
+                        <CardDescription>Aucune dépense traitée n'a été trouvée pour cette mission ou cette date.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Button onClick={() => router.push('/depenses')}>
@@ -72,6 +96,8 @@ export default function ViewProcessedExpensesPage() {
             </div>
         )
     }
+    
+    const pageTitle = isDateId ? `Détail des dépenses du ${formatDate(id as string)}` : "Détail des Dépenses Traitées";
 
     return (
         <div className="flex flex-col gap-6">
@@ -83,9 +109,9 @@ export default function ViewProcessedExpensesPage() {
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Détail des Dépenses Traitées</CardTitle>
+                    <CardTitle>{pageTitle}</CardTitle>
                     <CardDescription>
-                        Voici le détail des dépenses pour cette mission.
+                        Voici le détail des dépenses pour cette sélection.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -115,5 +141,3 @@ export default function ViewProcessedExpensesPage() {
         </div>
     )
 }
-
-    
