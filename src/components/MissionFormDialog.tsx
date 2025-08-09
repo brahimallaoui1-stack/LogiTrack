@@ -18,6 +18,8 @@ import { useTaskStore, useCityStore, useManagerStore, useMissionTypeStore } from
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task, Expense } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface MissionFormDialogProps {
     isOpen: boolean;
@@ -45,23 +47,26 @@ const initialFormState = {
   expenses: [] as Expense[],
 };
 
+const expenseTypes = ["Hôtel", "Transport", "Panier"];
+
 function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogProps) {
   const [typeDepense, setTypeDepense] = useState('');
   const [montant, setMontant] = useState('');
   const [remarque, setRemarque] = useState('');
 
-  const handleSave = () => {
+  const handleAddExpense = () => {
+    if (!typeDepense || !montant) return;
     onSave({
       typeDepense,
       montant: parseFloat(montant) || 0,
       remarque,
     });
-    // Reset and close
+    // Reset fields for next entry
     setTypeDepense('');
     setMontant('');
     setRemarque('');
-    onOpenChange(false);
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -73,7 +78,16 @@ function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogPr
         <div className="grid gap-4 py-4">
             <div className="grid gap-2">
                 <Label htmlFor="typeDepense">Type de dépense</Label>
-                <Input id="typeDepense" value={typeDepense} onChange={(e) => setTypeDepense(e.target.value)} />
+                <Select value={typeDepense} onValueChange={setTypeDepense}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {expenseTypes.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="montant">Montant</Label>
@@ -84,9 +98,12 @@ function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogPr
                 <Textarea id="remarqueFrais" value={remarque} onChange={(e) => setRemarque(e.target.value)} />
             </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={handleSave}>Enregistrer</Button>
+        <DialogFooter className="justify-between">
+          <Button onClick={() => onOpenChange(false)}>Terminé</Button>
+          <Button onClick={handleAddExpense}>
+            <Plus className="h-4 w-4 mr-2"/>
+            Ajouter le frais
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -135,12 +152,19 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
   };
 
   const handleSaveExpense = (expense: Omit<Expense, 'id'>) => {
-    const newExpense = { ...expense, id: `expense-${Date.now()}` };
+    const newExpense = { ...expense, id: `expense-${Date.now()}-${Math.random()}` };
     setFormState(prevState => ({
       ...prevState,
       expenses: [...prevState.expenses, newExpense],
     }));
   };
+  
+  const handleRemoveExpense = (expenseId: string) => {
+     setFormState(prevState => ({
+      ...prevState,
+      expenses: prevState.expenses.filter(exp => exp.id !== expenseId),
+    }));
+  }
 
   const handleSave = () => {
     const taskData = {
@@ -164,6 +188,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
     }
     onOpenChange(false);
   };
+  
+  const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
 
   return (
      <>
@@ -176,7 +202,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
            </DialogDescription>
          </DialogHeader>
          <ScrollArea className="max-h-[70vh] p-4">
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="date">Date</Label>
@@ -242,9 +268,44 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                   <Label htmlFor="remarque">Remarque</Label>
                   <Textarea id="remarque" value={formState.remarque} onChange={handleInputChange} />
               </div>
+
+              {formState.expenses.length > 0 && (
+                <div className="grid gap-2">
+                    <Label>Frais</Label>
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Montant</TableHead>
+                                    <TableHead>Remarque</TableHead>
+                                    <TableHead className="text-right"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {formState.expenses.map((expense) => (
+                                    <TableRow key={expense.id}>
+                                        <TableCell>{expense.typeDepense}</TableCell>
+                                        <TableCell>{expense.montant.toFixed(2)} €</TableCell>
+                                        <TableCell className="truncate max-w-[100px]">{expense.remarque}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveExpense(expense.id)}>
+                                                <Trash2 className="h-4 w-4 text-destructive"/>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="text-right font-semibold pr-4">
+                        Total des frais: {totalExpenses.toFixed(2)} €
+                    </div>
+                </div>
+              )}
           </div>
         </ScrollArea>
-         <DialogFooter className="justify-between">
+         <DialogFooter className="sm:justify-between gap-2">
            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des frais</Button>
            <Button type="submit" onClick={handleSave}>Enregistrer</Button>
          </DialogFooter>
