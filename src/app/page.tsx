@@ -6,17 +6,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
-import { format, getYear, getMonth, parseISO, getISOWeek } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { getYear, getMonth, parseISO } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
-import { Calendar } from "@/components/ui/calendar";
+import { MonthPicker } from "@/components/MonthPicker";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -24,7 +23,6 @@ export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isMissionDialogOpen, setIsMissionDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReportCategory>("city");
   const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
@@ -37,7 +35,6 @@ export default function Home() {
 
     const selectedYear = getYear(selectedDate);
     const selectedMonth = getMonth(selectedDate);
-    const selectedWeek = getISOWeek(selectedDate);
 
     return tasks.filter(task => {
       const checkDate = (dateStr: string) => {
@@ -49,16 +46,10 @@ export default function Home() {
             return taskYear === selectedYear;
           }
 
-          const taskMonth = getMonth(taskDate);
           if (timeRange === 'month') {
+            const taskMonth = getMonth(taskDate);
             return taskYear === selectedYear && taskMonth === selectedMonth;
           }
-          
-          if (timeRange === 'week') {
-            const taskWeek = getISOWeek(taskDate);
-            return taskYear === selectedYear && taskWeek === selectedWeek;
-          }
-
           return false;
         } catch (e) {
           return false;
@@ -138,14 +129,6 @@ export default function Home() {
     setIsMissionDialogOpen(true);
   }
   
-  const formatDate = () => {
-    if (!selectedDate) return "Choisir une date";
-    if (timeRange === 'year') return format(selectedDate, 'yyyy', { locale: fr });
-    if (timeRange === 'month') return format(selectedDate, 'MMMM yyyy', { locale: fr });
-    if (timeRange === 'week') return `Semaine ${getISOWeek(selectedDate)}, ${getYear(selectedDate)}`;
-    return format(selectedDate, 'PPP', { locale: fr });
-  };
-
   const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
         <div className="grid gap-6">
@@ -198,27 +181,21 @@ export default function Home() {
     <div className="grid gap-6">
        <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-            <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
+            <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
-                  className="w-[240px] justify-start text-left font-normal"
+                  className="w-[180px] justify-start text-left font-normal"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formatDate()}
+                  {selectedDate ? (
+                    timeRange === 'year' ? getYear(selectedDate) : `${getMonth(selectedDate) + 1}/${getYear(selectedDate)}`
+                  ) : (
+                    <span>Choisir une date</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                      setSelectedDate(date || new Date());
-                      setIsPickerOpen(false);
-                  }}
-                  initialFocus
-                  locale={fr}
-                />
+                 <MonthPicker date={selectedDate} onChange={setSelectedDate} />
               </PopoverContent>
             </Popover>
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -226,7 +203,6 @@ export default function Home() {
                 <SelectValue placeholder="Sélectionner une période" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Semaine</SelectItem>
                 <SelectItem value="month">Mois</SelectItem>
                 <SelectItem value="year">Année</SelectItem>
               </SelectContent>
