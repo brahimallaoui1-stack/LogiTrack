@@ -55,6 +55,11 @@ export default function DepensesPage() {
         }
         return allExpenses.filter(expense => expense.status === statusFilter);
     }, [allExpenses, statusFilter]);
+    
+    const chartExpenses = useMemo(() => {
+        return allExpenses.filter(expense => expense.status === 'Sans compte' || expense.status === 'Comptabilisé');
+    }, [allExpenses]);
+
 
     const handleStatusChange = (expense: Expense, taskId: string, newStatus: ExpenseStatus) => {
         const updatedExpense = { ...expense, status: newStatus };
@@ -69,16 +74,15 @@ export default function DepensesPage() {
     };
     
     const expenseStatusCounts = useMemo(() => {
-        const counts = allExpenses.reduce((acc, expense) => {
+        const counts = chartExpenses.reduce((acc, expense) => {
             acc[expense.status] = (acc[expense.status] || 0) + 1;
             return acc;
         }, {} as Record<ExpenseStatus, number>);
         return [
             { name: 'Sans compte', count: counts['Sans compte'] || 0 },
             { name: 'Comptabilisé', count: counts['Comptabilisé'] || 0 },
-            { name: 'Payé', count: counts['Payé'] || 0 },
         ];
-    }, [allExpenses]);
+    }, [chartExpenses]);
 
 
     return (
@@ -90,7 +94,7 @@ export default function DepensesPage() {
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-6">
                     <div>
-                        <ExpenseDistributionChart expenses={allExpenses} category="status" label="Statut" />
+                        <ExpenseDistributionChart expenses={chartExpenses} category="status" label="Statut" />
                     </div>
                     <div>
                         <Table>
@@ -103,7 +107,7 @@ export default function DepensesPage() {
                             </TableHeader>
                             <TableBody>
                                 {expenseStatusCounts.map(({ name, count }) => {
-                                    const percentage = allExpenses.length > 0 ? ((count / allExpenses.length) * 100).toFixed(1) : 0;
+                                    const percentage = chartExpenses.length > 0 ? ((count / chartExpenses.length) * 100).toFixed(1) : 0;
                                     return (
                                     <TableRow key={name}>
                                         <TableCell className="font-medium">{name}</TableCell>
