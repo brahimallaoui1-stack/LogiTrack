@@ -7,16 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
-import { MonthPicker } from "@/components/MonthPicker";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
-import { format, getYear, getMonth, parseISO } from 'date-fns';
+import { format, getYear, getMonth, parseISO, getISOWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { Calendar } from "@/components/ui/calendar";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -37,39 +37,42 @@ export default function Home() {
 
     const selectedYear = getYear(selectedDate);
     const selectedMonth = getMonth(selectedDate);
+    const selectedWeek = getISOWeek(selectedDate);
 
     return tasks.filter(task => {
-      if (task.city === 'Casablanca') {
-        if (!task.date) return false;
+      const checkDate = (dateStr: string) => {
         try {
-          const taskDate = parseISO(task.date);
+          const taskDate = parseISO(dateStr);
           const taskYear = getYear(taskDate);
-          const taskMonth = getMonth(taskDate);
-
+          
           if (timeRange === 'year') {
             return taskYear === selectedYear;
           }
-          return taskYear === selectedYear && taskMonth === selectedMonth;
+
+          const taskMonth = getMonth(taskDate);
+          if (timeRange === 'month') {
+            return taskYear === selectedYear && taskMonth === selectedMonth;
+          }
+          
+          if (timeRange === 'week') {
+            const taskWeek = getISOWeek(taskDate);
+            return taskYear === selectedYear && taskWeek === selectedWeek;
+          }
+
+          return false;
         } catch (e) {
           return false;
         }
+      };
+      
+      if (task.city === 'Casablanca') {
+        if (!task.date) return false;
+        return checkDate(task.date);
       } else {
          if (!task.subMissions || task.subMissions.length === 0) return false;
-         // Pour les missions complexes, inclure la mission si au moins une sous-mission correspond au filtre
          return task.subMissions.some(sub => {
             if (!sub.date) return false;
-             try {
-                const subDate = parseISO(sub.date);
-                const subYear = getYear(subDate);
-                const subMonth = getMonth(subDate);
-
-                if (timeRange === 'year') {
-                    return subYear === selectedYear;
-                }
-                return subYear === selectedYear && subMonth === selectedMonth;
-            } catch (e) {
-                return false;
-            }
+            return checkDate(sub.date);
          });
       }
     });
@@ -134,6 +137,14 @@ export default function Home() {
     setIsCityChoiceDialogOpen(false);
     setIsMissionDialogOpen(true);
   }
+  
+  const formatDate = () => {
+    if (!selectedDate) return "Choisir une date";
+    if (timeRange === 'year') return format(selectedDate, 'yyyy', { locale: fr });
+    if (timeRange === 'month') return format(selectedDate, 'MMMM yyyy', { locale: fr });
+    if (timeRange === 'week') return `Semaine ${getISOWeek(selectedDate)}, ${getYear(selectedDate)}`;
+    return format(selectedDate, 'PPP', { locale: fr });
+  };
 
   const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
@@ -191,19 +202,22 @@ export default function Home() {
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
-                  className="w-[180px] justify-start text-left font-normal"
+                  className="w-[240px] justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'MMMM yyyy', { locale: fr }) : <span>Choisir une date</span>}
+                  {formatDate()}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <MonthPicker
-                  date={selectedDate}
-                  onChange={(newDate) => {
-                    setSelectedDate(newDate);
-                    setIsPickerOpen(false);
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                      setSelectedDate(date || new Date());
+                      setIsPickerOpen(false);
                   }}
+                  initialFocus
+                  locale={fr}
                 />
               </PopoverContent>
             </Popover>
@@ -212,6 +226,7 @@ export default function Home() {
                 <SelectValue placeholder="Sélectionner une période" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="week">Semaine</SelectItem>
                 <SelectItem value="month">Mois</SelectItem>
                 <SelectItem value="year">Année</SelectItem>
               </SelectContent>
