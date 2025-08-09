@@ -127,6 +127,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   const [formState, setFormState] = useState(initialFormState);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   
+  const isCasablancaMission = formState.ville === 'Casablanca';
+
   useEffect(() => {
     if (isOpen) {
         if (editingTask) {
@@ -179,7 +181,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   }
 
   const handleSave = () => {
-    const taskData = {
+    const taskData: Omit<Task, 'id'> = {
         label: formState.typeMission || 'Nouvelle mission',
         city: formState.ville,
         date: formState.date,
@@ -190,11 +192,20 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
         marqueVehiculeLivraison: formState.marqueVehiculeLivraison,
         immatriculationLivraison: formState.immatriculationLivraison,
         remarqueLivraison: formState.remarqueLivraison,
-        marqueVehiculeRecuperation: formState.marqueVehiculeRecuperation,
-        immatriculationRecuperation: formState.immatriculationRecuperation,
-        remarqueRecuperation: formState.remarqueRecuperation,
-        expenses: formState.expenses,
     };
+    
+    if (!isCasablancaMission) {
+        taskData.marqueVehiculeRecuperation = formState.marqueVehiculeRecuperation;
+        taskData.immatriculationRecuperation = formState.immatriculationRecuperation;
+        taskData.remarqueRecuperation = formState.remarqueRecuperation;
+        taskData.expenses = formState.expenses;
+    } else {
+        taskData.expenses = [];
+        taskData.marqueVehiculeRecuperation = "";
+        taskData.immatriculationRecuperation = "";
+        taskData.remarqueRecuperation = "";
+    }
+
 
     if (editingTask) {
       updateTask({ ...editingTask, ...taskData });
@@ -250,7 +261,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="ville">Ville</Label>
-                     <Select value={formState.ville} onValueChange={(value) => handleSelectChange('ville', value)}>
+                     <Select value={formState.ville} onValueChange={(value) => handleSelectChange('ville', value)} disabled={!!prefilledCity}>
                         <SelectTrigger>
                             <SelectValue placeholder="Sélectionner une ville" />
                         </SelectTrigger>
@@ -282,7 +293,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
             <Separator className="my-4"/>
             
-            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className={`grid ${!isCasablancaMission ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-x-8 gap-y-4`}>
                 <div>
                      <h4 className="font-semibold mb-4 text-center">Livraison</h4>
                      <div className="grid gap-4">
@@ -300,6 +311,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                       </div>
                      </div>
                 </div>
+                {!isCasablancaMission && (
                 <div>
                      <h4 className="font-semibold mb-4 text-center">Récupération</h4>
                      <div className="grid gap-4">
@@ -317,10 +329,10 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                         </div>
                      </div>
                 </div>
+                )}
             </div>
 
-
-              {formState.expenses.length > 0 && (
+              {!isCasablancaMission && formState.expenses.length > 0 && (
                 <div className="grid gap-2 pt-4">
                     <Label>Frais</Label>
                     <div className="rounded-md border">
@@ -357,7 +369,9 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
           </div>
         </ScrollArea>
          <DialogFooter className="sm:justify-between gap-2 pt-4">
-           <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des frais</Button>
+           {!isCasablancaMission ? 
+            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des frais</Button> 
+            : <div></div>}
            <div className="flex gap-2 justify-end">
             <Button type="submit" onClick={() => handleSave()}>Enregistrer</Button>
            </div>
@@ -372,3 +386,5 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
+
+    

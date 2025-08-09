@@ -28,6 +28,7 @@ export default function ViewMissionPage() {
     };
     
     const totalExpenses = task?.expenses?.reduce((sum, exp) => sum + exp.montant, 0) ?? 0;
+    const isCasablancaMission = task?.city === 'Casablanca';
 
     if (!task) {
         return (
@@ -76,7 +77,7 @@ export default function ViewMissionPage() {
 
                         <Separator/>
 
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className={`grid ${!isCasablancaMission ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-8`}>
                              <div>
                                 <h4 className="font-semibold text-lg mb-4 text-center">Livraison</h4>
                                 <div className="space-y-2">
@@ -88,6 +89,7 @@ export default function ViewMissionPage() {
                                     </div>
                                 </div>
                             </div>
+                            {!isCasablancaMission && (
                              <div>
                                 <h4 className="font-semibold text-lg mb-4 text-center">Récupération</h4>
                                  <div className="space-y-2">
@@ -99,9 +101,10 @@ export default function ViewMissionPage() {
                                     </div>
                                 </div>
                             </div>
+                            )}
                         </div>
                         
-                        {task.expenses && task.expenses.length > 0 && (
+                        {!isCasablancaMission && task.expenses && task.expenses.length > 0 && (
                             <div>
                                 <Separator className="my-4"/>
                                 <h4 className="font-semibold text-lg mb-2">Frais</h4>
@@ -138,7 +141,10 @@ export default function ViewMissionPage() {
             isOpen={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             task={task}
+            prefilledCity={task.city === 'Casablanca' ? 'Casablanca' : undefined}
         />
         </>
     );
 }
+
+    
