@@ -31,7 +31,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="grid md:grid-cols-[220px_1fr] gap-6">
-      <aside className="hidden md:flex flex-col gap-4">
+       <aside className="hidden md:flex flex-col gap-4">
          <nav className="grid gap-1">
             {sidebarNavItems.map((item) => (
               <Link key={item.href} href={item.href}>
@@ -49,7 +49,24 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             ))}
         </nav>
       </aside>
-      <main>{children}</main>
+       <div className="md:hidden">
+          <div className="flex space-x-1 border-b mb-4">
+              {sidebarNavItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'justify-start',
+                      pathname === item.href ? 'font-bold border-b-2 border-primary' : 'text-muted-foreground'
+                    )}
+                  >
+                      {item.title}
+                  </Button>
+                </Link>
+              ))}
+          </div>
+      </div>
+      <main className="md:col-start-2">{children}</main>
     </div>
   );
 }
