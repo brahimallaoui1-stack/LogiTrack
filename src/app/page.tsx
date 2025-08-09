@@ -75,8 +75,8 @@ export default function Home() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Répartition des Tâches</CardTitle>
-            <CardDescription>Pourcentage de tâches par ville.</CardDescription>
+            <CardTitle>Pourcentage de missions par ville</CardTitle>
+            <CardDescription>Pourcentage de missions par ville.</CardDescription>
           </CardHeader>
           <CardContent>
             <TaskDistributionChart tasks={filteredTasks} />
