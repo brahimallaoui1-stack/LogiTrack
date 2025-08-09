@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -12,7 +13,7 @@ import {
 import { Task } from "@/lib/types"
 
 interface TaskDistributionChartProps {
-  tasks: Task[];
+  tasks: (Task & { subMissionIndex?: number })[]; // Accept flattened tasks
   category: keyof Task;
   label: string;
 }
@@ -28,7 +29,15 @@ const COLORS = [
 export function TaskDistributionChart({ tasks, category, label }: TaskDistributionChartProps) {
     const data = React.useMemo(() => {
         const counts = tasks.reduce((acc, task) => {
-            const key = task[category] as string | undefined;
+            let key: string | undefined;
+
+            if (category === 'city') {
+                // For city category, use the subMission city if available
+                key = task.city;
+            } else {
+                key = task[category] as string | undefined;
+            }
+            
             if (key) {
                 acc[key] = (acc[key] || 0) + 1
             }

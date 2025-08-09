@@ -35,24 +35,61 @@ export default function Home() {
     // Pour l'instant, nous utilisons toutes les tâches.
     return tasks;
   }, [tasks, timeRange, selectedDate]);
+  
+  const reportData = useMemo(() => {
+    const flatTasks: (Task & { subMissionIndex?: number })[] = [];
+    filteredTasks.forEach(task => {
+        if (task.city === 'Casablanca') {
+            flatTasks.push(task);
+        } else if (task.subMissions) {
+            task.subMissions.forEach((subMission, index) => {
+                flatTasks.push({
+                    ...task,
+                    // We only care about sub-mission specific fields for categorization
+                    city: subMission.city || task.city,
+                    gestionnaire: subMission.gestionnaire || task.gestionnaire,
+                    typeMission: subMission.typeMission || task.typeMission,
+                    subMissionIndex: index
+                });
+            });
+        }
+    });
 
-  const getTaskCounts = (category: ReportCategory) => {
-    const counts = filteredTasks.reduce((acc, task) => {
-      const key = task[category];
-      if (key) {
-        acc[key] = (acc[key] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    const getCounts = (category: ReportCategory) => {
+        const counts = flatTasks.reduce((acc, task) => {
+            let key: string | undefined;
 
-    return Object.entries(counts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-  };
+            if (category === 'city') {
+                key = task.city === 'Hors Casablanca' ? 'Hors Casablanca' : task.city;
+            } else {
+                key = task[category];
+            }
 
-  const cityTaskCounts = useMemo(() => getTaskCounts('city'), [filteredTasks]);
-  const managerTaskCounts = useMemo(() => getTaskCounts('gestionnaire'), [filteredTasks]);
-  const missionTypeTaskCounts = useMemo(() => getTaskCounts('typeMission'), [filteredTasks]);
+            if (key) {
+                acc[key] = (acc[key] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        return Object.entries(counts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count);
+    };
+
+    const cityTaskCounts = getCounts('city');
+    const managerTaskCounts = getCounts('gestionnaire');
+    const missionTypeTaskCounts = getCounts('typeMission');
+    
+    return {
+        totalMissions: flatTasks.length,
+        cityTaskCounts,
+        managerTaskCounts,
+        missionTypeTaskCounts,
+        flatTasks,
+    };
+  }, [filteredTasks]);
+
+  const { totalMissions, cityTaskCounts, managerTaskCounts, missionTypeTaskCounts, flatTasks } = reportData;
 
   const handleCityChoice = (city?: string) => {
     setPrefilledCity(city);
@@ -70,7 +107,7 @@ export default function Home() {
                     <CardDescription>{description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <TaskDistributionChart tasks={filteredTasks} category={category} label={chartLabel} />
+                    <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
                 </CardContent>
                 </Card>
                 <Card>
@@ -89,7 +126,7 @@ export default function Home() {
                     </TableHeader>
                     <TableBody>
                         {data.map(({ name, count }) => {
-                          const percentage = filteredTasks.length > 0 ? ((count / filteredTasks.length) * 100).toFixed(1) : 0;
+                          const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
                           return (
                             <TableRow key={name}>
                                 <TableCell className="font-medium">{name}</TableCell>
