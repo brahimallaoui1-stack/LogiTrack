@@ -98,7 +98,7 @@ export default function DepensesPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Statut</CardTitle>
+                        <CardTitle>Dépenses non comptabilisées</CardTitle>
                         <CardDescription>Répartition des dépenses.</CardDescription>
                     </CardHeader>
                     <CardContent>
