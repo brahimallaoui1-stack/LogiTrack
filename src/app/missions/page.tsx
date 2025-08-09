@@ -15,6 +15,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTaskStore } from "@/lib/store";
@@ -32,6 +33,8 @@ export default function MissionsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
+  const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
 
   const handleEdit = (task: Task) => {
@@ -45,8 +48,14 @@ export default function MissionsPage() {
 
   const handleAddNew = () => {
     setEditingTask(null);
-    setIsDialogOpen(true);
+    setIsCityChoiceDialogOpen(true);
   };
+
+  const handleCityChoice = (city?: string) => {
+    setPrefilledCity(city);
+    setIsCityChoiceDialogOpen(false);
+    setIsDialogOpen(true);
+  }
 
   const handleDeleteClick = (id: string) => {
     setTaskToDelete(id);
@@ -116,7 +125,23 @@ export default function MissionsPage() {
       isOpen={isDialogOpen} 
       onOpenChange={setIsDialogOpen} 
       task={editingTask}
+      prefilledCity={prefilledCity}
     />
+
+    <AlertDialog open={isCityChoiceDialogOpen} onOpenChange={setIsCityChoiceDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Type de mission</AlertDialogTitle>
+                <AlertDialogDescription>
+                    La mission se déroule-t-elle à Casablanca ou en dehors ?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <Button variant="outline" onClick={() => handleCityChoice()}>Hors Casablanca</Button>
+                <Button onClick={() => handleCityChoice('Casablanca')}>Casablanca</Button>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
 
     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
       <AlertDialogContent>

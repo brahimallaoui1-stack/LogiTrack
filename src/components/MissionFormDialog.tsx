@@ -26,6 +26,7 @@ interface MissionFormDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
     task?: Task | null;
+    prefilledCity?: string;
 }
 
 interface ExpenseFormDialogProps {
@@ -115,7 +116,7 @@ function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogPr
 }
 
 
-export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: MissionFormDialogProps) {
+export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, prefilledCity }: MissionFormDialogProps) {
   const addTask = useTaskStore((state) => state.addTask);
   const updateTask = useTaskStore((state) => state.updateTask);
   
@@ -146,12 +147,12 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
             expenses: editingTask.expenses || [],
           });
         } else {
-            setFormState(initialFormState);
+            setFormState({...initialFormState, ville: prefilledCity || "" });
         }
     } else {
          setFormState(initialFormState);
     }
-  }, [editingTask, isOpen]);
+  }, [editingTask, isOpen, prefilledCity]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;

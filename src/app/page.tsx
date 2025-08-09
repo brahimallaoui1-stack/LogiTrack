@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -26,6 +27,8 @@ export default function Home() {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isMissionDialogOpen, setIsMissionDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReportCategory>("city");
+  const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
+  const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
   const filteredTasks = useMemo(() => {
     // La logique de filtrage sera implémentée ici ultérieurement
@@ -50,6 +53,12 @@ export default function Home() {
   const cityTaskCounts = useMemo(() => getTaskCounts('city'), [filteredTasks]);
   const managerTaskCounts = useMemo(() => getTaskCounts('gestionnaire'), [filteredTasks]);
   const missionTypeTaskCounts = useMemo(() => getTaskCounts('typeMission'), [filteredTasks]);
+
+  const handleCityChoice = (city?: string) => {
+    setPrefilledCity(city);
+    setIsCityChoiceDialogOpen(false);
+    setIsMissionDialogOpen(true);
+  }
 
   const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
@@ -133,7 +142,7 @@ export default function Home() {
               </SelectContent>
             </Select>
         </div>
-        <Button size="icon" onClick={() => setIsMissionDialogOpen(true)}>
+        <Button size="icon" onClick={() => setIsCityChoiceDialogOpen(true)}>
             <Plus />
             <span className="sr-only">Ajouter une mission</span>
         </Button>
@@ -153,7 +162,22 @@ export default function Home() {
     <MissionFormDialog
         isOpen={isMissionDialogOpen}
         onOpenChange={setIsMissionDialogOpen}
+        prefilledCity={prefilledCity}
     />
+     <AlertDialog open={isCityChoiceDialogOpen} onOpenChange={setIsCityChoiceDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Type de mission</AlertDialogTitle>
+                <AlertDialogDescription>
+                    La mission se déroule-t-elle à Casablanca ou en dehors ?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <Button variant="outline" onClick={() => handleCityChoice()}>Hors Casablanca</Button>
+                <Button onClick={() => handleCityChoice('Casablanca')}>Casablanca</Button>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
