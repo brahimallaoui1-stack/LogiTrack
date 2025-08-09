@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, PanelLeft, LayoutDashboard, ListTodo, Building, Users } from 'lucide-react';
+import { Briefcase, PanelLeft, LayoutDashboard, ListTodo, Settings } from 'lucide-react';
 
 import {
   SidebarProvider,
@@ -54,6 +54,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/missions">
                   <ListTodo />
                   <span>Missions</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/parametres'}
+              >
+                <Link href="/parametres">
+                  <Settings />
+                  <span>Paramètres</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
