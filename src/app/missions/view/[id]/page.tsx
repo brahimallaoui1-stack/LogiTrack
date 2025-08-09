@@ -2,25 +2,46 @@
 "use client";
 
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTaskStore } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Car } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { MissionFormDialog } from '@/components/MissionFormDialog';
 import { Separator } from '@/components/ui/separator';
-import type { SubMission } from '@/lib/types';
+import type { SubMission, ExpenseStatus } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 export default function ViewMissionPage() {
     const router = useRouter();
     const params = useParams();
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
     const { id } = params;
-    const tasks = useTaskStore((state) => state.tasks);
+    const { tasks, updateExpenseStatus } = useTaskStore((state) => ({
+        tasks: state.tasks,
+        updateExpenseStatus: state.updateExpenseStatus,
+    }));
     const task = tasks.find((t) => t.id === id);
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+
+    const cameFromDepenses = searchParams.get('from') === 'depenses';
+    const hasUnprocessedExpenses = task?.expenses?.some(exp => exp.status === 'Sans compte');
+    const showProcessExpenseButton = cameFromDepenses && hasUnprocessedExpenses;
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -31,6 +52,19 @@ export default function ViewMissionPage() {
     
     const totalExpenses = task?.expenses?.reduce((sum, exp) => sum + exp.montant, 0) ?? 0;
     const isCasablancaMission = task?.city === 'Casablanca';
+
+    const handleProcessExpense = () => {
+        if (task) {
+            updateExpenseStatus(task.id, 'Comptabilisé');
+            toast({
+                title: "Dépense traitée",
+                description: "La dépense a été marquée comme comptabilisée.",
+            });
+            setIsConfirmDialogOpen(false);
+            router.push('/depenses');
+        }
+    };
+
 
     if (!task) {
         return (
@@ -83,7 +117,15 @@ export default function ViewMissionPage() {
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour
                 </Button>
-                <Button onClick={() => setIsEditDialogOpen(true)}>Modifier la mission</Button>
+                <div className="flex gap-2">
+                    {showProcessExpenseButton && (
+                         <Button variant="secondary" onClick={() => setIsConfirmDialogOpen(true)}>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Dépense traitée
+                        </Button>
+                    )}
+                    <Button onClick={() => setIsEditDialogOpen(true)}>Modifier la mission</Button>
+                </div>
             </div>
             <Card>
                 <CardHeader>
@@ -162,6 +204,20 @@ export default function ViewMissionPage() {
             task={task}
             prefilledCity={task.city === 'Casablanca' ? 'Casablanca' : undefined}
         />
+        <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmer le traitement</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Êtes-vous sûr de vouloir marquer cette dépense comme traitée ? Cette action la déplacera vers la liste des dépenses comptabilisées.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleProcessExpense}>Confirmer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         </>
     );
 }

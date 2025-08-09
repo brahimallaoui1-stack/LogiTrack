@@ -1,3 +1,4 @@
+
 "use client";
 
 import { create } from 'zustand';
@@ -30,7 +31,7 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
-  updateExpense: (taskId: string, updatedExpense: Expense) => void;
+  updateExpenseStatus: (taskId: string, newStatus: 'Comptabilisé' | 'Payé') => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -51,16 +52,12 @@ export const useTaskStore = create<TaskState>()(
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== id),
         })),
-      updateExpense: (taskId, updatedExpense) =>
+       updateExpenseStatus: (taskId, newStatus) =>
         set((state) => ({
           tasks: state.tasks.map((task) => {
-            if (task.id === taskId) {
-              return {
-                ...task,
-                expenses: task.expenses?.map((expense) =>
-                  expense.id === updatedExpense.id ? updatedExpense : expense
-                ),
-              };
+            if (task.id === taskId && task.expenses) {
+              const updatedExpenses = task.expenses.map(exp => ({ ...exp, status: newStatus }));
+              return { ...task, expenses: updatedExpenses };
             }
             return task;
           }),

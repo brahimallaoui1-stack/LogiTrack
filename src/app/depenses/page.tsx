@@ -83,7 +83,8 @@ export default function DepensesPage() {
     };
 
     const handleView = (taskId: string) => {
-        router.push(`/missions/view/${taskId}`);
+        const query = filterStatus === 'Sans compte' ? '?from=depenses' : '';
+        router.push(`/missions/view/${taskId}${query}`);
     };
 
     const pageTitle = filterStatus === 'Sans compte' ? 'Dépenses non traitées' : 'Dépenses traitées';
