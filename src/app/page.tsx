@@ -38,8 +38,7 @@ export default function Home() {
 
   return (
     <div className="grid gap-6">
-       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Tableau de Bord</h1>
+       <div className="flex justify-end items-center">
         <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
