@@ -154,7 +154,6 @@ export default function MissionsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
                 <TableHead>Mission</TableHead>
                 <TableHead>Ville</TableHead>
               </TableRow>
@@ -162,7 +161,6 @@ export default function MissionsPage() {
             <TableBody>
               {tasks.map((task) => (
                 <TableRow key={task.id}>
-                  <TableCell className="font-medium">{task.id}</TableCell>
                   <TableCell>{task.label}</TableCell>
                   <TableCell>{task.city}</TableCell>
                 </TableRow>

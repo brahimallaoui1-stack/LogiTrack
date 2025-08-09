@@ -54,14 +54,12 @@ export default function ParametresGestionnairesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Nom</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {managers.map((manager) => (
               <TableRow key={manager.id}>
-                <TableCell>{manager.id}</TableCell>
                 <TableCell>{manager.name}</TableCell>
               </TableRow>
             ))}

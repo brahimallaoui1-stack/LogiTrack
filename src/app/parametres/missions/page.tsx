@@ -54,14 +54,12 @@ export default function ParametresMissionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Nom</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {missionTypes.map((type) => (
               <TableRow key={type.id}>
-                <TableCell>{type.id}</TableCell>
                 <TableCell>{type.name}</TableCell>
               </TableRow>
             ))}

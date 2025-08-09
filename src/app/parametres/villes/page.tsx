@@ -54,14 +54,12 @@ export default function ParametresVillesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Nom</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {cities.map((city) => (
               <TableRow key={city.id}>
-                <TableCell>{city.id}</TableCell>
                 <TableCell>{city.name}</TableCell>
               </TableRow>
             ))}
