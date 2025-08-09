@@ -72,17 +72,21 @@ export default function ViewProcessedExpensesPage() {
         return processedExpenses.reduce((total, expense) => total + expense.montant, 0);
     }, [processedExpenses]);
     
-    const [suggestedAmount, setSuggestedAmount] = useState(0);
-    const [accountantFees, setAccountantFees] = useState(0);
-    const [advance, setAdvance] = useState(0);
+    const [suggestedAmount, setSuggestedAmount] = useState<number | ''>('');
+    const [accountantFees, setAccountantFees] = useState<number | ''>('');
+    const [advance, setAdvance] = useState<number | ''>('');
 
     useEffect(() => {
-        // We keep totalAmount for display, but suggestedAmount starts at 0
-        setSuggestedAmount(0);
+        setSuggestedAmount('');
+        setAccountantFees('');
+        setAdvance('');
     }, [totalAmount]);
 
     const remainder = useMemo(() => {
-        return suggestedAmount - advance - accountantFees;
+        const sugg = typeof suggestedAmount === 'number' ? suggestedAmount : 0;
+        const adv = typeof advance === 'number' ? advance : 0;
+        const fees = typeof accountantFees === 'number' ? accountantFees : 0;
+        return sugg - adv - fees;
     }, [suggestedAmount, advance, accountantFees]);
 
     const handleMarkAsPaid = () => {
@@ -173,7 +177,7 @@ export default function ViewProcessedExpensesPage() {
                                   id="suggestedAmount" 
                                   type="number" 
                                   value={suggestedAmount} 
-                                  onChange={(e) => setSuggestedAmount(parseFloat(e.target.value) || 0)}
+                                  onChange={(e) => setSuggestedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
                                   disabled={expenseStatus === 'Payé'}
                                   placeholder="Entrer le montant"
                               />
@@ -184,7 +188,7 @@ export default function ViewProcessedExpensesPage() {
                                   id="advance" 
                                   type="number" 
                                   value={advance} 
-                                  onChange={(e) => setAdvance(parseFloat(e.target.value) || 0)}
+                                  onChange={(e) => setAdvance(e.target.value === '' ? '' : parseFloat(e.target.value))}
                                   disabled={expenseStatus === 'Payé'}
                                    placeholder="Entrer l'avance"
                               />
@@ -195,7 +199,7 @@ export default function ViewProcessedExpensesPage() {
                                   id="accountantFees" 
                                   type="number" 
                                   value={accountantFees} 
-                                  onChange={(e) => setAccountantFees(parseFloat(e.target.value) || 0)}
+                                  onChange={(e) => setAccountantFees(e.target.value === '' ? '' : parseFloat(e.target.value))}
                                   disabled={expenseStatus === 'Payé'}
                                    placeholder="Entrer les honoraires"
                               />
