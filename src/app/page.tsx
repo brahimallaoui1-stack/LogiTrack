@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { MonthPicker } from "@/components/MonthPicker";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState } from "react";
@@ -18,6 +18,7 @@ export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const filteredTasks = useMemo(() => {
     // La logique de filtrage sera implémentée ici ultérieurement
@@ -40,7 +41,7 @@ export default function Home() {
     <div className="grid gap-6">
        <div className="flex justify-end items-center">
         <div className="flex items-center gap-2">
-            <Popover>
+            <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
@@ -51,12 +52,12 @@ export default function Home() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                  locale={fr}
+                <MonthPicker
+                  date={selectedDate}
+                  onChange={(newDate) => {
+                    setSelectedDate(newDate);
+                    setIsPickerOpen(false);
+                  }}
                 />
               </PopoverContent>
             </Popover>
