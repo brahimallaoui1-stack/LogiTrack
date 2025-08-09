@@ -27,6 +27,7 @@ export const useAppStore = create<AppState>()(
 
 interface TaskState {
   tasks: Task[];
+  addTask: (task: Omit<Task, 'id'>) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -41,6 +42,10 @@ export const useTaskStore = create<TaskState>()(
         { id: 'task-6', label: 'Déboucher les canalisations', city: 'Lyon' },
         { id: 'task-7', label: 'Poser du parquet', city: 'Paris' },
       ],
+      addTask: (task) => {
+        const newTask = { ...task, id: `task-${Date.now()}` };
+        set({ tasks: [newTask, ...get().tasks] });
+      }
     }),
     {
       name: 'task-storage',
