@@ -24,7 +24,7 @@ export default function DepensesPage() {
       tasks: state.tasks,
       updateExpense: state.updateExpense
     }));
-    const [statusFilter, setStatusFilter] = useState<ExpenseStatus | "Tous">("Tous");
+    const [statusFilter, setStatusFilter] = useState<ExpenseStatus | "Tous">("Sans compte");
 
     const allExpenses = useMemo(() => {
         const expensesWithDate: EnrichedExpense[] = [];
