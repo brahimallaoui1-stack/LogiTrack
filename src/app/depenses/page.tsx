@@ -10,7 +10,6 @@ import { formatDate } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { ExpenseDistributionChart } from "@/components/ExpenseDistributionChart";
 
 type EnrichedExpense = Expense & { 
     missionDate?: string; 
@@ -55,10 +54,6 @@ export default function DepensesPage() {
         return nonComptabiliseesExpenses.reduce((total, expense) => total + expense.montant, 0);
     }, [nonComptabiliseesExpenses]);
 
-    const chartExpenses = useMemo(() => {
-        return allExpenses.filter(expense => expense.status === 'Sans compte' || expense.status === 'Comptabilisé');
-    }, [allExpenses]);
-
     const oldestUnaccountedExpenseDate = useMemo(() => {
       if (nonComptabiliseesExpenses.length === 0) {
         return null;
@@ -80,18 +75,6 @@ export default function DepensesPage() {
         }).format(amount) + ' MAD';
     };
     
-    const expenseStatusCounts = useMemo(() => {
-        const counts = chartExpenses.reduce((acc, expense) => {
-            acc[expense.status] = (acc[expense.status] || 0) + 1;
-            return acc;
-        }, {} as Record<ExpenseStatus, number>);
-        return [
-            { name: 'Sans compte', count: counts['Sans compte'] || 0 },
-            { name: 'Comptabilisé', count: counts['Comptabilisé'] || 0 },
-        ];
-    }, [chartExpenses]);
-
-
     return (
         <div className="flex flex-col gap-6">
             <div className="grid gap-4 md:grid-cols-2">
@@ -109,12 +92,17 @@ export default function DepensesPage() {
                         <CardTitle>Date de la première dépense non comptabilisée</CardTitle>
                         <CardDescription>
                           {oldestUnaccountedExpenseDate 
-                            ? `La plus ancienne dépense date du ${formatDate(oldestUnaccountedExpenseDate)}.`
+                            ? `La plus ancienne dépense non traitée.`
                             : 'Aucune dépense non comptabilisée.'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <ExpenseDistributionChart expenses={chartExpenses} category="status" label="Statut" />
+                         <div className="text-3xl font-bold">
+                            {oldestUnaccountedExpenseDate 
+                                ? formatDate(oldestUnaccountedExpenseDate)
+                                : 'N/A'
+                            }
+                         </div>
                     </CardContent>
                 </Card>
             </div>
