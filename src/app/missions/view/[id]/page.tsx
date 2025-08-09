@@ -83,7 +83,7 @@ export default function ViewMissionPage() {
 
     if (!task) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
                  <Card>
                     <CardHeader>
                         <CardTitle>Mission non trouvée</CardTitle>
@@ -118,7 +118,7 @@ export default function ViewMissionPage() {
                 <div><span className="font-semibold">Immatriculation:</span> {subMission.immatriculation || 'N/A'}</div>
                  <div>
                     <h5 className="font-semibold mb-1">Remarque</h5>
-                    <p className="text-sm text-muted-foreground">{subMission.remarque || 'Aucune remarque'}</p>
+                    <p className="text-sm text-muted-foreground break-words">{subMission.remarque || 'Aucune remarque'}</p>
                 </div>
             </div>
         </div>
@@ -136,7 +136,8 @@ export default function ViewMissionPage() {
                     {showProcessExpenseButton && (
                          <Button variant="secondary" onClick={() => setIsConfirmDialogOpen(true)}>
                             <CheckCircle className="mr-2 h-4 w-4" />
-                            Dépense traitée
+                            <span className="hidden sm:inline">Dépense traitée</span>
+                            <span className="sm:hidden">Traiter</span>
                         </Button>
                     )}
                     <DropdownMenu>
@@ -185,7 +186,7 @@ export default function ViewMissionPage() {
                                         <div><span className="font-semibold">Immatriculation:</span> {task.immatriculation || 'N/A'}</div>
                                         <div>
                                             <h5 className="font-semibold mb-1">Remarque</h5>
-                                            <p className="text-sm text-muted-foreground">{task.remarque || 'Aucune remarque'}</p>
+                                            <p className="text-sm text-muted-foreground break-words">{task.remarque || 'Aucune remarque'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -215,7 +216,7 @@ export default function ViewMissionPage() {
                                             <TableRow key={expense.id}>
                                                 <TableCell>{expense.typeDepense}</TableCell>
                                                 <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                                <TableCell>{expense.remarque}</TableCell>
+                                                <TableCell className="break-words">{expense.remarque}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -266,5 +267,7 @@ export default function ViewMissionPage() {
         </>
     );
 }
+
+    
 
     

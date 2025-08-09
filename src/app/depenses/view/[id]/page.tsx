@@ -107,7 +107,7 @@ export default function ViewProcessedExpensesPage() {
 
     if (!isDateId || processedExpenses.length === 0) {
         return (
-             <div className="flex flex-col items-center justify-center h-full text-center">
+             <div className="flex flex-col items-center justify-center h-full text-center p-4">
                  <Card>
                     <CardHeader>
                         <CardTitle>Aucune dépense trouvée</CardTitle>
@@ -205,8 +205,8 @@ export default function ViewProcessedExpensesPage() {
                               />
                           </div>
                       </div>
-                      <Card className="bg-muted/50 p-6">
-                          <div className="flex items-center justify-between">
+                      <Card className="bg-muted/50 p-4 md:p-6">
+                          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                               <div className="flex items-center gap-4">
                                   <Banknote className="h-8 w-8 text-muted-foreground" />
                                   <div>
@@ -214,7 +214,7 @@ export default function ViewProcessedExpensesPage() {
                                       <p className="text-sm text-muted-foreground">Le montant final à déposer sur le compte bancaire.</p>
                                   </div>
                               </div>
-                              <p className="text-2xl font-bold">{formatCurrency(remainder)}</p>
+                              <p className="text-2xl font-bold self-end md:self-center">{formatCurrency(remainder)}</p>
                           </div>
                       </Card>
                   </CardContent>
@@ -232,3 +232,5 @@ export default function ViewProcessedExpensesPage() {
         </div>
     )
 }
+
+    

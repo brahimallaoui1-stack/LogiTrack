@@ -113,9 +113,9 @@ function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogPr
                 <Textarea id="remarqueFrais" value={remarque} onChange={(e) => setRemarque(e.target.value)} />
             </div>
         </div>
-        <DialogFooter className="justify-between">
-          <Button onClick={() => onOpenChange(false)}>Terminé</Button>
-          <Button onClick={handleAddExpense}>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button onClick={() => onOpenChange(false)} variant="outline" className="w-full sm:w-auto">Terminé</Button>
+          <Button onClick={handleAddExpense} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2"/>
             Ajouter la dépense
           </Button>
@@ -467,7 +467,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
                  <Separator className="my-6"/>
                 <div className="grid gap-4 pt-4">
-                     <div className="flex justify-between items-center">
+                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <Label className="text-lg font-semibold">Dépenses</Label>
                          <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>
                             <Plus className="mr-2 h-4 w-4" />
@@ -477,7 +477,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
                     {formState.expenses.length > 0 && (
                         <>
-                        <div className="rounded-md border">
+                        <div className="rounded-md border mt-4">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -527,3 +527,5 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
+
+    

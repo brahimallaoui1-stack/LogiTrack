@@ -216,7 +216,7 @@ export default function DepensesPage() {
 
             <Card>
                 <CardHeader>
-                   <div className="flex justify-between items-center">
+                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <CardTitle>{pageTitles[filterStatus]}</CardTitle>
                             <CardDescription>
@@ -224,7 +224,7 @@ export default function DepensesPage() {
                             </CardDescription>
                         </div>
                          <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
-                            <SelectTrigger className="w-[220px]">
+                            <SelectTrigger className="w-full md:w-[220px]">
                                 <SelectValue placeholder="Filtrer par statut" />
                             </SelectTrigger>
                             <SelectContent>
@@ -286,3 +286,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    

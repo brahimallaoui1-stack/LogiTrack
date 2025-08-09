@@ -139,12 +139,12 @@ export default function FacturationPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date de Traitement</TableHead>
-                <TableHead>Montant Dû</TableHead>
-                <TableHead>Montant Reçu</TableHead>
-                <TableHead>Solde Restant</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Dû</TableHead>
+                <TableHead>Reçu</TableHead>
+                <TableHead>Solde</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Encaisser un paiement</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -154,7 +154,8 @@ export default function FacturationPage() {
                 const balance = group.totalAmount - receivedAmount;
                 return (
                   <TableRow key={group.id}>
-                    <TableCell>{formatDate(group.id)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDate(group.id)}</TableCell>
+                    <TableCell className="md:hidden">{formatDate(group.id)}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>{formatCurrency(receivedAmount)}</TableCell>
                     <TableCell className={balance <= 0 ? 'text-green-600' : 'text-orange-600'}>{formatCurrency(balance)}</TableCell>
@@ -165,15 +166,15 @@ export default function FacturationPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {group.status === 'Confirmé' && (
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex flex-col sm:flex-row gap-2 justify-end">
                           <Input
                             type="number"
                             placeholder="Montant"
-                            className="w-32"
+                            className="w-full sm:w-32"
                             value={receivedAmounts[group.id] ?? ''}
                             onChange={(e) => handleAmountChange(group.id, e.target.value)}
                           />
-                          <Button onClick={() => handleSaveReceivedAmount(group.id, group.totalAmount)}>
+                          <Button onClick={() => handleSaveReceivedAmount(group.id, group.totalAmount)} className="w-full sm:w-auto">
                             Enregistrer
                           </Button>
                         </div>
@@ -189,3 +190,5 @@ export default function FacturationPage() {
     </div>
   );
 }
+
+    

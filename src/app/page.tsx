@@ -192,13 +192,13 @@ export default function Home() {
   return (
     <>
     <div className="grid gap-6">
-       <div className="flex justify-between items-center">
+       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
-                  className="w-[180px] justify-start text-left font-normal capitalize"
+                  className="w-full sm:w-[180px] justify-start text-left font-normal capitalize"
                 >
                   {selectedDate ? (
                     timeRange === 'year' ? 
@@ -218,8 +218,8 @@ export default function Home() {
               </PopoverContent>
             </Popover>
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[90px] md:w-[180px]">
-                <SelectValue placeholder="Sélectionner une période" />
+              <SelectTrigger className="w-[90px]">
+                <SelectValue placeholder="Période" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="month">Mois</SelectItem>
@@ -227,9 +227,9 @@ export default function Home() {
               </SelectContent>
             </Select>
         </div>
-        <Button size="icon" onClick={() => setIsCityChoiceDialogOpen(true)}>
-            <Plus />
-            <span className="sr-only">Ajouter une mission</span>
+        <Button onClick={() => setIsCityChoiceDialogOpen(true)} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une mission
         </Button>
       </div>
       
@@ -266,3 +266,5 @@ export default function Home() {
     </>
   );
 }
+
+    
