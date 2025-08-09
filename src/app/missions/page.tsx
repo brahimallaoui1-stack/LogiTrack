@@ -70,6 +70,26 @@ export default function MissionsPage() {
     setIsDeleteDialogOpen(false);
   };
 
+  const getTaskDisplayData = (task: Task) => {
+    if (task.city === 'Casablanca') {
+      return {
+        date: task.date,
+        ville: task.city,
+        typeMission: task.typeMission
+      };
+    } else {
+      const firstSubMission = task.subMissions?.[0];
+      const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
+      const uniqueCities = [...new Set(allCities)];
+      
+      return {
+        date: firstSubMission?.date,
+        ville: uniqueCities.join(' / ') || 'Hors Casablanca',
+        typeMission: task.label // label is already a concatenation of types
+      };
+    }
+  };
+
 
   return (
     <>
@@ -88,33 +108,38 @@ export default function MissionsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mission</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Ville</TableHead>
+                <TableHead>Type de mission</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tasks.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell>{task.label}</TableCell>
-                  <TableCell>{task.city}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Ouvrir le menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleView(task.id)}>Afficher</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(task)}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteClick(task.id)} className="text-destructive">Supprimer</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {tasks.map((task) => {
+                const displayData = getTaskDisplayData(task);
+                return (
+                  <TableRow key={task.id}>
+                    <TableCell>{displayData.date || 'N/A'}</TableCell>
+                    <TableCell>{displayData.ville || 'N/A'}</TableCell>
+                    <TableCell>{displayData.typeMission || 'N/A'}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Ouvrir le menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleView(task.id)}>Afficher</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(task)}>Modifier</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteClick(task.id)} className="text-destructive">Supprimer</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>
