@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,6 +36,22 @@ export default function MissionsPage() {
   const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
   const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
+  const sortedTasks = useMemo(() => {
+    return [...tasks].sort((a, b) => {
+      const getDate = (task: Task) => {
+        if (task.city === 'Casablanca') {
+          return task.date ? new Date(task.date) : new Date(0);
+        }
+        const firstSubMission = task.subMissions?.[0];
+        return firstSubMission?.date ? new Date(firstSubMission.date) : new Date(0);
+      };
+
+      const dateA = getDate(a);
+      const dateB = getDate(b);
+
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [tasks]);
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
@@ -115,7 +131,7 @@ export default function MissionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tasks.map((task) => {
+              {sortedTasks.map((task) => {
                 const displayData = getTaskDisplayData(task);
                 return (
                   <TableRow key={task.id}>
