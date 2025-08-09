@@ -58,7 +58,8 @@ export const useCityStore = create<CityState>()(
       cities: [],
       addCity: (city) => {
         const newCity = { ...city, id: `city-${Date.now()}` };
-        set({ cities: [...get().cities, newCity] });
+        const sortedCities = [...get().cities, newCity].sort((a, b) => a.name.localeCompare(b.name));
+        set({ cities: sortedCities });
       },
     }),
     {
@@ -80,7 +81,8 @@ export const useManagerStore = create<ManagerState>()(
       managers: [],
       addManager: (manager) => {
         const newManager = { ...manager, id: `manager-${Date.now()}` };
-        set({ managers: [...get().managers, newManager] });
+        const sortedManagers = [...get().managers, newManager].sort((a, b) => a.name.localeCompare(b.name));
+        set({ managers: sortedManagers });
       },
     }),
     {
@@ -102,7 +104,8 @@ export const useMissionTypeStore = create<MissionTypeState>()(
       missionTypes: [],
       addMissionType: (missionType) => {
         const newMissionType = { ...missionType, id: `type-${Date.now()}` };
-        set({ missionTypes: [...get().missionTypes, newMissionType] });
+        const sortedMissionTypes = [...get().missionTypes, newMissionType].sort((a, b) => a.name.localeCompare(b.name));
+        set({ missionTypes: sortedMissionTypes });
       },
     }),
     {
