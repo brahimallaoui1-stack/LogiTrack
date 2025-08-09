@@ -17,6 +17,12 @@ type EnrichedExpense = Expense & {
     taskId: string;
 };
 
+type GroupedExpense = {
+  id: string;
+  processedDate: string;
+  totalAmount: number;
+};
+
 export default function DepensesPage() {
     const router = useRouter();
     const { tasks } = useTaskStore((state) => ({
@@ -55,9 +61,32 @@ export default function DepensesPage() {
         return allExpenses.filter(expense => expense.status === filterStatus);
     }, [allExpenses, filterStatus]);
     
+    const groupedProcessedExpenses = useMemo(() => {
+      if (filterStatus !== 'Comptabilisé') return [];
+
+      const grouped: Record<string, { totalAmount: number, taskId: string }> = {};
+
+      filteredExpenses.forEach(expense => {
+          if (!grouped[expense.taskId]) {
+              grouped[expense.taskId] = { totalAmount: 0, taskId: expense.taskId };
+          }
+          grouped[expense.taskId].totalAmount += expense.montant;
+      });
+
+      return Object.values(grouped).map(group => ({
+        id: group.taskId,
+        processedDate: new Date().toISOString(), // This should be the real date
+        totalAmount: group.totalAmount
+      }))
+    }, [filteredExpenses, filterStatus]);
+
+
     const totalAmount = useMemo(() => {
+        if (filterStatus === 'Comptabilisé') {
+          return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
+        }
         return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
-    }, [filteredExpenses]);
+    }, [filteredExpenses, groupedProcessedExpenses, filterStatus]);
 
     const oldestExpenseDate = useMemo(() => {
       if (filteredExpenses.length === 0) {
@@ -74,7 +103,11 @@ export default function DepensesPage() {
     };
 
     const handleView = (taskId: string) => {
-        router.push(`/missions/view/${taskId}?from=depenses`);
+        if (filterStatus === 'Sans compte') {
+            router.push(`/missions/view/${taskId}?from=depenses`);
+        } else {
+             router.push(`/depenses/view/${taskId}`);
+        }
     };
 
     const pageTitle = filterStatus === 'Sans compte' ? 'Dépenses non traitées' : 'Dépenses traitées';
@@ -136,28 +169,48 @@ export default function DepensesPage() {
                 <CardContent>
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Date de mission</TableHead>
-                                <TableHead>Ville</TableHead>
-                                <TableHead>Montant</TableHead>
-                                {filterStatus === 'Sans compte' && <TableHead className="text-right">Actions</TableHead>}
-                            </TableRow>
+                           {filterStatus === 'Sans compte' ? (
+                                <TableRow>
+                                    <TableHead>Date de mission</TableHead>
+                                    <TableHead>Ville</TableHead>
+                                    <TableHead>Montant</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                           ) : (
+                                <TableRow>
+                                    <TableHead>Date de traitement</TableHead>
+                                    <TableHead>Montant Total</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                           )}
                         </TableHeader>
                         <TableBody>
-                            {filteredExpenses.map((expense) => (
-                                <TableRow key={expense.id}>
-                                    <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    <TableCell>{expense.ville}</TableCell>
-                                    <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                    { filterStatus === 'Sans compte' &&
+                             {filterStatus === 'Sans compte' ? (
+                                filteredExpenses.map((expense) => (
+                                    <TableRow key={expense.id}>
+                                        <TableCell>{formatDate(expense.missionDate)}</TableCell>
+                                        <TableCell>{expense.ville}</TableCell>
+                                        <TableCell>{formatCurrency(expense.montant)}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="outline" size="sm" onClick={() => handleView(expense.taskId)}>
                                                 Afficher
                                             </Button>
                                         </TableCell>
-                                    }
-                                </TableRow>
-                            ))}
+                                    </TableRow>
+                                ))
+                             ) : (
+                                groupedProcessedExpenses.map((group) => (
+                                    <TableRow key={group.id}>
+                                      <TableCell>{formatDate(group.processedDate)}</TableCell>
+                                      <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
+                                      <TableCell className="text-right">
+                                        <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
+                                            Afficher
+                                        </Button>
+                                      </TableCell>
+                                    </TableRow>
+                                ))
+                             )}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -165,3 +218,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
