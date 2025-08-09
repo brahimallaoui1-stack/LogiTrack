@@ -14,8 +14,8 @@ import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MissionFormDialog } from "@/components/MissionFormDialog";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeTache';
 
@@ -24,6 +24,7 @@ export default function Home() {
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isMissionDialogOpen, setIsMissionDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReportCategory>("city");
 
   const filteredTasks = useMemo(() => {
@@ -98,6 +99,7 @@ export default function Home() {
   );
 
   return (
+    <>
     <div className="grid gap-6">
        <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -131,11 +133,9 @@ export default function Home() {
               </SelectContent>
             </Select>
         </div>
-         <Button asChild size="icon">
-          <Link href="/missions">
+        <Button size="icon" onClick={() => setIsMissionDialogOpen(true)}>
             <Plus />
             <span className="sr-only">Ajouter une mission</span>
-          </Link>
         </Button>
       </div>
       
@@ -150,5 +150,10 @@ export default function Home() {
          {renderReport('typeTache', 'Rapport de missions par type', 'Pourcentage de missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
+    <MissionFormDialog
+        isOpen={isMissionDialogOpen}
+        onOpenChange={setIsMissionDialogOpen}
+    />
+    </>
   );
 }
