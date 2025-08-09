@@ -166,7 +166,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
     }));
   }
 
-  const handleSave = () => {
+  const handleSave = (closeOnSave: boolean) => {
     const taskData = {
         label: formState.typeMission || 'Nouvelle mission',
         city: formState.ville,
@@ -186,7 +186,12 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
     } else {
       addTask(taskData);
     }
-    onOpenChange(false);
+
+    if(closeOnSave) {
+        onOpenChange(false);
+    } else {
+        setFormState(initialFormState);
+    }
   };
   
   const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
@@ -314,7 +319,14 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
         </ScrollArea>
          <DialogFooter className="sm:justify-between gap-2">
            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des frais</Button>
-           <Button type="submit" onClick={handleSave}>Enregistrer</Button>
+           <div className="flex gap-2 justify-end">
+            {!editingTask && (
+                <Button type="button" onClick={() => handleSave(false)}>
+                    Enregistrer et ajouter une autre
+                </Button>
+            )}
+            <Button type="submit" onClick={() => handleSave(true)}>Enregistrer</Button>
+           </div>
          </DialogFooter>
        </DialogContent>
      </Dialog>
