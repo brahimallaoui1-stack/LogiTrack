@@ -89,12 +89,26 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
-           <foreignObject x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" width="160" height="40" dy="-20" dx="-80">
-                <div className="text-center">
-                    <p className="text-3xl font-bold">{totalMissions}</p>
-                    <p className="text-sm text-muted-foreground">Missions</p>
-                </div>
-            </foreignObject>
+           <text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="text-3xl font-bold"
+              dy={-10}
+            >
+              {totalMissions}
+            </text>
+            <text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="text-sm text-muted-foreground"
+              dy={20}
+            >
+              Missions
+            </text>
         </PieChart>
       </ChartContainer>
   )
