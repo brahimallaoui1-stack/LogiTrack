@@ -4,11 +4,12 @@
 import { useTaskStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMemo } from "react";
-import type { Expense } from "@/lib/types";
+import { useMemo, useState } from "react";
+import type { Expense, ExpenseStatus } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type EnrichedExpense = Expense & { 
     missionDate?: string; 
@@ -21,6 +22,9 @@ export default function DepensesPage() {
     const { tasks } = useTaskStore((state) => ({
       tasks: state.tasks,
     }));
+    
+    const [filterStatus, setFilterStatus] = useState<ExpenseStatus>('Sans compte');
+
 
     const allExpenses = useMemo(() => {
         const expensesWithDate: EnrichedExpense[] = [];
@@ -56,20 +60,23 @@ export default function DepensesPage() {
         });
     }, [tasks]);
 
-    const nonComptabiliseesExpenses = useMemo(() => {
-        return allExpenses.filter(expense => expense.status === 'Sans compte');
-    }, [allExpenses]);
+    const filteredExpenses = useMemo(() => {
+        return allExpenses.filter(expense => expense.status === filterStatus);
+    }, [allExpenses, filterStatus]);
     
     const totalNonComptabilisees = useMemo(() => {
-        return nonComptabiliseesExpenses.reduce((total, expense) => total + expense.montant, 0);
-    }, [nonComptabiliseesExpenses]);
+        return allExpenses
+            .filter(expense => expense.status === 'Sans compte')
+            .reduce((total, expense) => total + expense.montant, 0);
+    }, [allExpenses]);
 
     const oldestUnaccountedExpenseDate = useMemo(() => {
+      const nonComptabiliseesExpenses = allExpenses.filter(expense => expense.status === 'Sans compte');
       if (nonComptabiliseesExpenses.length === 0) {
         return null;
       }
       return nonComptabiliseesExpenses[0].missionDate;
-    }, [nonComptabiliseesExpenses]);
+    }, [allExpenses]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -116,10 +123,23 @@ export default function DepensesPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Liste des dépenses non comptabilisées</CardTitle>
-                    <CardDescription>
-                        Voici la liste de toutes les dépenses qui n'ont pas encore été comptabilisées.
-                    </CardDescription>
+                   <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Liste des dépenses</CardTitle>
+                            <CardDescription>
+                                Voici la liste de toutes les dépenses.
+                            </CardDescription>
+                        </div>
+                         <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
+                            <SelectTrigger className="w-[220px]">
+                                <SelectValue placeholder="Filtrer par statut" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
+                                <SelectItem value="Comptabilisé">Dépenses traitées</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -132,7 +152,7 @@ export default function DepensesPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {nonComptabiliseesExpenses.map((expense) => (
+                            {filteredExpenses.map((expense) => (
                                 <TableRow key={expense.id}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
                                     <TableCell>{expense.ville}</TableCell>
