@@ -146,7 +146,7 @@ export default function Home() {
                 </Card>
                 <Card>
                 <CardHeader>
-                    <CardTitle>Classement des {tableHead}</CardTitle>
+                    <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
                     <CardDescription>Nombre de missions par {tableHead.toLowerCase()}.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -230,7 +230,7 @@ export default function Home() {
         </TabsList>
          {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
          {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeMission', 'Rapport par type de mission', 'Pourcentage de missions par type de mission.', missionTypeTaskCounts, 'Missions', 'Types de Mission')}
+         {renderReport('typeMission', 'Rapport par type de mission', 'Pourcentage de missions par type de mission.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
@@ -255,5 +255,3 @@ export default function Home() {
     </>
   );
 }
-
-    
