@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTaskStore } from "@/lib/store";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function MissionsPage() {
   const tasks = useTaskStore((state) => state.tasks);
@@ -27,63 +29,67 @@ export default function MissionsPage() {
            <DialogTrigger asChild>
              <Button>Ajouter une mission</Button>
            </DialogTrigger>
-           <DialogContent className="sm:max-w-[625px]">
+           <DialogContent className="sm:max-w-2xl">
              <DialogHeader>
                <DialogTitle>Ajouter une mission</DialogTitle>
                <DialogDescription>
                  Remplissez les détails de la nouvelle mission ci-dessous.
                </DialogDescription>
              </DialogHeader>
-             <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">Date</Label>
-                    <Input id="date" type="date" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="reservation" className="text-right">Réservation</Label>
-                    <Input id="reservation" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="ville" className="text-right">Ville</Label>
-                    <Input id="ville" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="entreprise" className="text-right">Entreprise</Label>
-                    <Input id="entreprise" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="gestionnaire" className="text-right">Gestionnaire</Label>
-                    <Input id="gestionnaire" className="col-span-3" />
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="info-vehicule" className="text-right">Infos véhicule</Label>
-                    <Input id="info-vehicule" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type-tache" className="text-right">Type de tâche</Label>
-                    <Input id="type-tache" className="col-span-3" />
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type-vehicule" className="text-right">Type de véhicule</Label>
-                    <Input id="type-vehicule" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="immatriculation" className="text-right">Immatriculation</Label>
-                    <Input id="immatriculation" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type-depense" className="text-right">Type de dépense</Label>
-                    <Input id="type-depense" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="montant" className="text-right">Montant</Label>
-                    <Input id="montant" type="number" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="remarque" className="text-right">Remarque</Label>
-                    <Textarea id="remarque" className="col-span-3" />
-                </div>
-             </div>
+             <ScrollArea className="max-h-[70vh] p-4">
+              <div className="grid gap-4 py-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="date">Date</Label>
+                        <Input id="date" type="date" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="reservation">Réservation</Label>
+                        <Input id="reservation" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="ville">Ville</Label>
+                        <Input id="ville" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="entreprise">Entreprise</Label>
+                        <Input id="entreprise" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="gestionnaire">Gestionnaire</Label>
+                        <Input id="gestionnaire" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="info-vehicule">Infos véhicule</Label>
+                        <Input id="info-vehicule" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="type-tache">Type de tâche</Label>
+                        <Input id="type-tache" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="type-vehicule">Type de véhicule</Label>
+                        <Input id="type-vehicule" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="immatriculation">Immatriculation</Label>
+                        <Input id="immatriculation" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="type-depense">Type de dépense</Label>
+                        <Input id="type-depense" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="montant">Montant</Label>
+                        <Input id="montant" type="number" />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                      <Label htmlFor="remarque">Remarque</Label>
+                      <Textarea id="remarque" />
+                  </div>
+              </div>
+            </ScrollArea>
              <DialogFooter>
                <Button type="submit">Enregistrer</Button>
              </DialogFooter>
