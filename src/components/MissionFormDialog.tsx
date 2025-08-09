@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -124,7 +124,14 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   const [formState, setFormState] = useState(initialFormState);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   
-  const isCasablancaMission = formState.ville === 'Casablanca';
+  const isCasablancaMission = useMemo(() => formState.ville === 'Casablanca' || prefilledCity === 'Casablanca', [formState.ville, prefilledCity]);
+
+   const availableCities = useMemo(() => {
+    if (prefilledCity === 'Casablanca') {
+      return cities;
+    }
+    return cities.filter(city => city.name !== 'Casablanca');
+  }, [cities, prefilledCity]);
 
   useEffect(() => {
     if (isOpen) {
@@ -209,8 +216,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
+      maximumFractionDigits: 0,
+    }).format(amount) + ' MAD';
   };
 
   return (
@@ -254,7 +261,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                             <SelectValue placeholder="Sélectionner une ville" />
                         </SelectTrigger>
                         <SelectContent>
-                            {cities.map(city => (
+                            {availableCities.map(city => (
                                 <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
                             ))}
                         </SelectContent>
@@ -282,6 +289,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
             <Separator className="my-4"/>
             
             <div className="grid gap-4">
+                 {!isCasablancaMission && <h3 className="font-semibold text-lg">Informations sur le véhicule</h3>}
                 <div className="grid gap-2">
                     <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
                     <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
@@ -314,7 +322,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                                 {formState.expenses.map((expense) => (
                                     <TableRow key={expense.id}>
                                         <TableCell>{expense.typeDepense}</TableCell>
-                                        <TableCell>{formatCurrency(expense.montant)} MAD</TableCell>
+                                        <TableCell>{formatCurrency(expense.montant)}</TableCell>
                                         <TableCell className="truncate max-w-[100px]">{expense.remarque}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon" onClick={() => handleRemoveExpense(expense.id)}>
@@ -327,7 +335,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                         </Table>
                     </div>
                     <div className="text-right font-semibold pr-4">
-                        Total des frais: {formatCurrency(totalExpenses)} MAD
+                        Total des frais: {formatCurrency(totalExpenses)}
                     </div>
                 </div>
               )}
