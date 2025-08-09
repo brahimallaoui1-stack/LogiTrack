@@ -62,6 +62,8 @@ export const useTaskStore = create<TaskState>()(
 interface CityState {
   cities: City[];
   addCity: (city: Omit<City, 'id'>) => void;
+  updateCity: (city: City) => void;
+  deleteCity: (id: string) => void;
 }
 
 export const useCityStore = create<CityState>()(
@@ -72,6 +74,16 @@ export const useCityStore = create<CityState>()(
         const newCity = { ...city, id: `city-${Date.now()}` };
         const sortedCities = [...get().cities, newCity].sort((a, b) => a.name.localeCompare(b.name));
         set({ cities: sortedCities });
+      },
+      updateCity: (updatedCity) => {
+        const cities = get().cities.map((city) =>
+          city.id === updatedCity.id ? updatedCity : city
+        );
+        const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name));
+        set({ cities: sortedCities });
+      },
+      deleteCity: (id) => {
+        set({ cities: get().cities.filter((city) => city.id !== id) });
       },
     }),
     {
@@ -85,6 +97,8 @@ export const useCityStore = create<CityState>()(
 interface ManagerState {
   managers: Manager[];
   addManager: (manager: Omit<Manager, 'id'>) => void;
+  updateManager: (manager: Manager) => void;
+  deleteManager: (id: string) => void;
 }
 
 export const useManagerStore = create<ManagerState>()(
@@ -95,6 +109,16 @@ export const useManagerStore = create<ManagerState>()(
         const newManager = { ...manager, id: `manager-${Date.now()}` };
         const sortedManagers = [...get().managers, newManager].sort((a, b) => a.name.localeCompare(b.name));
         set({ managers: sortedManagers });
+      },
+       updateManager: (updatedManager) => {
+        const managers = get().managers.map((manager) =>
+          manager.id === updatedManager.id ? updatedManager : manager
+        );
+        const sortedManagers = [...managers].sort((a, b) => a.name.localeCompare(b.name));
+        set({ managers: sortedManagers });
+      },
+      deleteManager: (id) => {
+        set({ managers: get().managers.filter((manager) => manager.id !== id) });
       },
     }),
     {
@@ -108,6 +132,8 @@ export const useManagerStore = create<ManagerState>()(
 interface MissionTypeState {
   missionTypes: MissionType[];
   addMissionType: (missionType: Omit<MissionType, 'id'>) => void;
+  updateMissionType: (missionType: MissionType) => void;
+  deleteMissionType: (id: string) => void;
 }
 
 export const useMissionTypeStore = create<MissionTypeState>()(
@@ -118,6 +144,16 @@ export const useMissionTypeStore = create<MissionTypeState>()(
         const newMissionType = { ...missionType, id: `type-${Date.now()}` };
         const sortedMissionTypes = [...get().missionTypes, newMissionType].sort((a, b) => a.name.localeCompare(b.name));
         set({ missionTypes: sortedMissionTypes });
+      },
+      updateMissionType: (updatedType) => {
+        const missionTypes = get().missionTypes.map((type) =>
+          type.id === updatedType.id ? updatedType : type
+        );
+        const sortedMissionTypes = [...missionTypes].sort((a, b) => a.name.localeCompare(b.name));
+        set({ missionTypes: sortedMissionTypes });
+      },
+      deleteMissionType: (id) => {
+        set({ missionTypes: get().missionTypes.filter((type) => type.id !== id) });
       },
     }),
     {
