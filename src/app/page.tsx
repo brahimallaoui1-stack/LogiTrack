@@ -3,34 +3,21 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
-import { format, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
   const [timeRange, setTimeRange] = useState("month");
-  
-  const [dateOptions, setDateOptions] = useState<{ value: string; label: string; }[]>([]);
-  const [selectedDate, setSelectedDate] = useState("");
-
-  useEffect(() => {
-    const now = new Date();
-    const options = Array.from({ length: 12 }).map((_, i) => {
-      const date = subMonths(now, i);
-      return {
-        value: format(date, 'yyyy-MM'),
-        label: format(date, 'MMMM yyyy', { locale: fr }),
-      };
-    });
-    setDateOptions(options);
-    if (options.length > 0) {
-      setSelectedDate(options[0].value);
-    }
-  }, []);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const filteredTasks = useMemo(() => {
     // La logique de filtrage sera implémentée ici ultérieurement
@@ -54,16 +41,26 @@ export default function Home() {
        <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Tableau de Bord</h1>
         <div className="flex items-center gap-2">
-            <Select value={selectedDate} onValueChange={setSelectedDate}>
-              <SelectTrigger className="w-[110px] md:w-[180px]">
-                <SelectValue placeholder="Sélectionner une date" />
-              </SelectTrigger>
-              <SelectContent>
-                {dateOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className="w-[180px] justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'MMMM yyyy', { locale: fr }) : <span>Choisir une date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                  locale={fr}
+                />
+              </PopoverContent>
+            </Popover>
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-[90px] md:w-[180px]">
                 <SelectValue placeholder="Sélectionner une période" />
