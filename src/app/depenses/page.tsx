@@ -13,7 +13,7 @@ import { MoreHorizontal } from "lucide-react";
 
 type EnrichedExpense = Expense & { 
     missionDate?: string; 
-    missionLabel?: string;
+    ville?: string;
     taskId: string;
 };
 
@@ -27,15 +27,29 @@ export default function DepensesPage() {
         const expensesWithDate: EnrichedExpense[] = [];
         tasks.forEach(task => {
             if (task.expenses && task.expenses.length > 0) {
-                const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
-                task.expenses.forEach(expense => {
-                    expensesWithDate.push({ 
-                      ...expense, 
-                      missionDate, 
-                      missionLabel: task.label, 
-                      taskId: task.id 
+                if (task.city === 'Casablanca') {
+                     // Expenses for Casablanca missions, if any were to be added in the future
+                     task.expenses.forEach(expense => {
+                        expensesWithDate.push({ 
+                          ...expense, 
+                          missionDate: task.date, 
+                          ville: task.city,
+                          taskId: task.id 
+                        });
                     });
-                });
+                } else {
+                     // For 'Hors Casablanca' missions, we need to associate the expense with the correct sub-mission city
+                     // Since expenses are at the task level for HC, we'll associate it with the first sub-mission's city and date for now.
+                    const firstSubMission = task.subMissions?.[0];
+                    task.expenses.forEach(expense => {
+                         expensesWithDate.push({ 
+                            ...expense, 
+                            missionDate: firstSubMission?.date, 
+                            ville: firstSubMission?.city || 'Hors Casablanca',
+                            taskId: task.id 
+                        });
+                    });
+                }
             }
         });
         
@@ -119,11 +133,8 @@ export default function DepensesPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date de mission</TableHead>
-                                <TableHead>Mission</TableHead>
-                                <TableHead>Type de dépense</TableHead>
+                                <TableHead>Ville</TableHead>
                                 <TableHead>Montant</TableHead>
-                                <TableHead>Statut</TableHead>
-                                <TableHead>Remarque</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -131,11 +142,8 @@ export default function DepensesPage() {
                             {nonComptabiliseesExpenses.map((expense) => (
                                 <TableRow key={expense.id}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    <TableCell>{expense.missionLabel}</TableCell>
-                                    <TableCell>{expense.typeDepense}</TableCell>
+                                    <TableCell>{expense.ville}</TableCell>
                                     <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                    <TableCell>{expense.status}</TableCell>
-                                    <TableCell>{expense.remarque || 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
