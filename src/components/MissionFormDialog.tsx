@@ -264,21 +264,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
       taskData.expenses = [];
     } else {
       taskData.subMissions = formState.subMissions;
-  
-      const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
-  
-      if (totalExpenses > 0) {
-        // Consolidate expenses into a single entry for the task
-        taskData.expenses = [{
-          id: `expense-total-${Date.now()}`,
-          typeDepense: "Frais de mission",
-          montant: totalExpenses,
-          status: "Sans compte",
-          remarque: "Total des dépenses pour la mission"
-        }];
-      } else {
-        taskData.expenses = [];
-      }
+      taskData.expenses = formState.expenses;
     }
   
     if (editingTask) {
