@@ -11,17 +11,10 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type EnrichedExpense = Expense & { 
-    missionDate?: string; 
+type EnrichedExpense = Expense & {
+    missionDate?: string;
     ville?: string;
     taskId: string;
-};
-
-type GroupedExpense = {
-    missionDate: string;
-    ville: string;
-    montant: number;
-    taskIds: string[];
 };
 
 export default function DepensesPage() {
@@ -37,26 +30,17 @@ export default function DepensesPage() {
         const expensesWithDate: EnrichedExpense[] = [];
         tasks.forEach(task => {
             if (task.expenses && task.expenses.length > 0) {
-                if (task.city === 'Casablanca') {
-                     task.expenses.forEach(expense => {
-                        expensesWithDate.push({ 
-                          ...expense, 
-                          missionDate: task.date, 
-                          ville: task.city,
-                          taskId: task.id 
-                        });
+                const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
+                const ville = task.city === 'Casablanca' ? task.city : task.subMissions?.[0]?.city || 'Hors Casablanca';
+
+                task.expenses.forEach(expense => {
+                    expensesWithDate.push({
+                      ...expense,
+                      missionDate: missionDate,
+                      ville: ville,
+                      taskId: task.id
                     });
-                } else {
-                    const firstSubMission = task.subMissions?.[0];
-                    task.expenses.forEach(expense => {
-                         expensesWithDate.push({ 
-                            ...expense, 
-                            missionDate: firstSubMission?.date, 
-                            ville: firstSubMission?.city || 'Hors Casablanca',
-                            taskId: task.id 
-                        });
-                    });
-                }
+                });
             }
         });
         
@@ -70,49 +54,17 @@ export default function DepensesPage() {
     const filteredExpenses = useMemo(() => {
         return allExpenses.filter(expense => expense.status === filterStatus);
     }, [allExpenses, filterStatus]);
-
-    const groupedAndFilteredExpenses = useMemo(() => {
-        if (filterStatus === 'Sans compte') {
-            return filteredExpenses;
-        }
-
-        const grouped = filteredExpenses.reduce((acc, expense) => {
-            const date = expense.missionDate || 'unknown';
-            if (!acc[date]) {
-                acc[date] = {
-                    missionDate: expense.missionDate!,
-                    ville: 'Multiple', // Or logic to determine city
-                    montant: 0,
-                    taskIds: [],
-                };
-            }
-            acc[date].montant += expense.montant;
-            if (!acc[date].taskIds.includes(expense.taskId)) {
-                acc[date].taskIds.push(expense.taskId);
-            }
-            return acc;
-        }, {} as Record<string, GroupedExpense>);
-
-        return Object.values(grouped).sort((a, b) => {
-            const dateA = new Date(a.missionDate);
-            const dateB = new Date(b.missionDate);
-            return dateA.getTime() - dateB.getTime();
-        });
-
-    }, [filteredExpenses, filterStatus]);
     
     const totalAmount = useMemo(() => {
-        const source = filterStatus === 'Sans compte' ? filteredExpenses : groupedAndFilteredExpenses;
-        return source.reduce((total, expense) => total + expense.montant, 0);
-    }, [filteredExpenses, groupedAndFilteredExpenses, filterStatus]);
+        return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
+    }, [filteredExpenses]);
 
     const oldestExpenseDate = useMemo(() => {
-      const source = filterStatus === 'Sans compte' ? filteredExpenses : groupedAndFilteredExpenses;
-      if (source.length === 0) {
+      if (filteredExpenses.length === 0) {
         return null;
       }
-      return source[0].missionDate;
-    }, [filteredExpenses, groupedAndFilteredExpenses, filterStatus]);
+      return filteredExpenses[0].missionDate;
+    }, [filteredExpenses]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -122,8 +74,7 @@ export default function DepensesPage() {
     };
 
     const handleView = (taskId: string) => {
-        const query = filterStatus === 'Sans compte' ? '?from=depenses' : '';
-        router.push(`/missions/view/${taskId}${query}`);
+        router.push(`/missions/view/${taskId}?from=depenses`);
     };
 
     const pageTitle = filterStatus === 'Sans compte' ? 'Dépenses non traitées' : 'Dépenses traitées';
@@ -153,7 +104,7 @@ export default function DepensesPage() {
                     </CardHeader>
                     <CardContent>
                          <div className="text-3xl font-bold">
-                            {oldestExpenseDate 
+                            {oldestExpenseDate
                                 ? formatDate(oldestExpenseDate)
                                 : 'N/A'
                             }
@@ -187,24 +138,22 @@ export default function DepensesPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date de mission</TableHead>
-                                {filterStatus === 'Sans compte' && <TableHead>Ville</TableHead>}
+                                <TableHead>Ville</TableHead>
                                 <TableHead>Montant</TableHead>
                                 {filterStatus === 'Sans compte' && <TableHead className="text-right">Actions</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {groupedAndFilteredExpenses.map((expense, index) => (
-                                <TableRow key={expense.missionDate || index}>
+                            {filteredExpenses.map((expense) => (
+                                <TableRow key={expense.id}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    {filterStatus === 'Sans compte' && <TableCell>{'ville' in expense ? (expense as EnrichedExpense | GroupedExpense).ville : ''}</TableCell>}
+                                    <TableCell>{expense.ville}</TableCell>
                                     <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                    { filterStatus === 'Sans compte' && 
+                                    { filterStatus === 'Sans compte' &&
                                         <TableCell className="text-right">
-                                        { 'taskId' in expense &&
-                                                <Button variant="outline" size="sm" onClick={() => handleView((expense as EnrichedExpense).taskId)}>
-                                                    Afficher
-                                                </Button>
-                                            }
+                                            <Button variant="outline" size="sm" onClick={() => handleView(expense.taskId)}>
+                                                Afficher
+                                            </Button>
                                         </TableCell>
                                     }
                                 </TableRow>
