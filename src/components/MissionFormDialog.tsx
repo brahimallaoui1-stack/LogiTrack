@@ -191,6 +191,13 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
   
   const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   return (
      <>
      <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -286,7 +293,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                                 {formState.expenses.map((expense) => (
                                     <TableRow key={expense.id}>
                                         <TableCell>{expense.typeDepense}</TableCell>
-                                        <TableCell>{expense.montant.toFixed(2)} MAD</TableCell>
+                                        <TableCell>{formatCurrency(expense.montant)} MAD</TableCell>
                                         <TableCell className="truncate max-w-[100px]">{expense.remarque}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon" onClick={() => handleRemoveExpense(expense.id)}>
@@ -299,7 +306,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                         </Table>
                     </div>
                     <div className="text-right font-semibold pr-4">
-                        Total des frais: {totalExpenses.toFixed(2)} MAD
+                        Total des frais: {formatCurrency(totalExpenses)} MAD
                     </div>
                 </div>
               )}
