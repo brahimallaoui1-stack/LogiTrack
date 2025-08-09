@@ -14,6 +14,16 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +56,8 @@ export default function MissionsPage() {
   const deleteTask = useTaskStore((state) => state.deleteTask);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [formState, setFormState] = useState(initialFormState);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -85,6 +97,19 @@ export default function MissionsPage() {
   const handleEdit = (task: Task) => {
     setEditingTask(task);
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setTaskToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (taskToDelete) {
+      deleteTask(taskToDelete);
+    }
+    setTaskToDelete(null);
+    setIsDeleteDialogOpen(false);
   };
 
   const handleSave = () => {
@@ -130,6 +155,7 @@ export default function MissionsPage() {
   };
 
   return (
+    <>
     <div className="flex flex-col gap-4">
        <div className="flex justify-end">
          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -234,7 +260,7 @@ export default function MissionsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(task)}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => deleteTask(task.id)} className="text-destructive">Supprimer</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDeleteClick(task.id)} className="text-destructive">Supprimer</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -245,5 +271,20 @@ export default function MissionsPage() {
         </CardContent>
       </Card>
     </div>
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cette action est irréversible. Cela supprimera définitivement la mission.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirmDelete}>Supprimer</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
