@@ -15,8 +15,8 @@ export interface Task {
   entreprise?: string; // Maintenu comme 'entreprise' en interne, mais libellé 'Client'
   gestionnaire?: string;
   infoVehicule?: string;
-  typeTache?: string;
-  typeVehicule?: string;
+  typeMission?: string;
+  marqueVehicule?: string;
   immatriculation?: string;
   remarque?: string;
   expenses?: Expense[];

@@ -39,8 +39,8 @@ const initialFormState = {
   ville: "",
   entreprise: "",
   gestionnaire: "",
-  typeTache: "",
-  typeVehicule: "",
+  typeMission: "",
+  marqueVehicule: "",
   immatriculation: "",
   remarque: "",
   label: "",
@@ -130,8 +130,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
         ville: editingTask.city || "",
         entreprise: editingTask.entreprise || "",
         gestionnaire: editingTask.gestionnaire || "",
-        typeTache: editingTask.typeTache || "",
-        typeVehicule: editingTask.typeVehicule || "",
+        typeMission: editingTask.typeMission || "",
+        marqueVehicule: editingTask.marqueVehicule || "",
         immatriculation: editingTask.immatriculation || "",
         remarque: editingTask.remarque || "",
         label: editingTask.label || "",
@@ -168,14 +168,14 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
 
   const handleSave = () => {
     const taskData = {
-        label: formState.typeTache || 'Nouvelle mission',
+        label: formState.typeMission || 'Nouvelle mission',
         city: formState.ville,
         date: formState.date,
         reservation: formState.reservation,
         entreprise: formState.entreprise,
         gestionnaire: formState.gestionnaire,
-        typeTache: formState.typeTache,
-        typeVehicule: formState.typeVehicule,
+        typeMission: formState.typeMission,
+        marqueVehicule: formState.marqueVehicule,
         immatriculation: formState.immatriculation,
         remarque: formState.remarque,
         expenses: formState.expenses,
@@ -250,8 +250,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                     </Select>
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="typeTache">Types de Mission</Label>
-                     <Select value={formState.typeTache} onValueChange={(value) => handleSelectChange('typeTache', value)}>
+                    <Label htmlFor="typeMission">Types de Mission</Label>
+                     <Select value={formState.typeMission} onValueChange={(value) => handleSelectChange('typeMission', value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Sélectionner un type de mission" />
                         </SelectTrigger>
@@ -263,8 +263,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                     </Select>
                 </div>
                  <div className="grid gap-2">
-                    <Label htmlFor="typeVehicule">Type de véhicule</Label>
-                    <Input id="typeVehicule" value={formState.typeVehicule} onChange={handleInputChange} />
+                    <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
+                    <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="immatriculation">Immatriculation</Label>

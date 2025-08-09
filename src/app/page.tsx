@@ -17,7 +17,7 @@ import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 
-type ReportCategory = 'city' | 'gestionnaire' | 'typeTache';
+type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
 export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
@@ -49,7 +49,7 @@ export default function Home() {
 
   const cityTaskCounts = useMemo(() => getTaskCounts('city'), [filteredTasks]);
   const managerTaskCounts = useMemo(() => getTaskCounts('gestionnaire'), [filteredTasks]);
-  const missionTypeTaskCounts = useMemo(() => getTaskCounts('typeTache'), [filteredTasks]);
+  const missionTypeTaskCounts = useMemo(() => getTaskCounts('typeMission'), [filteredTasks]);
 
   const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
@@ -143,11 +143,11 @@ export default function Home() {
         <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="city">Villes</TabsTrigger>
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
-            <TabsTrigger value="typeTache">Missions</TabsTrigger>
+            <TabsTrigger value="typeMission">Missions</TabsTrigger>
         </TabsList>
          {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
          {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeTache', 'Rapport par type de mission', 'Pourcentage de missions par type de mission.', missionTypeTaskCounts, 'Missions', 'Types de Mission')}
+         {renderReport('typeMission', 'Rapport par type de mission', 'Pourcentage de missions par type de mission.', missionTypeTaskCounts, 'Missions', 'Types de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
