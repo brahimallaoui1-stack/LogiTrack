@@ -28,10 +28,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useTaskStore } from "@/lib/store";
+import { useTaskStore, useCityStore, useManagerStore, useMissionTypeStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task } from "@/lib/types";
 import { MoreHorizontal } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const initialFormState = {
   date: "",
@@ -54,6 +56,10 @@ export default function MissionsPage() {
   const addTask = useTaskStore((state) => state.addTask);
   const updateTask = useTaskStore((state) => state.updateTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
+
+  const { cities } = useCityStore();
+  const { managers } = useManagerStore();
+  const { missionTypes } = useMissionTypeStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -91,6 +97,10 @@ export default function MissionsPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
+    setFormState(prevState => ({ ...prevState, [id]: value }));
+  };
+
+  const handleSelectChange = (id: string, value: string) => {
     setFormState(prevState => ({ ...prevState, [id]: value }));
   };
   
@@ -182,7 +192,16 @@ export default function MissionsPage() {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="ville">Ville</Label>
-                        <Input id="ville" value={formState.ville} onChange={handleInputChange} />
+                         <Select value={formState.ville} onValueChange={(value) => handleSelectChange('ville', value)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner une ville" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {cities.map(city => (
+                                    <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="entreprise">Entreprise</Label>
@@ -190,7 +209,16 @@ export default function MissionsPage() {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="gestionnaire">Gestionnaire</Label>
-                        <Input id="gestionnaire" value={formState.gestionnaire} onChange={handleInputChange} />
+                         <Select value={formState.gestionnaire} onValueChange={(value) => handleSelectChange('gestionnaire', value)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un gestionnaire" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {managers.map(manager => (
+                                    <SelectItem key={manager.id} value={manager.name}>{manager.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="infoVehicule">Infos véhicule</Label>
@@ -198,7 +226,16 @@ export default function MissionsPage() {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="typeTache">Type de tâche</Label>
-                        <Input id="typeTache" value={formState.typeTache} onChange={handleInputChange} />
+                         <Select value={formState.typeTache} onValueChange={(value) => handleSelectChange('typeTache', value)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un type de tâche" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {missionTypes.map(type => (
+                                    <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="typeVehicule">Type de véhicule</Label>
@@ -288,3 +325,5 @@ export default function MissionsPage() {
     </>
   );
 }
+
+    
