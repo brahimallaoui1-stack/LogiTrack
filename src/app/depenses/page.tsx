@@ -44,7 +44,7 @@ export default function DepensesPage() {
         const sorted = expensesWithDate.sort((a, b) => {
             const dateA = a.missionDate ? new Date(a.missionDate) : new Date(0);
             const dateB = b.missionDate ? new Date(b.missionDate) : new Date(0);
-            return dateB.getTime() - a.getTime();
+            return dateB.getTime() - dateA.getTime();
         });
 
         if (statusFilter === "Tous") {
