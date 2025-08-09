@@ -2,15 +2,15 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useTaskStore, useFacturationStore, useAppStore } from "@/lib/store";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { useTaskStore, useFacturationStore } from "@/lib/store";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
-import type { Expense } from "@/lib/types";
 import { format } from "date-fns";
 import { DollarSign, Banknote } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type GroupedExpense = {
   id: string; // The date 'yyyy-MM-dd'
@@ -19,14 +19,14 @@ type GroupedExpense = {
 };
 
 export default function FacturationPage() {
-  const tasks = useTaskStore((state) => state.tasks);
+  const { tasks, isLoading: isLoadingTasks, fetchTasks } = useTaskStore();
   const { invoices, updateInvoice } = useFacturationStore();
-  const isHydrated = useAppStore((state) => state.isHydrated);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    fetchTasks();
+  }, [fetchTasks]);
   
   const [receivedAmounts, setReceivedAmounts] = useState<Record<string, number | "">>({});
 
@@ -101,8 +101,40 @@ export default function FacturationPage() {
     }).format(amount) + ' MAD';
   };
 
-  if (!isHydrated || !isClient) {
-    return <div>Chargement...</div>;
+  if (!isClient || isLoadingTasks) {
+    return (
+        <div className="flex flex-col gap-6">
+            <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/2 mb-2" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-8 w-1/3 mb-2" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/2 mb-2" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-8 w-1/3 mb-2" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardContent>
+                </Card>
+            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-32 mb-2" />
+                    <Skeleton className="h-4 w-64" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-48 w-full" />
+                </CardContent>
+            </Card>
+        </div>
+    )
   }
 
   return (
@@ -190,5 +222,3 @@ export default function FacturationPage() {
     </div>
   );
 }
-
-    

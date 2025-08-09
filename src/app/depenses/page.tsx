@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useTaskStore, useAppStore } from "@/lib/store";
+import { useTaskStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMemo, useState, useEffect } from "react";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
+import { Skeleton } from "@/components/ui/skeleton";
 
 type GroupedExpense = {
   id: string;
@@ -29,13 +30,13 @@ type GroupedProcessedExpense = {
 
 export default function DepensesPage() {
     const router = useRouter();
-    const tasks = useTaskStore((state) => state.tasks);
-    const isHydrated = useAppStore((state) => state.isHydrated);
+    const { tasks, isLoading, fetchTasks } = useTaskStore();
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        fetchTasks();
+    }, [fetchTasks]);
     
     const [filterStatus, setFilterStatus] = useState<ExpenseStatus>('Sans compte');
 
@@ -51,7 +52,7 @@ export default function DepensesPage() {
                 if (!groupedByTask[task.id]) {
                     const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
                     
-                    const displayDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
+                    const displayDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
                     let ville = task.city;
                     if(ville !== 'Casablanca') {
                         const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
@@ -182,8 +183,45 @@ export default function DepensesPage() {
         ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'confirmée'}.`
         : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'confirmée'}.`;
 
-    if (!isHydrated || !isClient) {
-      return <div>Chargement...</div>;
+    if (!isClient || isLoading) {
+        return (
+            <div className="flex flex-col gap-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-6 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-8 w-1/3" />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-6 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-8 w-1/3" />
+                        </CardContent>
+                    </Card>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-48" />
+                                <Skeleton className="h-4 w-64" />
+                            </div>
+                            <Skeleton className="h-10 w-48" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-48 w-full" />
+                    </CardContent>
+                </Card>
+            </div>
+        );
     }
 
     return (
@@ -286,5 +324,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    

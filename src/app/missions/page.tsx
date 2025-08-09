@@ -14,21 +14,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTaskStore, useAppStore } from "@/lib/store";
+import { useTaskStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function MissionsPage() {
-  const tasks = useTaskStore((state) => state.tasks);
-  const isHydrated = useAppStore((state) => state.isHydrated);
+  const { tasks, isLoading, fetchTasks } = useTaskStore();
   const router = useRouter();
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    fetchTasks();
+  }, [fetchTasks]);
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -38,11 +39,8 @@ export default function MissionsPage() {
   const sortedTasks = useMemo(() => {
     return [...tasks].sort((a, b) => {
       const getDate = (task: Task) => {
-        if (task.city === 'Casablanca') {
-          return task.date ? new Date(task.date) : new Date(0);
-        }
-        const firstSubMission = task.subMissions?.[0];
-        return firstSubMission?.date ? new Date(firstSubMission.date) : new Date(0);
+        const primaryDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : '1970-01-01');
+        return new Date(primaryDate || '1970-01-01');
       };
 
       const dateA = getDate(a);
@@ -87,8 +85,33 @@ export default function MissionsPage() {
     }
   };
 
-  if (!isHydrated || !isClient) {
-    return <div>Chargement...</div>;
+  if (!isClient || isLoading) {
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="flex justify-end">
+                <Skeleton className="h-10 w-40" />
+            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-48 mb-2" />
+                    <Skeleton className="h-4 w-80" />
+                </CardHeader>
+                <CardContent>
+                   <div className="space-y-4">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="flex justify-between items-center">
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-4 w-40" />
+                                </div>
+                                <Skeleton className="h-9 w-20" />
+                            </div>
+                        ))}
+                   </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
   }
 
   return (

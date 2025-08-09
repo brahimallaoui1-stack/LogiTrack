@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus } from "lucide-react";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
-import { useTaskStore, useAppStore } from "@/lib/store";
+import { useTaskStore } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
 import type { Task } from "@/lib/types";
 import { getYear, getMonth, parseISO, format } from 'date-fns';
@@ -18,17 +18,18 @@ import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { MonthPicker } from "@/components/MonthPicker";
 import { YearPicker } from "@/components/YearPicker";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
 export default function Home() {
-  const tasks = useTaskStore((state) => state.tasks);
-  const isHydrated = useAppStore((state) => state.isHydrated);
+  const { tasks, isLoading, fetchTasks } = useTaskStore();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    fetchTasks();
+  }, [fetchTasks]);
 
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -65,6 +66,9 @@ export default function Home() {
         }
       };
       
+      const primaryDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
+      if (!primaryDate) return false;
+
       if (task.city === 'Casablanca') {
         if (!task.date) return false;
         return checkDate(task.date);
@@ -141,52 +145,74 @@ export default function Home() {
   const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
         <div className="grid gap-6">
-            <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                <CardHeader>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>{description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
-                </CardContent>
-                </Card>
-                <Card>
-                <CardHeader>
-                    <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
-                    <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>{tableHead}</TableHead>
-                        <TableHead className="text-right">Missions</TableHead>
-                        <TableHead className="text-right">Pourcentage</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.map(({ name, count }) => {
-                          const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
-                          return (
-                            <TableRow key={name}>
-                                <TableCell className="font-medium">{name}</TableCell>
-                                <TableCell className="text-right">{count}</TableCell>
-                                <TableCell className="text-right">{percentage}%</TableCell>
+             {isLoading ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                    <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                    <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                </div>
+             ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
+                    </CardContent>
+                    </Card>
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
+                        <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>{tableHead}</TableHead>
+                            <TableHead className="text-right">Missions</TableHead>
+                            <TableHead className="text-right">Pourcentage</TableHead>
                             </TableRow>
-                          );
-                        })}
-                    </TableBody>
-                    </Table>
-                </CardContent>
-                </Card>
-            </div>
+                        </TableHeader>
+                        <TableBody>
+                            {data.map(({ name, count }) => {
+                              const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
+                              return (
+                                <TableRow key={name}>
+                                    <TableCell className="font-medium">{name}</TableCell>
+                                    <TableCell className="text-right">{count}</TableCell>
+                                    <TableCell className="text-right">{percentage}%</TableCell>
+                                </TableRow>
+                              );
+                            })}
+                        </TableBody>
+                        </Table>
+                    </CardContent>
+                    </Card>
+                </div>
+             )}
         </div>
      </TabsContent>
   );
 
-  if (!isHydrated || !isClient) {
-    return <div>Chargement...</div>;
+  if (!isClient) {
+    return (
+        <div className="grid gap-6">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-10 w-[180px]" />
+                    <Skeleton className="h-10 w-[90px]" />
+                </div>
+                <Skeleton className="h-10 w-full sm:w-[190px]" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+            <div className="grid md:grid-cols-2 gap-6">
+                <Skeleton className="h-[400px] w-full" />
+                <Skeleton className="h-[400px] w-full" />
+            </div>
+        </div>
+    );
   }
 
   return (
@@ -266,5 +292,3 @@ export default function Home() {
     </>
   );
 }
-
-    

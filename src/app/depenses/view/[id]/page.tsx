@@ -27,10 +27,13 @@ export default function ViewProcessedExpensesPage() {
     const { toast } = useToast();
     const { id } = params; // This can be a date string 'yyyy-MM-dd'
 
-    const { tasks, updateExpensesStatusByProcessedDate } = useTaskStore((state) => ({
-        tasks: state.tasks,
-        updateExpensesStatusByProcessedDate: state.updateExpensesStatusByProcessedDate,
-    }));
+    const { tasks, fetchTasks, updateExpensesStatusByProcessedDate } = useTaskStore();
+
+    useEffect(() => {
+        if (tasks.length === 0) {
+            fetchTasks();
+        }
+    }, [tasks, fetchTasks]);
 
     const isDateId = useMemo(() => {
       const date = parse(id as string, 'yyyy-MM-dd', new Date());
@@ -55,8 +58,8 @@ export default function ViewProcessedExpensesPage() {
                 return isMatch;
             })
             .forEach(expense => {
-                const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
-                const ville = task.city === 'Casablanca' ? task.city : task.subMissions?.[0]?.city || 'Hors Casablanca';
+                const missionDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
+                const ville = task.city === 'Casablanca' ? task.city : (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].city : 'Hors Casablanca');
                 allExpenses.push({
                     ...expense,
                     missionDate: missionDate,
@@ -89,8 +92,8 @@ export default function ViewProcessedExpensesPage() {
         return sugg - adv - fees;
     }, [suggestedAmount, advance, accountantFees]);
 
-    const handleMarkAsConfirmed = () => {
-        updateExpensesStatusByProcessedDate(id as string, 'Confirmé');
+    const handleMarkAsConfirmed = async () => {
+        await updateExpensesStatusByProcessedDate(id as string, 'Confirmé');
         toast({
             title: "Dépenses confirmées",
             description: "Le lot de dépenses a été marqué comme confirmé et transféré à la facturation.",
@@ -232,5 +235,3 @@ export default function ViewProcessedExpensesPage() {
         </div>
     )
 }
-
-    

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTaskStore } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeft, CheckCircle, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { MissionFormDialog } from '@/components/MissionFormDialog';
 import { Separator } from '@/components/ui/separator';
-import type { SubMission, ExpenseStatus, Task } from '@/lib/types';
+import type { SubMission, Task } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 import {
   AlertDialog,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ViewMissionPage() {
     const router = useRouter();
@@ -31,11 +32,14 @@ export default function ViewMissionPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const { id } = params;
-    const { tasks, updateExpenseStatus, deleteTask } = useTaskStore((state) => ({
-        tasks: state.tasks,
-        updateExpenseStatus: state.updateExpenseStatus,
-        deleteTask: state.deleteTask,
-    }));
+    const { tasks, isLoading, fetchTasks, updateExpenseStatus, deleteTask } = useTaskStore();
+    
+    useEffect(() => {
+        if(tasks.length === 0) {
+            fetchTasks();
+        }
+    }, [fetchTasks, tasks.length]);
+
     const task = tasks.find((t) => t.id === id);
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -56,9 +60,9 @@ export default function ViewMissionPage() {
     const totalExpenses = task?.expenses?.reduce((sum, exp) => sum + exp.montant, 0) ?? 0;
     const isCasablancaMission = task?.city === 'Casablanca';
 
-    const handleProcessExpense = () => {
+    const handleProcessExpense = async () => {
         if (task) {
-            updateExpenseStatus(task.id, 'Comptabilisé');
+            await updateExpenseStatus(task.id, 'Comptabilisé');
             toast({
                 title: "Dépense traitée",
                 description: "La dépense a été marquée comme comptabilisée.",
@@ -68,18 +72,47 @@ export default function ViewMissionPage() {
         }
     };
     
-    const handleEdit = (task: Task) => {
+    const handleEdit = () => {
         setIsEditDialogOpen(true);
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (task) {
-            deleteTask(task.id);
+            await deleteTask(task.id);
             setIsDeleteDialogOpen(false);
             router.push('/missions');
         }
     };
 
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-20" />
+                </div>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid md:grid-cols-3 gap-4">
+                            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
+                        </div>
+                        <Separator />
+                        <div className="space-y-4">
+                            <Skeleton className="h-6 w-48" />
+                            <Skeleton className="h-5 w-full" />
+                            <Skeleton className="h-5 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     if (!task) {
         return (
@@ -147,7 +180,7 @@ export default function ViewMissionPage() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(task)}>
+                            <DropdownMenuItem onClick={handleEdit}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Modifier
                             </DropdownMenuItem>
@@ -267,7 +300,3 @@ export default function ViewMissionPage() {
         </>
     );
 }
-
-    
-
-    

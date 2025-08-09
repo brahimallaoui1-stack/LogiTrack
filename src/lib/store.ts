@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice } from './types';
 import { db } from './firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, orderBy } from 'firebase/firestore';
 
 interface AppState {
   isHydrated: boolean;
@@ -21,71 +21,120 @@ export const useAppStore = create<AppState>()(
 
 interface TaskState {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id'>) => void;
-  updateTask: (task: Task) => void;
-  deleteTask: (id: string) => void;
-  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus, processedDate?: string) => void;
-  updateExpensesStatusByProcessedDate: (processedDate: string, newStatus: ExpenseStatus) => void;
+  isLoading: boolean;
+  fetchTasks: () => Promise<void>;
+  addTask: (task: Omit<Task, 'id'>) => Promise<void>;
+  updateTask: (task: Task) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus, processedDate?: string) => Promise<void>;
+  updateExpensesStatusByProcessedDate: (processedDate: string, newStatus: ExpenseStatus) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskState>()(
-  persist(
     (set, get) => ({
       tasks: [],
-      addTask: (task) => {
-        const newTask = { ...task, id: `task-${Date.now()}` };
-        set({ tasks: [newTask, ...get().tasks] });
-      },
-      updateTask: (updatedTask) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === updatedTask.id ? updatedTask : task
-          ),
-        })),
-      deleteTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== id),
-        })),
-       updateExpenseStatus: (taskId, newStatus) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) => {
-            if (task.id === taskId && task.expenses) {
-              const updatedExpenses = task.expenses.map(exp => ({ ...exp, status: newStatus, processedDate: new Date().toISOString() }));
-              return { ...task, expenses: updatedExpenses };
-            }
-            return task;
-          }),
-        })),
-        updateExpensesStatusByProcessedDate: (processedDate, newStatus) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) => {
-            if (!task.expenses) return task;
-            
-            const hasTargetExpense = task.expenses.some(exp => exp.processedDate?.startsWith(processedDate));
-
-            if (hasTargetExpense) {
-                const updatedExpenses = task.expenses.map(exp => {
-                    if (exp.processedDate?.startsWith(processedDate)) {
-                        return { ...exp, status: newStatus };
-                    }
-                    return exp;
-                });
-                return { ...task, expenses: updatedExpenses };
-            }
-            return task;
-          }),
-        })),
-    }),
-    {
-      name: 'task-storage',
-      storage: createJSONStorage(() => localStorage),
-       onRehydrateStorage: () => (state) => {
-        if (state) {
-            useAppStore.setState({ isHydrated: true });
+      isLoading: true,
+      fetchTasks: async () => {
+        if (!get().isLoading) set({ isLoading: true });
+        try {
+          const q = query(collection(db, "tasks"), orderBy("date", "desc"));
+          const querySnapshot = await getDocs(q);
+          const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+          set({ tasks, isLoading: false });
+        } catch (error) {
+            console.error("Error fetching tasks: ", error);
+            set({ isLoading: false });
         }
-      }
-    }
-  )
+      },
+      addTask: async (task) => {
+        try {
+            const docRef = await addDoc(collection(db, "tasks"), task);
+            const newTask = { ...task, id: docRef.id };
+            set({ tasks: [newTask, ...get().tasks] });
+        } catch (error) {
+            console.error("Error adding task: ", error);
+        }
+      },
+      updateTask: async (updatedTask) => {
+        try {
+            const taskRef = doc(db, "tasks", updatedTask.id);
+            await updateDoc(taskRef, { ...updatedTask });
+            set((state) => ({
+              tasks: state.tasks.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task
+              ),
+            }));
+        } catch (error) {
+            console.error("Error updating task: ", error);
+        }
+      },
+      deleteTask: async (id) => {
+         try {
+            await deleteDoc(doc(db, "tasks", id));
+            set((state) => ({
+                tasks: state.tasks.filter((task) => task.id !== id),
+            }));
+        } catch (error) {
+            console.error("Error deleting task: ", error);
+        }
+      },
+       updateExpenseStatus: async (taskId, newStatus) => {
+         const tasks = get().tasks;
+         const taskToUpdate = tasks.find(t => t.id === taskId);
+         if (taskToUpdate && taskToUpdate.expenses) {
+            const updatedExpenses = taskToUpdate.expenses.map(exp => ({ ...exp, status: newStatus, processedDate: new Date().toISOString() }));
+            const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
+            
+            try {
+                const taskRef = doc(db, "tasks", taskId);
+                await updateDoc(taskRef, { expenses: updatedExpenses });
+                set({
+                  tasks: tasks.map((task) =>
+                    task.id === taskId ? updatedTask : task
+                  ),
+                });
+            } catch (error) {
+                console.error("Error updating expense status: ", error);
+            }
+         }
+       },
+        updateExpensesStatusByProcessedDate: async (processedDate, newStatus) => {
+            const tasks = get().tasks;
+            const batch = writeBatch(db);
+            const tasksToUpdateLocally: Task[] = [];
+
+            tasks.forEach((task) => {
+                if (!task.expenses) return;
+
+                const hasTargetExpense = task.expenses.some(exp => exp.processedDate?.startsWith(processedDate));
+
+                if (hasTargetExpense) {
+                    const updatedExpenses = task.expenses.map(exp => {
+                        if (exp.processedDate?.startsWith(processedDate)) {
+                            return { ...exp, status: newStatus };
+                        }
+                        return exp;
+                    });
+                    const updatedTask = { ...task, expenses: updatedExpenses };
+                    tasksToUpdateLocally.push(updatedTask);
+                    const taskRef = doc(db, "tasks", task.id);
+                    batch.update(taskRef, { expenses: updatedExpenses });
+                }
+            });
+            
+            try {
+                await batch.commit();
+                set((state) => ({
+                    tasks: state.tasks.map(task => {
+                        const updatedVersion = tasksToUpdateLocally.find(t => t.id === task.id);
+                        return updatedVersion || task;
+                    })
+                }));
+            } catch (error) {
+                console.error("Error updating expenses status by date: ", error);
+            }
+        },
+    }),
 );
 
 // Store for Cities
@@ -281,7 +330,7 @@ export const useFacturationStore = create<FacturationState>()(
     persist(
         (set, get) => ({
             invoices: {},
-            updateInvoice: (id, receivedAmount, totalDue) => {
+            updateInvoice: async (id, receivedAmount, totalDue) => {
                 const invoices = get().invoices;
                 
                 const existingInvoice = invoices[id] || { id, receivedAmount: 0 };
@@ -295,7 +344,7 @@ export const useFacturationStore = create<FacturationState>()(
                 });
                 
                 if (newReceivedAmount >= totalDue) {
-                    useTaskStore.getState().updateExpensesStatusByProcessedDate(id, 'Payé');
+                   await useTaskStore.getState().updateExpensesStatusByProcessedDate(id, 'Payé');
                 }
             }
         }),
