@@ -25,7 +25,7 @@ export default function ViewProcessedExpensesPage() {
     const router = useRouter();
     const params = useParams();
     const { toast } = useToast();
-    const { id } = params; // This can be a taskId or a date string 'yyyy-MM-dd'
+    const { id } = params; // This can be a date string 'yyyy-MM-dd'
 
     const { tasks, updateExpensesStatusByProcessedDate } = useTaskStore((state) => ({
         tasks: state.tasks,
@@ -38,27 +38,13 @@ export default function ViewProcessedExpensesPage() {
     }, [id])
 
     const { processedExpenses, expenseStatus } = useMemo(() => {
-      let relevantTasks = [];
-      if (isDateId) {
-        relevantTasks = tasks.filter(task => 
-          task.expenses?.some(exp => 
-            (exp.status === 'Comptabilisé' || exp.status === 'Payé') && 
-            exp.processedDate && format(new Date(exp.processedDate), 'yyyy-MM-dd') === id
-          )
-        );
-      } else {
-        const task = tasks.find(t => t.id === id);
-        if (task) {
-          relevantTasks.push(task);
-        }
-      }
+      if (!isDateId) return { processedExpenses: [], expenseStatus: null };
 
-      if (relevantTasks.length === 0) return { processedExpenses: [], expenseStatus: null };
-      
-      const allExpenses: EnrichedExpense[] = [];
       let status: Expense['status'] | null = null;
-      relevantTasks.forEach(task => {
-        const expenses = task.expenses
+      const allExpenses: EnrichedExpense[] = [];
+      
+      tasks.forEach(task => {
+        task.expenses
             ?.filter(exp => {
                  const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Payé') &&
                                 exp.processedDate && 
@@ -68,16 +54,15 @@ export default function ViewProcessedExpensesPage() {
                 }
                 return isMatch;
             })
-            .map(expense => {
+            .forEach(expense => {
                 const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
                 const ville = task.city === 'Casablanca' ? task.city : task.subMissions?.[0]?.city || 'Hors Casablanca';
-                return {
+                allExpenses.push({
                     ...expense,
                     missionDate: missionDate,
                     ville: ville,
-                }
-            }) || [];
-        allExpenses.push(...expenses);
+                });
+            });
       });
       return { processedExpenses: allExpenses, expenseStatus: status };
 
@@ -114,13 +99,13 @@ export default function ViewProcessedExpensesPage() {
         }).format(amount) + ' MAD';
     };
 
-    if (processedExpenses.length === 0) {
+    if (!isDateId || processedExpenses.length === 0) {
         return (
              <div className="flex flex-col items-center justify-center h-full text-center">
                  <Card>
                     <CardHeader>
                         <CardTitle>Aucune dépense trouvée</CardTitle>
-                        <CardDescription>Aucune dépense traitée n'a été trouvée pour cette mission ou cette date.</CardDescription>
+                        <CardDescription>Aucune dépense traitée n'a été trouvée pour cette date.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Button onClick={() => router.push('/depenses')}>
@@ -133,7 +118,10 @@ export default function ViewProcessedExpensesPage() {
         )
     }
     
-    const pageTitle = isDateId ? `Détail des dépenses du ${formatDate(id as string)}` : "Détail des Dépenses Traitées";
+    const pageTitle = `Détail des dépenses du ${formatDate(id as string)}`;
+    const pageDescription = expenseStatus === 'Comptabilisé' 
+      ? 'Finalisez le paiement ou mettez à jour les montants.'
+      : 'Voici le récapitulatif des dépenses qui ont été payées.';
 
     return (
         <div className="flex flex-col gap-6">
@@ -146,9 +134,7 @@ export default function ViewProcessedExpensesPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>{pageTitle}</CardTitle>
-                    <CardDescription>
-                        Voici le détail des dépenses pour cette sélection.
-                    </CardDescription>
+                    <CardDescription>{pageDescription}</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <Table>
@@ -174,7 +160,7 @@ export default function ViewProcessedExpensesPage() {
                     </div>
                 </CardContent>
 
-                {isDateId && expenseStatus === 'Comptabilisé' && (
+                {(expenseStatus === 'Comptabilisé' || expenseStatus === 'Payé') && (
                   <>
                   <Separator className="my-6" />
                   <CardContent className="grid gap-6">
@@ -185,7 +171,8 @@ export default function ViewProcessedExpensesPage() {
                                   id="suggestedAmount" 
                                   type="number" 
                                   value={suggestedAmount} 
-                                  onChange={(e) => setSuggestedAmount(parseFloat(e.target.value) || 0)} 
+                                  onChange={(e) => setSuggestedAmount(parseFloat(e.target.value) || 0)}
+                                  disabled={expenseStatus === 'Payé'}
                               />
                           </div>
                           <div className="grid gap-2">
@@ -195,6 +182,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={accountantFees} 
                                   onChange={(e) => setAccountantFees(parseFloat(e.target.value) || 0)}
+                                  disabled={expenseStatus === 'Payé'}
                               />
                           </div>
                       </div>
@@ -211,15 +199,18 @@ export default function ViewProcessedExpensesPage() {
                           </div>
                       </Card>
                   </CardContent>
-                  <CardFooter>
-                      <Button className="w-full" onClick={handleMarkAsPaid}>
-                          <Landmark className="mr-2 h-4 w-4" />
-                          Marquer comme payé
-                      </Button>
-                  </CardFooter>
+                  {expenseStatus === 'Comptabilisé' && (
+                    <CardFooter>
+                        <Button className="w-full" onClick={handleMarkAsPaid}>
+                            <Landmark className="mr-2 h-4 w-4" />
+                            Marquer comme payé
+                        </Button>
+                    </CardFooter>
+                  )}
                 </>
                 )}
             </Card>
         </div>
     )
 }
+

@@ -37,6 +37,7 @@ export default function DepensesPage() {
         const expensesWithDate: EnrichedExpense[] = [];
         tasks.forEach(task => {
             if (task.expenses && task.expenses.length > 0) {
+                // For non-Casablanca missions, use the first sub-mission for date and city context
                 const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
                 const ville = task.city === 'Casablanca' ? task.city : task.subMissions?.[0]?.city || 'Hors Casablanca';
 
@@ -96,11 +97,14 @@ export default function DepensesPage() {
     }, [filteredExpenses, groupedProcessedExpenses, filterStatus]);
 
     const oldestExpenseDate = useMemo(() => {
-      if (filteredExpenses.length === 0) {
-        return null;
+      if (filterStatus === 'Sans compte') {
+        if (filteredExpenses.length === 0) return null;
+        return filteredExpenses[0].missionDate;
       }
-      return filteredExpenses[0].missionDate;
-    }, [filteredExpenses]);
+      if (groupedProcessedExpenses.length === 0) return null;
+      return groupedProcessedExpenses[0].processedDate;
+
+    }, [filteredExpenses, groupedProcessedExpenses, filterStatus]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -247,5 +251,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
