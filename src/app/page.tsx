@@ -110,7 +110,7 @@ export default function Home() {
       </div>
       <div className="flex gap-4">
         <Button variant="outline">Villes</Button>
-        <Button variant="outline">Responsables</Button>
+        <Button variant="outline">Gestionnaires</Button>
       </div>
     </div>
   );
