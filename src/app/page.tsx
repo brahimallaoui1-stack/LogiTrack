@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { MonthPicker } from "@/components/MonthPicker";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
@@ -99,7 +99,7 @@ export default function Home() {
 
   return (
     <div className="grid gap-6">
-       <div className="flex justify-start items-center">
+       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
             <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
               <PopoverTrigger asChild>
@@ -131,6 +131,12 @@ export default function Home() {
               </SelectContent>
             </Select>
         </div>
+         <Button asChild size="icon">
+          <Link href="/missions">
+            <Plus />
+            <span className="sr-only">Ajouter une mission</span>
+          </Link>
+        </Button>
       </div>
       
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReportCategory)} className="w-full">
