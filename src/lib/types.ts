@@ -15,3 +15,18 @@ export interface Task {
   montant?: number;
   remarque?: string;
 }
+
+export interface City {
+  id: string;
+  name: string;
+}
+
+export interface Manager {
+  id: string;
+  name: string;
+}
+
+export interface MissionType {
+  id: string;
+  name: string;
+}
