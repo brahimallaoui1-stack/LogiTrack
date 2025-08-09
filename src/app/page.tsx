@@ -5,13 +5,32 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { Task } from "@/lib/types";
+import { format, subMonths } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
   const [timeRange, setTimeRange] = useState("month");
-  const [selectedDate, setSelectedDate] = useState("2024-07");
+  
+  const [dateOptions, setDateOptions] = useState<{ value: string; label: string; }[]>([]);
+  const [selectedDate, setSelectedDate] = useState("");
+
+  useEffect(() => {
+    const now = new Date();
+    const options = Array.from({ length: 12 }).map((_, i) => {
+      const date = subMonths(now, i);
+      return {
+        value: format(date, 'yyyy-MM'),
+        label: format(date, 'MMMM yyyy', { locale: fr }),
+      };
+    });
+    setDateOptions(options);
+    if (options.length > 0) {
+      setSelectedDate(options[0].value);
+    }
+  }, []);
 
   const filteredTasks = useMemo(() => {
     // La logique de filtrage sera implémentée ici ultérieurement
@@ -40,10 +59,9 @@ export default function Home() {
                 <SelectValue placeholder="Sélectionner une date" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2024-07">Juillet 2024</SelectItem>
-                <SelectItem value="2024-06">Juin 2024</SelectItem>
-                <SelectItem value="2024-05">Mai 2024</SelectItem>
-                <SelectItem value="2024-04">Avril 2024</SelectItem>
+                {dateOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={timeRange} onValueChange={setTimeRange}>
