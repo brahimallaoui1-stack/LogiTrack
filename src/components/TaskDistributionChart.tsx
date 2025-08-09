@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer } from "recharts"
+import { Pie, PieChart, Cell, Tooltip } from "recharts"
 
 import {
   ChartConfig,
@@ -59,7 +59,7 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
     }, {} as ChartConfig);
 
   if (data.length === 0) {
-    return <div className="flex justify-center items-center h-full text-muted-foreground">Aucune donnée à afficher</div>
+    return <div className="flex justify-center items-center h-[250px] text-muted-foreground">Aucune donnée à afficher</div>
   }
 
   const totalMissions = data.reduce((sum, item) => sum + item.value, 0);
@@ -72,7 +72,7 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
         <PieChart>
           <Tooltip
             cursor={false}
-            content={<ChartTooltipContent hideLabel nameKey="name" />}
+            content={<ChartTooltipContent hideLabel />}
           />
           <Pie
             data={data}
@@ -86,7 +86,7 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
-           <foreignObject x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" width="120" height="40" dy="-10" dx="-60">
+           <foreignObject x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" width="120" height="40" dy="-20" dx="-60">
                 <div className="text-center">
                     <p className="text-2xl font-bold">{totalMissions}</p>
                     <p className="text-xs text-muted-foreground">Missions</p>
