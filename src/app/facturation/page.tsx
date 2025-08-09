@@ -48,31 +48,41 @@ export default function FacturationPage() {
     })).sort((a,b) => new Date(b.id).getTime() - new Date(a.id).getTime());
   }, [tasks]);
   
-  const totals = useMemo(() => {
-      const totalDue = confirmedAndPaidExpenses
-        .filter(e => e.status === 'Confirmé')
-        .reduce((sum, e) => sum + e.totalAmount, 0);
+ const totals = useMemo(() => {
+    let totalDue = 0;
+    let totalPaidOff = 0;
 
-      const totalReceivedFromInvoices = Object.values(invoices).reduce((sum, inv) => sum + inv.receivedAmount, 0);
+    confirmedAndPaidExpenses.forEach(e => {
+        if (e.status === 'Payé') {
+            totalPaidOff += e.totalAmount;
+        } else { // 'Confirmé'
+            totalDue += e.totalAmount;
+        }
+    });
 
-      const totalPaidOff = confirmedAndPaidExpenses
-        .filter(e => e.status === 'Payé')
-        .reduce((sum, e) => sum + e.totalAmount, 0);
+    const totalReceivedFromInvoices = Object.values(invoices).reduce((sum, inv) => {
+        // Only sum received amounts for invoices that are not yet fully paid
+        const correspondingExpense = confirmedAndPaidExpenses.find(e => e.id === inv.id);
+        if (correspondingExpense && correspondingExpense.status !== 'Payé') {
+            return sum + inv.receivedAmount;
+        }
+        return sum;
+    }, 0);
 
-      return {
-          totalDue: totalDue - totalReceivedFromInvoices,
-          totalReceived: totalReceivedFromInvoices + totalPaidOff,
-      }
+    return {
+        totalDue: totalDue - totalReceivedFromInvoices,
+        totalReceived: totalPaidOff + totalReceivedFromInvoices,
+    }
   }, [confirmedAndPaidExpenses, invoices]);
 
   const handleAmountChange = (id: string, value: string) => {
     setReceivedAmounts(prev => ({ ...prev, [id]: value === '' ? '' : parseFloat(value) }));
   };
 
-  const handleSaveReceivedAmount = (id: string) => {
+  const handleSaveReceivedAmount = (id: string, totalDue: number) => {
     const amount = receivedAmounts[id];
     if (typeof amount === 'number' && amount > 0) {
-      updateInvoice(id, amount);
+      updateInvoice(id, amount, totalDue);
       setReceivedAmounts(prev => ({ ...prev, [id]: '' }));
     }
   };
@@ -136,7 +146,7 @@ export default function FacturationPage() {
                     <TableCell>{formatDate(group.id)}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>{formatCurrency(receivedAmount)}</TableCell>
-                    <TableCell className={group.status === 'Payé' ? 'text-green-600' : 'text-orange-600'}>{formatCurrency(balance)}</TableCell>
+                    <TableCell className={balance <= 0 ? 'text-green-600' : 'text-orange-600'}>{formatCurrency(balance)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 text-xs rounded-full ${group.status === 'Payé' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
                         {group.status}
@@ -152,7 +162,7 @@ export default function FacturationPage() {
                             value={receivedAmounts[group.id] ?? ''}
                             onChange={(e) => handleAmountChange(group.id, e.target.value)}
                           />
-                          <Button onClick={() => handleSaveReceivedAmount(group.id)}>
+                          <Button onClick={() => handleSaveReceivedAmount(group.id, group.totalAmount)}>
                             Enregistrer
                           </Button>
                         </div>

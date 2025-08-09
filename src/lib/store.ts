@@ -199,15 +199,14 @@ export const useMissionTypeStore = create<MissionTypeState>()(
 // Store for Invoicing
 interface FacturationState {
     invoices: Record<string, Invoice>;
-    updateInvoice: (id: string, receivedAmount: number) => void;
+    updateInvoice: (id: string, receivedAmount: number, totalDue: number) => void;
 }
 
 export const useFacturationStore = create<FacturationState>()(
     persist(
         (set, get) => ({
             invoices: {},
-            updateInvoice: (id, receivedAmount) => {
-                const { tasks, updateExpensesStatusByProcessedDate } = useTaskStore.getState();
+            updateInvoice: (id, receivedAmount, totalDue) => {
                 const invoices = get().invoices;
                 
                 const existingInvoice = invoices[id] || { id, receivedAmount: 0 };
@@ -219,15 +218,9 @@ export const useFacturationStore = create<FacturationState>()(
                         [id]: { ...existingInvoice, receivedAmount: newReceivedAmount }
                     }
                 });
-
-                // Check if the total due amount is covered
-                const confirmedExpenses = tasks.flatMap(t => t.expenses ?? [])
-                    .filter(e => e.processedDate && format(new Date(e.processedDate), 'yyyy-MM-dd') === id && e.status === 'Confirmé');
-                
-                const totalDue = confirmedExpenses.reduce((sum, e) => sum + e.montant, 0);
                 
                 if (newReceivedAmount >= totalDue) {
-                    updateExpensesStatusByProcessedDate(id, 'Payé');
+                    useTaskStore.getState().updateExpensesStatusByProcessedDate(id, 'Payé');
                 }
             }
         }),
