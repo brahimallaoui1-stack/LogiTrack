@@ -33,15 +33,7 @@ interface TaskState {
 export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
-      tasks: [
-        { id: 'task-1', label: 'Réparer la fuite du robinet', city: 'Paris' },
-        { id: 'task-2', label: 'Installer une nouvelle chaudière', city: 'Lyon' },
-        { id: 'task-3', label: 'Peindre le salon', city: 'Marseille' },
-        { id: 'task-4', label: 'Monter un meuble', city: 'Paris' },
-        { id: 'task-5', label: 'Changer une prise électrique', city: 'Lille' },
-        { id: 'task-6', label: 'Déboucher les canalisations', city: 'Lyon' },
-        { id: 'task-7', label: 'Poser du parquet', city: 'Paris' },
-      ],
+      tasks: [],
       addTask: (task) => {
         const newTask = { ...task, id: `task-${Date.now()}` };
         set({ tasks: [newTask, ...get().tasks] });
@@ -63,12 +55,7 @@ interface CityState {
 export const useCityStore = create<CityState>()(
   persist(
     (set, get) => ({
-      cities: [
-        { id: 'city-1', name: 'Paris' },
-        { id: 'city-2', name: 'Lyon' },
-        { id: 'city-3', name: 'Marseille' },
-        { id: 'city-4', name: 'Lille' },
-      ],
+      cities: [],
       addCity: (city) => {
         const newCity = { ...city, id: `city-${Date.now()}` };
         set({ cities: [...get().cities, newCity] });
@@ -90,10 +77,7 @@ interface ManagerState {
 export const useManagerStore = create<ManagerState>()(
   persist(
     (set, get) => ({
-      managers: [
-        { id: 'manager-1', name: 'Jean Dupont' },
-        { id: 'manager-2', name: 'Marie Curie' },
-      ],
+      managers: [],
       addManager: (manager) => {
         const newManager = { ...manager, id: `manager-${Date.now()}` };
         set({ managers: [...get().managers, newManager] });
@@ -115,11 +99,7 @@ interface MissionTypeState {
 export const useMissionTypeStore = create<MissionTypeState>()(
   persist(
     (set, get) => ({
-      missionTypes: [
-        { id: 'type-1', name: 'Réparation' },
-        { id: 'type-2', name: 'Installation' },
-        { id: 'type-3', name: 'Entretien' },
-      ],
+      missionTypes: [],
       addMissionType: (missionType) => {
         const newMissionType = { ...missionType, id: `type-${Date.now()}` };
         set({ missionTypes: [...get().missionTypes, newMissionType] });
