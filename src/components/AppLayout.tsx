@@ -69,15 +69,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton
-                          asChild
-                          isActive={pathname === '/depenses'}
-                      >
-                          <Link href="/depenses">
-                          <CreditCard />
-                          <span>Dépenses</span>
-                          </Link>
-                      </SidebarMenuButton>
+                      <Link href="/depenses">
+                        <SidebarMenuButton
+                            isActive={pathname === '/depenses'}
+                            className="w-full"
+                        >
+                            <CreditCard />
+                            <span>Dépenses</span>
+                        </SidebarMenuButton>
+                      </Link>
                     </SidebarMenuItem>
                 </SidebarMenu>
 
