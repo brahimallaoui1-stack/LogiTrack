@@ -32,7 +32,7 @@ interface MissionFormDialogProps {
 interface ExpenseFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSave: (expense: Omit<Expense, 'id' | 'status'>) => void;
+  onSave: (expense: Omit<Expense, 'id' | 'status' | 'typeDepense'> & { typeDepense?: string }) => void;
 }
 
 const initialSubMissionState: Omit<SubMission, 'id'> = {
@@ -229,7 +229,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     const newExpense: Expense = { 
       ...expense, 
       id: `expense-${Date.now()}-${Math.random()}`,
-      status: 'Sans compte' 
+      status: 'Sans compte' ,
+      typeDepense: expense.typeDepense || 'Non spécifié'
     };
     setFormState(prevState => ({
       ...prevState,
@@ -245,35 +246,46 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   }
 
   const handleSave = () => {
-     const taskData: Omit<Task, 'id'> = {
-        label: generatedLabel,
-        city: isCasablancaMission ? 'Casablanca' : 'Hors Casablanca',
+    const taskData: Omit<Task, 'id'> = {
+      label: generatedLabel,
+      city: isCasablancaMission ? 'Casablanca' : 'Hors Casablanca',
     };
-    
+  
     if (isCasablancaMission) {
-        taskData.date = formState.date;
-        taskData.reservation = formState.reservation;
-        taskData.entreprise = formState.entreprise;
-        taskData.gestionnaire = formState.gestionnaire;
-        taskData.typeMission = formState.typeMission;
-        taskData.marqueVehicule = formState.marqueVehicule;
-        taskData.immatriculation = formState.immatriculation;
-        taskData.remarque = formState.remarque;
-        taskData.subMissions = [];
-        taskData.expenses = [];
-
+      taskData.date = formState.date;
+      taskData.reservation = formState.reservation;
+      taskData.entreprise = formState.entreprise;
+      taskData.gestionnaire = formState.gestionnaire;
+      taskData.typeMission = formState.typeMission;
+      taskData.marqueVehicule = formState.marqueVehicule;
+      taskData.immatriculation = formState.immatriculation;
+      taskData.remarque = formState.remarque;
+      taskData.subMissions = [];
+      taskData.expenses = [];
     } else {
-        taskData.subMissions = formState.subMissions;
-        taskData.expenses = formState.expenses;
+      taskData.subMissions = formState.subMissions;
+  
+      const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
+  
+      if (totalExpenses > 0) {
+        taskData.expenses = [{
+          id: `expense-total-${Date.now()}`,
+          typeDepense: "Frais de mission",
+          montant: totalExpenses,
+          status: "Sans compte",
+          remarque: "Total des dépenses pour la mission"
+        }];
+      } else {
+        taskData.expenses = [];
+      }
     }
-
-
+  
     if (editingTask) {
       updateTask({ ...editingTask, ...taskData });
     } else {
       addTask(taskData);
     }
-
+  
     onOpenChange(false);
   };
   
@@ -525,3 +537,5 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
+
+    
