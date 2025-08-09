@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { MissionFormDialog } from "@/components/MissionFormDialog";
 export default function MissionsPage() {
   const tasks = useTaskStore((state) => state.tasks);
   const deleteTask = useTaskStore((state) => state.deleteTask);
+  const router = useRouter();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -35,6 +37,10 @@ export default function MissionsPage() {
   const handleEdit = (task: Task) => {
     setEditingTask(task);
     setIsDialogOpen(true);
+  };
+  
+  const handleView = (taskId: string) => {
+    router.push(`/missions/view/${taskId}`);
   };
 
   const handleAddNew = () => {
@@ -92,6 +98,7 @@ export default function MissionsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleView(task.id)}>Afficher</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(task)}>Modifier</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDeleteClick(task.id)} className="text-destructive">Supprimer</DropdownMenuItem>
                       </DropdownMenuContent>
