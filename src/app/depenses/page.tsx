@@ -98,8 +98,8 @@ export default function DepensesPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Rapport sur les Dépenses</CardTitle>
-                        <CardDescription>Répartition des dépenses par statut.</CardDescription>
+                        <CardTitle>Statut</CardTitle>
+                        <CardDescription>Répartition des dépenses.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <ExpenseDistributionChart expenses={chartExpenses} category="status" label="Statut" />
