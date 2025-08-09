@@ -1,6 +1,6 @@
 // Les types de données seront définis ici.
 
-export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Payé';
+export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Confirmé';
 
 export interface Expense {
   id: string;

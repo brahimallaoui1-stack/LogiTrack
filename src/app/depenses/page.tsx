@@ -64,7 +64,7 @@ export default function DepensesPage() {
     }, [allExpenses, filterStatus]);
     
     const groupedProcessedExpenses = useMemo(() => {
-        if (filterStatus !== 'Comptabilisé' && filterStatus !== 'Payé') return [];
+        if (filterStatus !== 'Comptabilisé' && filterStatus !== 'Confirmé') return [];
 
         const groupedByDate: Record<string, { totalAmount: number, taskIds: string[] }> = {};
 
@@ -90,7 +90,7 @@ export default function DepensesPage() {
 
 
     const totalAmount = useMemo(() => {
-        if (filterStatus === 'Comptabilisé' || filterStatus === 'Payé') {
+        if (filterStatus === 'Comptabilisé' || filterStatus === 'Confirmé') {
           return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
         }
         return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
@@ -124,30 +124,30 @@ export default function DepensesPage() {
     const pageTitles = {
         'Sans compte': 'Dépenses non traitées',
         'Comptabilisé': 'Dépenses traitées',
-        'Payé': 'Dépenses payées'
+        'Confirmé': 'Dépenses confirmées'
     }
 
     const totalCardTitles = {
         'Sans compte': 'Total des dépenses non comptabilisées',
         'Comptabilisé': 'Total des dépenses comptabilisées',
-        'Payé': 'Total des dépenses payées'
+        'Confirmé': 'Total des dépenses confirmées'
     }
 
     const totalCardDescriptions = {
         'Sans compte': 'Montant total des dépenses non encore traitées.',
         'Comptabilisé': 'Montant total des dépenses déjà traitées.',
-        'Payé': 'Montant total des dépenses payées.'
+        'Confirmé': 'Montant total des dépenses confirmées.'
     }
 
     const dateCardTitles = {
         'Sans compte': 'Date de la première dépense non comptabilisée',
         'Comptabilisé': 'Date de la première dépense comptabilisée',
-        'Payé': 'Date de la première dépense payée'
+        'Confirmé': 'Date de la première dépense confirmée'
     }
 
     const dateCardDescription = oldestExpenseDate
-        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'payée'}.`
-        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'payée'}.`;
+        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'confirmée'}.`
+        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'confirmée'}.`;
 
 
     return (
@@ -194,7 +194,7 @@ export default function DepensesPage() {
                             <SelectContent>
                                 <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
                                 <SelectItem value="Comptabilisé">Dépenses traitées</SelectItem>
-                                <SelectItem value="Payé">Dépenses payées</SelectItem>
+                                <SelectItem value="Confirmé">Dépenses confirmées</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -46,7 +46,7 @@ export default function ViewProcessedExpensesPage() {
       tasks.forEach(task => {
         task.expenses
             ?.filter(exp => {
-                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Payé') &&
+                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé') &&
                                 exp.processedDate && 
                                 format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
                 if(isMatch && !status) {
@@ -90,10 +90,10 @@ export default function ViewProcessedExpensesPage() {
     }, [suggestedAmount, advance, accountantFees]);
 
     const handleMarkAsPaid = () => {
-        updateExpensesStatusByProcessedDate(id as string, 'Payé');
+        updateExpensesStatusByProcessedDate(id as string, 'Confirmé');
         toast({
-            title: "Dépenses payées",
-            description: "Le lot de dépenses a été marqué comme payé.",
+            title: "Dépenses confirmées",
+            description: "Le lot de dépenses a été marqué comme confirmé.",
         });
         router.push('/depenses');
     };
@@ -127,7 +127,7 @@ export default function ViewProcessedExpensesPage() {
     const pageTitle = `Détail des dépenses du ${formatDate(id as string)}`;
     const pageDescription = expenseStatus === 'Comptabilisé' 
       ? 'Finalisez le paiement ou mettez à jour les montants.'
-      : 'Voici le récapitulatif des dépenses qui ont été payées.';
+      : 'Voici le récapitulatif des dépenses qui ont été confirmées.';
 
     return (
         <div className="flex flex-col gap-6">
@@ -166,7 +166,7 @@ export default function ViewProcessedExpensesPage() {
                     </div>
                 </CardContent>
 
-                {(expenseStatus === 'Comptabilisé' || expenseStatus === 'Payé') && (
+                {(expenseStatus === 'Comptabilisé' || expenseStatus === 'Confirmé') && (
                   <>
                   <Separator className="my-6" />
                   <CardContent className="grid gap-6">
@@ -178,7 +178,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={suggestedAmount} 
                                   onChange={(e) => setSuggestedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={expenseStatus === 'Payé'}
+                                  disabled={expenseStatus === 'Confirmé'}
                                   placeholder="Entrer le montant"
                               />
                           </div>
@@ -189,7 +189,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={advance} 
                                   onChange={(e) => setAdvance(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={expenseStatus === 'Payé'}
+                                  disabled={expenseStatus === 'Confirmé'}
                                    placeholder="Entrer l'avance"
                               />
                           </div>
@@ -200,7 +200,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={accountantFees} 
                                   onChange={(e) => setAccountantFees(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={expenseStatus === 'Payé'}
+                                  disabled={expenseStatus === 'Confirmé'}
                                    placeholder="Entrer les honoraires"
                               />
                           </div>
@@ -222,7 +222,7 @@ export default function ViewProcessedExpensesPage() {
                     <CardFooter>
                         <Button className="w-full" onClick={handleMarkAsPaid}>
                             <Landmark className="mr-2 h-4 w-4" />
-                            Marquer comme payé
+                            Marquer comme confirmé
                         </Button>
                     </CardFooter>
                   )}
