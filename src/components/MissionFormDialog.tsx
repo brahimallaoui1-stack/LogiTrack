@@ -295,7 +295,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
             
             <div className={`grid ${!isCasablancaMission ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-x-8 gap-y-4`}>
                 <div>
-                     <h4 className="font-semibold mb-4 text-center">Livraison</h4>
+                     {!isCasablancaMission && <h4 className="font-semibold mb-4 text-center">Livraison</h4>}
                      <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="marqueVehiculeLivraison">Marque de véhicule</Label>
@@ -386,5 +386,3 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
-
-    
