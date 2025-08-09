@@ -3,7 +3,7 @@ import './globals.css';
 import { AppLayout } from '@/components/AppLayout';
 
 export const metadata: Metadata = {
-  title: 'LogiTrack',
+  title: 'Logi Track',
   description: 'Une application construite avec Firebase Studio',
   manifest: '/manifest.json'
 };

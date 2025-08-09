@@ -48,9 +48,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Image src="/icons/icon-192x192.png" alt="LogiTrack Logo" width={40} height={40} />
+              <Image src="/icons/icon-192x192.png" alt="Logi Track Logo" width={40} height={40} />
             </div>
-          <CardTitle className="text-2xl">LogiTrack</CardTitle>
+          <CardTitle className="text-2xl">Logi Track</CardTitle>
           <CardDescription>
             {isSignUp 
               ? "Créez un compte pour commencer à suivre vos missions."
