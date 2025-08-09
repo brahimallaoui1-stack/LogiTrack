@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, PanelLeft, LayoutDashboard, ListTodo, Settings, Building, Users, ChevronDown } from 'lucide-react';
+import { Briefcase, PanelLeft, LayoutDashboard, ListTodo, Settings, Building, Users, ChevronDown, CreditCard } from 'lucide-react';
 
 import {
   Collapsible,
@@ -67,6 +67,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <span>Missions</span>
                         </Link>
                     </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                          asChild
+                          isActive={pathname === '/depenses'}
+                      >
+                          <Link href="/depenses">
+                          <CreditCard />
+                          <span>Dépenses</span>
+                          </Link>
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
 
