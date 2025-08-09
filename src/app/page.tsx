@@ -110,7 +110,7 @@ export default function Home() {
         </Card>
       </div>
       <div className="flex gap-4">
-        <Button variant="outline" asChild><Link href="/missions">Missions</Link></Button>
+        <Button variant="outline">Missions</Button>
         <Button variant="outline">Villes</Button>
         <Button variant="outline">Gestionnaires</Button>
       </div>
