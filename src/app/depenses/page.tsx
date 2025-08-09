@@ -52,7 +52,7 @@ export default function DepensesPage() {
         return expensesWithDate.sort((a, b) => {
             const dateA = a.missionDate ? new Date(a.missionDate) : new Date(0);
             const dateB = b.missionDate ? new Date(b.missionDate) : new Date(0);
-            return dateB.getTime() - dateA.getTime();
+            return dateA.getTime() - dateB.getTime();
         });
     }, [tasks]);
 
@@ -68,7 +68,7 @@ export default function DepensesPage() {
       if (nonComptabiliseesExpenses.length === 0) {
         return null;
       }
-      return nonComptabiliseesExpenses[nonComptabiliseesExpenses.length - 1].missionDate;
+      return nonComptabiliseesExpenses[0].missionDate;
     }, [nonComptabiliseesExpenses]);
 
     const formatCurrency = (amount: number) => {
