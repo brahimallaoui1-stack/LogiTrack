@@ -6,13 +6,13 @@ import { usePathname } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { City, Briefcase, Users } from 'lucide-react';
+import { Building2, Briefcase, Users } from 'lucide-react';
 
 const sidebarNavItems = [
   {
     title: 'Villes',
     href: '/parametres/villes',
-    icon: City,
+    icon: Building2,
   },
   {
     title: 'Types de Mission',
