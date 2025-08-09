@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer } from "recharts"
 
 import {
   ChartConfig,
