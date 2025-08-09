@@ -12,7 +12,7 @@ import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
-import { format } from 'date-fns';
+import { format, getYear, getMonth, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
@@ -31,9 +31,48 @@ export default function Home() {
   const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
   const filteredTasks = useMemo(() => {
-    // La logique de filtrage sera implémentée ici ultérieurement
-    // Pour l'instant, nous utilisons toutes les tâches.
-    return tasks;
+    if (!selectedDate) {
+      return tasks;
+    }
+
+    const selectedYear = getYear(selectedDate);
+    const selectedMonth = getMonth(selectedDate);
+
+    return tasks.filter(task => {
+      if (task.city === 'Casablanca') {
+        if (!task.date) return false;
+        try {
+          const taskDate = parseISO(task.date);
+          const taskYear = getYear(taskDate);
+          const taskMonth = getMonth(taskDate);
+
+          if (timeRange === 'year') {
+            return taskYear === selectedYear;
+          }
+          return taskYear === selectedYear && taskMonth === selectedMonth;
+        } catch (e) {
+          return false;
+        }
+      } else {
+         if (!task.subMissions || task.subMissions.length === 0) return false;
+         // Pour les missions complexes, inclure la mission si au moins une sous-mission correspond au filtre
+         return task.subMissions.some(sub => {
+            if (!sub.date) return false;
+             try {
+                const subDate = parseISO(sub.date);
+                const subYear = getYear(subDate);
+                const subMonth = getMonth(subDate);
+
+                if (timeRange === 'year') {
+                    return subYear === selectedYear;
+                }
+                return subYear === selectedYear && subMonth === selectedMonth;
+            } catch (e) {
+                return false;
+            }
+         });
+      }
+    });
   }, [tasks, timeRange, selectedDate]);
   
   const reportData = useMemo(() => {
@@ -45,7 +84,6 @@ export default function Home() {
             task.subMissions.forEach((subMission, index) => {
                 flatTasks.push({
                     ...task,
-                    // We only care about sub-mission specific fields for categorization
                     city: subMission.city || task.city,
                     gestionnaire: subMission.gestionnaire || task.gestionnaire,
                     typeMission: subMission.typeMission || task.typeMission,
