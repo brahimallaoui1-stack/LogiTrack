@@ -8,7 +8,6 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltipContent,
-  ChartLegendContent,
 } from "@/components/ui/chart"
 import { Task } from "@/lib/types"
 
@@ -63,6 +62,8 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
     return <div className="flex justify-center items-center h-full text-muted-foreground">Aucune donnée à afficher</div>
   }
 
+  const totalMissions = data.reduce((sum, item) => sum + item.value, 0);
+
   return (
     <ChartContainer
         config={chartConfig}
@@ -85,7 +86,12 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
-           <Legend content={<ChartLegendContent nameKey="name" />} />
+           <foreignObject x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" width="120" height="40" dy="-10" dx="-60">
+                <div className="text-center">
+                    <p className="text-2xl font-bold">{totalMissions}</p>
+                    <p className="text-xs text-muted-foreground">Missions</p>
+                </div>
+            </foreignObject>
         </PieChart>
       </ChartContainer>
   )
