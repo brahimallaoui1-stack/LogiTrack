@@ -12,13 +12,16 @@ import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
 
-type EnrichedExpense = Expense & {
-    missionDate?: string;
-    ville?: string;
-    taskId: string;
+type GroupedExpense = {
+  id: string;
+  displayDate?: string;
+  ville?: string;
+  totalAmount: number;
+  taskId: string;
 };
 
-type GroupedExpense = {
+
+type GroupedProcessedExpense = {
   id: string;
   processedDate: string;
   totalAmount: number;
@@ -32,43 +35,58 @@ export default function DepensesPage() {
     
     const [filterStatus, setFilterStatus] = useState<ExpenseStatus>('Sans compte');
 
-
-    const allExpenses = useMemo(() => {
-        const expensesWithDate: EnrichedExpense[] = [];
+    const groupedUnprocessedExpenses = useMemo(() => {
+        if (filterStatus !== 'Sans compte') return [];
+    
+        const groupedByTask: Record<string, GroupedExpense> = {};
+    
         tasks.forEach(task => {
-            if (task.expenses && task.expenses.length > 0) {
-                // For non-Casablanca missions, use the first sub-mission for date and city context
-                const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
-                const ville = task.city === 'Casablanca' ? task.city : task.subMissions?.[0]?.city || 'Hors Casablanca';
+            const unprocessedExpenses = task.expenses?.filter(exp => exp.status === 'Sans compte');
+    
+            if (unprocessedExpenses && unprocessedExpenses.length > 0) {
+                const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
+                
+                const displayDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
+                let ville = task.city;
+                if(ville !== 'Casablanca') {
+                    const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
+                    const uniqueCities = [...new Set(allCities)];
+                    ville = uniqueCities.join(' / ') || 'Hors Casablanca';
+                }
 
-                task.expenses.forEach(expense => {
-                    expensesWithDate.push({
-                      ...expense,
-                      missionDate: missionDate,
-                      ville: ville,
-                      taskId: task.id
-                    });
-                });
+                groupedByTask[task.id] = {
+                    id: task.id,
+                    displayDate,
+                    ville,
+                    totalAmount,
+                    taskId: task.id
+                };
             }
         });
-        
-        return expensesWithDate.sort((a, b) => {
-            const dateA = a.missionDate ? new Date(a.missionDate) : new Date(0);
-            const dateB = b.missionDate ? new Date(b.missionDate) : new Date(0);
-            return dateA.getTime() - dateB.getTime();
-        });
-    }, [tasks]);
-
-    const filteredExpenses = useMemo(() => {
-        return allExpenses.filter(expense => expense.status === filterStatus);
-    }, [allExpenses, filterStatus]);
     
+        return Object.values(groupedByTask).sort((a, b) => {
+            const dateA = a.displayDate ? new Date(a.displayDate) : new Date(0);
+            const dateB = b.displayDate ? new Date(b.displayDate) : new Date(0);
+            return dateB.getTime() - dateA.getTime();
+        });
+    }, [tasks, filterStatus]);
+
+
     const groupedProcessedExpenses = useMemo(() => {
         if (filterStatus !== 'Comptabilisé') return [];
 
+        const expensesWithDate: (Expense & { taskId: string })[] = [];
+        tasks.forEach(task => {
+            task.expenses?.forEach(expense => {
+                if (expense.status === 'Comptabilisé' && expense.processedDate) {
+                    expensesWithDate.push({ ...expense, taskId: task.id });
+                }
+            });
+        });
+        
         const groupedByDate: Record<string, { totalAmount: number, taskIds: string[] }> = {};
 
-        filteredExpenses.forEach(expense => {
+        expensesWithDate.forEach(expense => {
             if (expense.processedDate) {
                 const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
                 if (!groupedByDate[dateKey]) {
@@ -85,26 +103,31 @@ export default function DepensesPage() {
             id: date,
             processedDate: date,
             totalAmount: group.totalAmount
-        }));
-    }, [filteredExpenses, filterStatus]);
+        })).sort((a, b) => new Date(b.processedDate).getTime() - new Date(a.processedDate).getTime());
+    }, [tasks, filterStatus]);
 
 
     const totalAmount = useMemo(() => {
         if (filterStatus === 'Comptabilisé') {
           return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
         }
-        return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
-    }, [filteredExpenses, groupedProcessedExpenses, filterStatus]);
+        return groupedUnprocessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
+    }, [groupedUnprocessedExpenses, groupedProcessedExpenses, filterStatus]);
 
     const oldestExpenseDate = useMemo(() => {
       if (filterStatus === 'Sans compte') {
-        if (filteredExpenses.length === 0) return null;
-        return filteredExpenses[0].missionDate;
+        if (groupedUnprocessedExpenses.length === 0) return null;
+        // find the oldest date
+        return groupedUnprocessedExpenses.reduce((oldest, current) => {
+            if (!oldest.displayDate) return current;
+            if (!current.displayDate) return oldest;
+            return new Date(oldest.displayDate) < new Date(current.displayDate) ? oldest : current;
+        }).displayDate;
       }
       if (groupedProcessedExpenses.length === 0) return null;
-      return groupedProcessedExpenses[0].processedDate;
+      return groupedProcessedExpenses[groupedProcessedExpenses.length - 1].processedDate;
 
-    }, [filteredExpenses, groupedProcessedExpenses, filterStatus]);
+    }, [groupedUnprocessedExpenses, groupedProcessedExpenses, filterStatus]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -222,13 +245,13 @@ export default function DepensesPage() {
                         </TableHeader>
                         <TableBody>
                              {filterStatus === 'Sans compte' ? (
-                                filteredExpenses.map((expense) => (
-                                    <TableRow key={expense.id}>
-                                        <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                        <TableCell>{expense.ville}</TableCell>
-                                        <TableCell>{formatCurrency(expense.montant)}</TableCell>
+                                groupedUnprocessedExpenses.map((group) => (
+                                    <TableRow key={group.id}>
+                                        <TableCell>{formatDate(group.displayDate)}</TableCell>
+                                        <TableCell>{group.ville}</TableCell>
+                                        <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="outline" size="sm" onClick={() => handleView(expense.taskId)}>
+                                            <Button variant="outline" size="sm" onClick={() => handleView(group.taskId)}>
                                                 Afficher
                                             </Button>
                                         </TableCell>
@@ -254,3 +277,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
