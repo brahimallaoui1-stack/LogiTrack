@@ -40,7 +40,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10 h-10 w-10">
                 <Briefcase className="h-6 w-6" />
               </Button>
-              <h1 className="text-xl font-semibold font-headline">App</h1>
+              <h1 className="text-xl font-semibold font-headline">LogiTrack</h1>
             </div>
         </SidebarHeader>
         <SidebarContent>
