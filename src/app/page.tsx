@@ -11,7 +11,8 @@ import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
-import { getYear, getMonth, parseISO } from 'date-fns';
+import { getYear, getMonth, parseISO, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
@@ -186,10 +187,12 @@ export default function Home() {
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
-                  className="w-[180px] justify-start text-left font-normal"
+                  className="w-[180px] justify-start text-left font-normal capitalize"
                 >
                   {selectedDate ? (
-                    timeRange === 'year' ? getYear(selectedDate) : `${getMonth(selectedDate) + 1}/${getYear(selectedDate)}`
+                    timeRange === 'year' ? 
+                      getYear(selectedDate) : 
+                      format(selectedDate, 'LLLL yyyy', { locale: fr })
                   ) : (
                     <span>Choisir une date</span>
                   )}
@@ -252,3 +255,5 @@ export default function Home() {
     </>
   );
 }
+
+    
