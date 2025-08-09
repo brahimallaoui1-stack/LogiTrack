@@ -14,6 +14,7 @@ import { useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import Link from "next/link";
 
 export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
@@ -109,7 +110,7 @@ export default function Home() {
         </Card>
       </div>
       <div className="flex gap-4">
-        <Button variant="outline">Missions</Button>
+        <Button variant="outline" asChild><Link href="/missions">Missions</Link></Button>
         <Button variant="outline">Villes</Button>
         <Button variant="outline">Gestionnaires</Button>
       </div>
