@@ -79,7 +79,7 @@ export default function ViewMissionPage() {
 
                         <div className={`grid ${!isCasablancaMission ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-8`}>
                              <div>
-                                <h4 className="font-semibold text-lg mb-4 text-center">Livraison</h4>
+                                {!isCasablancaMission && <h4 className="font-semibold text-lg mb-4 text-center">Livraison</h4>}
                                 <div className="space-y-2">
                                     <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehiculeLivraison || 'N/A'}</div>
                                     <div><span className="font-semibold">Immatriculation:</span> {task.immatriculationLivraison || 'N/A'}</div>
