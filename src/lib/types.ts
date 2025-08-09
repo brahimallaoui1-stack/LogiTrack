@@ -1,19 +1,25 @@
 // Les types de données seront définis ici.
+
+export interface Expense {
+  id: string;
+  typeDepense: string;
+  montant: number;
+  remarque?: string;
+}
 export interface Task {
   id: string;
   label: string;
   city: string;
   date?: string;
   reservation?: string;
-  entreprise?: string;
+  entreprise?: string; // Maintenu comme 'entreprise' en interne, mais libellé 'Client'
   gestionnaire?: string;
   infoVehicule?: string;
   typeTache?: string;
   typeVehicule?: string;
   immatriculation?: string;
-  typeDepense?: string;
-  montant?: number;
   remarque?: string;
+  expenses?: Expense[];
 }
 
 export interface City {
