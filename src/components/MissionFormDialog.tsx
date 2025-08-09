@@ -286,7 +286,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                                 {formState.expenses.map((expense) => (
                                     <TableRow key={expense.id}>
                                         <TableCell>{expense.typeDepense}</TableCell>
-                                        <TableCell>{expense.montant.toFixed(2)} €</TableCell>
+                                        <TableCell>{expense.montant.toFixed(2)} MAD</TableCell>
                                         <TableCell className="truncate max-w-[100px]">{expense.remarque}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon" onClick={() => handleRemoveExpense(expense.id)}>
@@ -299,7 +299,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                         </Table>
                     </div>
                     <div className="text-right font-semibold pr-4">
-                        Total des frais: {totalExpenses.toFixed(2)} €
+                        Total des frais: {totalExpenses.toFixed(2)} MAD
                     </div>
                 </div>
               )}
