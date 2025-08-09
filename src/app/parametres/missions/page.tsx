@@ -16,7 +16,12 @@ import type { MissionType } from "@/lib/types";
 
 export default function ParametresMissionsPage() {
   const { missionTypes, addMissionType, updateMissionType, deleteMissionType } = useMissionTypeStore();
-  const { isInitialized } = useAppStore();
+  const isHydrated = useAppStore((state) => state.isHydrated);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -62,7 +67,7 @@ export default function ParametresMissionsPage() {
     setIsDeleteDialogOpen(false);
   };
 
-  if (!isInitialized) {
+  if (!isHydrated || !isClient) {
     return <div>Chargement...</div>;
   }
 

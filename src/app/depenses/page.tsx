@@ -29,10 +29,13 @@ type GroupedProcessedExpense = {
 
 export default function DepensesPage() {
     const router = useRouter();
-    const { tasks } = useTaskStore((state) => ({
-      tasks: state.tasks,
-    }));
-    const { isInitialized } = useAppStore();
+    const tasks = useTaskStore((state) => state.tasks);
+    const isHydrated = useAppStore((state) => state.isHydrated);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     
     const [filterStatus, setFilterStatus] = useState<ExpenseStatus>('Sans compte');
 
@@ -179,7 +182,7 @@ export default function DepensesPage() {
         ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'confirmée'}.`
         : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'confirmée'}.`;
 
-    if (!isInitialized) {
+    if (!isHydrated || !isClient) {
       return <div>Chargement...</div>;
     }
 

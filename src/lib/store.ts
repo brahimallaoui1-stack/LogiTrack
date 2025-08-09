@@ -7,26 +7,15 @@ import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice 
 import { format } from 'date-fns';
 
 interface AppState {
-  isInitialized: boolean;
-  setIsInitialized: (isInitialized: boolean) => void;
+  isHydrated: boolean;
+  setHydrated: (isHydrated: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
-  persist(
     (set) => ({
-      isInitialized: false,
-      setIsInitialized: (isInitialized) => set({ isInitialized }),
+      isHydrated: false,
+      setHydrated: (isHydrated) => set({ isHydrated }),
     }),
-    {
-      name: 'app-storage',
-      storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.setIsInitialized(true);
-        }
-      },
-    }
-  )
 );
 
 interface TaskState {
@@ -89,6 +78,11 @@ export const useTaskStore = create<TaskState>()(
     {
       name: 'task-storage',
       storage: createJSONStorage(() => localStorage),
+       onRehydrateStorage: () => (state) => {
+        if (state) {
+            useAppStore.setState({ isHydrated: true });
+        }
+      }
     }
   )
 );
@@ -124,6 +118,11 @@ export const useCityStore = create<CityState>()(
     {
       name: 'city-storage',
       storage: createJSONStorage(() => localStorage),
+       onRehydrateStorage: () => (state) => {
+        if (state) {
+          useAppStore.setState({ isHydrated: true });
+        }
+      },
     }
   )
 );
@@ -159,6 +158,11 @@ export const useManagerStore = create<ManagerState>()(
     {
       name: 'manager-storage',
       storage: createJSONStorage(() => localStorage),
+       onRehydrateStorage: () => (state) => {
+        if (state) {
+          useAppStore.setState({ isHydrated: true });
+        }
+      },
     }
   )
 );
@@ -194,6 +198,11 @@ export const useMissionTypeStore = create<MissionTypeState>()(
     {
       name: 'mission-type-storage',
       storage: createJSONStorage(() => localStorage),
+       onRehydrateStorage: () => (state) => {
+        if (state) {
+          useAppStore.setState({ isHydrated: true });
+        }
+      },
     }
   )
 );
@@ -229,6 +238,11 @@ export const useFacturationStore = create<FacturationState>()(
         {
             name: 'facturation-storage',
             storage: createJSONStorage(() => localStorage),
+             onRehydrateStorage: () => (state) => {
+              if (state) {
+                useAppStore.setState({ isHydrated: true });
+              }
+            },
         }
     )
 );

@@ -19,9 +19,15 @@ type GroupedExpense = {
 };
 
 export default function FacturationPage() {
-  const { tasks } = useTaskStore();
+  const tasks = useTaskStore((state) => state.tasks);
   const { invoices, updateInvoice } = useFacturationStore();
-  const { isInitialized } = useAppStore();
+  const isHydrated = useAppStore((state) => state.isHydrated);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   const [receivedAmounts, setReceivedAmounts] = useState<Record<string, number | "">>({});
 
   const confirmedAndPaidExpenses = useMemo(() => {
@@ -95,7 +101,7 @@ export default function FacturationPage() {
     }).format(amount) + ' MAD';
   };
 
-  if (!isInitialized) {
+  if (!isHydrated || !isClient) {
     return <div>Chargement...</div>;
   }
 

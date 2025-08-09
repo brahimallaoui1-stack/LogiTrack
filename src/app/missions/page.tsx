@@ -21,9 +21,14 @@ import { formatDate } from "@/lib/utils";
 
 
 export default function MissionsPage() {
-  const { tasks } = useTaskStore();
-  const { isInitialized } = useAppStore();
+  const tasks = useTaskStore((state) => state.tasks);
+  const isHydrated = useAppStore((state) => state.isHydrated);
   const router = useRouter();
+
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -82,7 +87,7 @@ export default function MissionsPage() {
     }
   };
 
-  if (!isInitialized) {
+  if (!isHydrated || !isClient) {
     return <div>Chargement...</div>;
   }
 

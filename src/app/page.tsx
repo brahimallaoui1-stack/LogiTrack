@@ -22,8 +22,14 @@ import { YearPicker } from "@/components/YearPicker";
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
 export default function Home() {
-  const { tasks } = useTaskStore();
-  const { isInitialized } = useAppStore();
+  const tasks = useTaskStore((state) => state.tasks);
+  const isHydrated = useAppStore((state) => state.isHydrated);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isMissionDialogOpen, setIsMissionDialogOpen] = useState(false);
@@ -179,7 +185,7 @@ export default function Home() {
      </TabsContent>
   );
 
-  if (!isInitialized) {
+  if (!isHydrated || !isClient) {
     return <div>Chargement...</div>;
   }
 
