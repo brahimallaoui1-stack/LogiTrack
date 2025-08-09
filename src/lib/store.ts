@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Task, City, Manager, MissionType } from './types';
+import type { Task, City, Manager, MissionType, Expense } from './types';
 
 interface AppState {
   isInitialized: boolean;
@@ -30,6 +30,7 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
+  updateExpense: (taskId: string, updatedExpense: Expense) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -49,6 +50,20 @@ export const useTaskStore = create<TaskState>()(
       deleteTask: (id) =>
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== id),
+        })),
+      updateExpense: (taskId, updatedExpense) =>
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id === taskId) {
+              return {
+                ...task,
+                expenses: task.expenses?.map((expense) =>
+                  expense.id === updatedExpense.id ? updatedExpense : expense
+                ),
+              };
+            }
+            return task;
+          }),
         })),
     }),
     {

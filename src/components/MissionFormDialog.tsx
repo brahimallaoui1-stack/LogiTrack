@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTaskStore, useCityStore, useManagerStore, useMissionTypeStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Task, Expense, SubMission } from "@/lib/types";
+import type { Task, Expense, SubMission, ExpenseStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -32,7 +32,7 @@ interface MissionFormDialogProps {
 interface ExpenseFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSave: (expense: Omit<Expense, 'id'>) => void;
+  onSave: (expense: Omit<Expense, 'id' | 'status'>) => void;
 }
 
 const initialSubMissionState: Omit<SubMission, 'id'> = {
@@ -225,8 +225,12 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   };
 
 
-  const handleSaveExpense = (expense: Omit<Expense, 'id'>) => {
-    const newExpense = { ...expense, id: `expense-${Date.now()}-${Math.random()}` };
+  const handleSaveExpense = (expense: Omit<Expense, 'id' | 'status'>) => {
+    const newExpense: Expense = { 
+      ...expense, 
+      id: `expense-${Date.now()}-${Math.random()}`,
+      status: 'Sans compte' 
+    };
     setFormState(prevState => ({
       ...prevState,
       expenses: [...prevState.expenses, newExpense],
@@ -521,5 +525,3 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
-
-    

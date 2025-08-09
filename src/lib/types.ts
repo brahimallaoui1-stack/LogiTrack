@@ -1,10 +1,13 @@
 // Les types de données seront définis ici.
 
+export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Payé';
+
 export interface Expense {
   id: string;
   typeDepense: string;
   montant: number;
   remarque?: string;
+  status: ExpenseStatus;
 }
 
 export interface SubMission {
@@ -54,5 +57,3 @@ export interface MissionType {
   id: string;
   name: string;
 }
-
-    
