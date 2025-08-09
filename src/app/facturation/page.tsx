@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTaskStore, useFacturationStore } from "@/lib/store";
+import { useMemo, useState, useEffect } from "react";
+import { useTaskStore, useFacturationStore, useAppStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ type GroupedExpense = {
 export default function FacturationPage() {
   const { tasks } = useTaskStore();
   const { invoices, updateInvoice } = useFacturationStore();
+  const { isInitialized } = useAppStore();
   const [receivedAmounts, setReceivedAmounts] = useState<Record<string, number | "">>({});
 
   const confirmedAndPaidExpenses = useMemo(() => {
@@ -93,6 +94,10 @@ export default function FacturationPage() {
       maximumFractionDigits: 0,
     }).format(amount) + ' MAD';
   };
+
+  if (!isInitialized) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <div className="flex flex-col gap-6">

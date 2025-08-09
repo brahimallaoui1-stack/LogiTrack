@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useTaskStore } from "@/lib/store";
+import { useTaskStore, useAppStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { Expense, ExpenseStatus } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export default function DepensesPage() {
     const { tasks } = useTaskStore((state) => ({
       tasks: state.tasks,
     }));
+    const { isInitialized } = useAppStore();
     
     const [filterStatus, setFilterStatus] = useState<ExpenseStatus>('Sans compte');
 
@@ -178,6 +179,9 @@ export default function DepensesPage() {
         ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'confirmée'}.`
         : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'confirmée'}.`;
 
+    if (!isInitialized) {
+      return <div>Chargement...</div>;
+    }
 
     return (
         <div className="flex flex-col gap-6">

@@ -1,13 +1,14 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useManagerStore } from "@/lib/store";
+import { useManagerStore, useAppStore } from "@/lib/store";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Trash2, Pencil } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -15,6 +16,7 @@ import type { Manager } from "@/lib/types";
 
 export default function ParametresGestionnairesPage() {
   const { managers, addManager, updateManager, deleteManager } = useManagerStore();
+  const { isInitialized } = useAppStore();
   
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -59,6 +61,10 @@ export default function ParametresGestionnairesPage() {
     setManagerToDelete(null);
     setIsDeleteDialogOpen(false);
   };
+
+  if (!isInitialized) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <>

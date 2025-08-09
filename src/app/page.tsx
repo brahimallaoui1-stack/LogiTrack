@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus } from "lucide-react";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
-import { useTaskStore } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useTaskStore, useAppStore } from "@/lib/store";
+import { useMemo, useState, useEffect } from "react";
 import type { Task } from "@/lib/types";
 import { getYear, getMonth, parseISO, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,7 +22,8 @@ import { YearPicker } from "@/components/YearPicker";
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
 export default function Home() {
-  const tasks = useTaskStore((state) => state.tasks);
+  const { tasks } = useTaskStore();
+  const { isInitialized } = useAppStore();
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isMissionDialogOpen, setIsMissionDialogOpen] = useState(false);
@@ -177,6 +178,10 @@ export default function Home() {
         </div>
      </TabsContent>
   );
+
+  if (!isInitialized) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <>

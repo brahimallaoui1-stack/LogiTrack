@@ -8,19 +8,21 @@ import { format } from 'date-fns';
 
 interface AppState {
   isInitialized: boolean;
+  setIsInitialized: (isInitialized: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       isInitialized: false,
+      setIsInitialized: (isInitialized) => set({ isInitialized }),
     }),
     {
       name: 'app-storage',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.isInitialized = true;
+          state.setIsInitialized(true);
         }
       },
     }

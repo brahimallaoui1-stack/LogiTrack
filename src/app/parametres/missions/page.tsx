@@ -1,13 +1,14 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMissionTypeStore } from "@/lib/store";
+import { useMissionTypeStore, useAppStore } from "@/lib/store";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Trash2, Pencil } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -15,7 +16,8 @@ import type { MissionType } from "@/lib/types";
 
 export default function ParametresMissionsPage() {
   const { missionTypes, addMissionType, updateMissionType, deleteMissionType } = useMissionTypeStore();
-  
+  const { isInitialized } = useAppStore();
+
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
@@ -59,6 +61,10 @@ export default function ParametresMissionsPage() {
     setMissionTypeToDelete(null);
     setIsDeleteDialogOpen(false);
   };
+
+  if (!isInitialized) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <>

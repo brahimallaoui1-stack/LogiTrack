@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,14 +14,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTaskStore } from "@/lib/store";
+import { useTaskStore, useAppStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 
 
 export default function MissionsPage() {
-  const tasks = useTaskStore((state) => state.tasks);
+  const { tasks } = useTaskStore();
+  const { isInitialized } = useAppStore();
   const router = useRouter();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -81,6 +82,9 @@ export default function MissionsPage() {
     }
   };
 
+  if (!isInitialized) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <>
