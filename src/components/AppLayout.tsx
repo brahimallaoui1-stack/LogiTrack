@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, PanelLeft } from 'lucide-react';
+import { Briefcase, PanelLeft, LayoutDashboard, ListTodo } from 'lucide-react';
 
 import {
   SidebarProvider,
@@ -12,6 +12,9 @@ import {
   SidebarContent,
   SidebarInset,
   SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Toaster } from "@/components/ui/toaster";
@@ -31,7 +34,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
         </SidebarHeader>
         <SidebarContent>
-          {/* Les liens de navigation seront ajoutés ici */}
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/'}
+              >
+                <Link href="/">
+                  <LayoutDashboard />
+                  <span>Tableau de bord</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/missions'}
+              >
+                <Link href="/missions">
+                  <ListTodo />
+                  <span>Missions</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
