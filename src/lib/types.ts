@@ -14,11 +14,18 @@ export interface Task {
   reservation?: string;
   entreprise?: string; // Maintenu comme 'entreprise' en interne, mais libellé 'Client'
   gestionnaire?: string;
-  infoVehicule?: string;
   typeMission?: string;
-  marqueVehicule?: string;
-  immatriculation?: string;
-  remarque?: string;
+  
+  // Livraison
+  marqueVehiculeLivraison?: string;
+  immatriculationLivraison?: string;
+  remarqueLivraison?: string;
+
+  // Récupération
+  marqueVehiculeRecuperation?: string;
+  immatriculationRecuperation?: string;
+  remarqueRecuperation?: string;
+  
   expenses?: Expense[];
 }
 

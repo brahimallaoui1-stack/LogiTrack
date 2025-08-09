@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft } from 'lucide-react';
 import { MissionFormDialog } from '@/components/MissionFormDialog';
+import { Separator } from '@/components/ui/separator';
 
 export default function ViewMissionPage() {
     const router = useRouter();
@@ -64,24 +65,46 @@ export default function ViewMissionPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-6">
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid md:grid-cols-3 gap-4">
                             <div><span className="font-semibold">Date:</span> {task.date || 'N/A'}</div>
                             <div><span className="font-semibold">Réservation:</span> {task.reservation || 'N/A'}</div>
+                            <div><span className="font-semibold">Type de Mission:</span> {task.typeMission || 'N/A'}</div>
                             <div><span className="font-semibold">Ville:</span> {task.city || 'N/A'}</div>
                             <div><span className="font-semibold">Client:</span> {task.entreprise || 'N/A'}</div>
                             <div><span className="font-semibold">Gestionnaire:</span> {task.gestionnaire || 'N/A'}</div>
-                            <div><span className="font-semibold">Type de Mission:</span> {task.typeMission || 'N/A'}</div>
-                            <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehicule || 'N/A'}</div>
-                            <div><span className="font-semibold">Immatriculation:</span> {task.immatriculation || 'N/A'}</div>
                         </div>
-                        <div>
-                            <h4 className="font-semibold mb-2">Remarque</h4>
-                            <p className="text-sm text-muted-foreground">{task.remarque || 'Aucune remarque'}</p>
+
+                        <Separator/>
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                             <div>
+                                <h4 className="font-semibold text-lg mb-4 text-center">Livraison</h4>
+                                <div className="space-y-2">
+                                    <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehiculeLivraison || 'N/A'}</div>
+                                    <div><span className="font-semibold">Immatriculation:</span> {task.immatriculationLivraison || 'N/A'}</div>
+                                     <div>
+                                        <h5 className="font-semibold mb-1">Remarque</h5>
+                                        <p className="text-sm text-muted-foreground">{task.remarqueLivraison || 'Aucune remarque'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                             <div>
+                                <h4 className="font-semibold text-lg mb-4 text-center">Récupération</h4>
+                                 <div className="space-y-2">
+                                    <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehiculeRecuperation || 'N/A'}</div>
+                                    <div><span className="font-semibold">Immatriculation:</span> {task.immatriculationRecuperation || 'N/A'}</div>
+                                     <div>
+                                        <h5 className="font-semibold mb-1">Remarque</h5>
+                                        <p className="text-sm text-muted-foreground">{task.remarqueRecuperation || 'Aucune remarque'}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         {task.expenses && task.expenses.length > 0 && (
                             <div>
-                                <h4 className="font-semibold mb-2">Frais</h4>
+                                <Separator className="my-4"/>
+                                <h4 className="font-semibold text-lg mb-2">Frais</h4>
                                 <div className="rounded-md border">
                                     <Table>
                                         <TableHeader>

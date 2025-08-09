@@ -20,6 +20,7 @@ import type { Task, Expense } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "./ui/separator";
 
 interface MissionFormDialogProps {
     isOpen: boolean;
@@ -40,9 +41,12 @@ const initialFormState = {
   entreprise: "",
   gestionnaire: "",
   typeMission: "",
-  marqueVehicule: "",
-  immatriculation: "",
-  remarque: "",
+  marqueVehiculeLivraison: "",
+  immatriculationLivraison: "",
+  remarqueLivraison: "",
+  marqueVehiculeRecuperation: "",
+  immatriculationRecuperation: "",
+  remarqueRecuperation: "",
   label: "",
   expenses: [] as Expense[],
 };
@@ -132,9 +136,12 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
             entreprise: editingTask.entreprise || "",
             gestionnaire: editingTask.gestionnaire || "",
             typeMission: editingTask.typeMission || "",
-            marqueVehicule: editingTask.marqueVehicule || "",
-            immatriculation: editingTask.immatriculation || "",
-            remarque: editingTask.remarque || "",
+            marqueVehiculeLivraison: editingTask.marqueVehiculeLivraison || "",
+            immatriculationLivraison: editingTask.immatriculationLivraison || "",
+            remarqueLivraison: editingTask.remarqueLivraison || "",
+            marqueVehiculeRecuperation: editingTask.marqueVehiculeRecuperation || "",
+            immatriculationRecuperation: editingTask.immatriculationRecuperation || "",
+            remarqueRecuperation: editingTask.remarqueRecuperation || "",
             label: editingTask.label || "",
             expenses: editingTask.expenses || [],
           });
@@ -170,7 +177,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
     }));
   }
 
-  const handleSave = (closeOnSave: boolean) => {
+  const handleSave = () => {
     const taskData = {
         label: formState.typeMission || 'Nouvelle mission',
         city: formState.ville,
@@ -179,9 +186,12 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
         entreprise: formState.entreprise,
         gestionnaire: formState.gestionnaire,
         typeMission: formState.typeMission,
-        marqueVehicule: formState.marqueVehicule,
-        immatriculation: formState.immatriculation,
-        remarque: formState.remarque,
+        marqueVehiculeLivraison: formState.marqueVehiculeLivraison,
+        immatriculationLivraison: formState.immatriculationLivraison,
+        remarqueLivraison: formState.remarqueLivraison,
+        marqueVehiculeRecuperation: formState.marqueVehiculeRecuperation,
+        immatriculationRecuperation: formState.immatriculationRecuperation,
+        remarqueRecuperation: formState.remarqueRecuperation,
         expenses: formState.expenses,
     };
 
@@ -191,12 +201,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
       addTask(taskData);
     }
 
-    if(closeOnSave) {
-        onOpenChange(false);
-    } else {
-        // "Enregistrer et ajouter une autre": clear form for a new mission
-        setFormState(initialFormState);
-    }
+    onOpenChange(false);
   };
   
   const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
@@ -211,7 +216,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
   return (
      <>
      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-       <DialogContent className="sm:max-w-2xl">
+       <DialogContent className="sm:max-w-3xl">
          <DialogHeader>
            <DialogTitle>{editingTask ? "Modifier la mission" : "Ajouter une mission"}</DialogTitle>
            <DialogDescription>
@@ -220,7 +225,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
          </DialogHeader>
          <ScrollArea className="max-h-[70vh] p-4">
           <div className="grid gap-6 py-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="date">Date</Label>
                     <Input id="date" type="date" value={formState.date} onChange={handleInputChange} />
@@ -228,6 +233,19 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                 <div className="grid gap-2">
                     <Label htmlFor="reservation">Réservation</Label>
                     <Input id="reservation" value={formState.reservation} onChange={handleInputChange} />
+                </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="typeMission">Types de Mission</Label>
+                     <Select value={formState.typeMission} onValueChange={(value) => handleSelectChange('typeMission', value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un type de mission" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {missionTypes.map(type => (
+                                <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="ville">Ville</Label>
@@ -259,35 +277,50 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                         </SelectContent>
                     </Select>
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="typeMission">Types de Mission</Label>
-                     <Select value={formState.typeMission} onValueChange={(value) => handleSelectChange('typeMission', value)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un type de mission" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {missionTypes.map(type => (
-                                <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div className="grid gap-2">
-                    <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
-                    <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="immatriculation">Immatriculation</Label>
-                    <Input id="immatriculation" value={formState.immatriculation} onChange={handleInputChange} />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                  <Label htmlFor="remarque">Remarque</Label>
-                  <Textarea id="remarque" value={formState.remarque} onChange={handleInputChange} />
               </div>
 
+            <Separator className="my-4"/>
+            
+            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                <div>
+                     <h4 className="font-semibold mb-4 text-center">Livraison</h4>
+                     <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="marqueVehiculeLivraison">Marque de véhicule</Label>
+                            <Input id="marqueVehiculeLivraison" value={formState.marqueVehiculeLivraison} onChange={handleInputChange} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="immatriculationLivraison">Immatriculation</Label>
+                            <Input id="immatriculationLivraison" value={formState.immatriculationLivraison} onChange={handleInputChange} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="remarqueLivraison">Remarque</Label>
+                          <Textarea id="remarqueLivraison" value={formState.remarqueLivraison} onChange={handleInputChange} />
+                      </div>
+                     </div>
+                </div>
+                <div>
+                     <h4 className="font-semibold mb-4 text-center">Récupération</h4>
+                     <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="marqueVehiculeRecuperation">Marque de véhicule</Label>
+                            <Input id="marqueVehiculeRecuperation" value={formState.marqueVehiculeRecuperation} onChange={handleInputChange} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="immatriculationRecuperation">Immatriculation</Label>
+                            <Input id="immatriculationRecuperation" value={formState.immatriculationRecuperation} onChange={handleInputChange} />
+                        </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="remarqueRecuperation">Remarque</Label>
+                            <Textarea id="remarqueRecuperation" value={formState.remarqueRecuperation} onChange={handleInputChange} />
+                        </div>
+                     </div>
+                </div>
+            </div>
+
+
               {formState.expenses.length > 0 && (
-                <div className="grid gap-2">
+                <div className="grid gap-2 pt-4">
                     <Label>Frais</Label>
                     <div className="rounded-md border">
                         <Table>
@@ -322,15 +355,10 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
               )}
           </div>
         </ScrollArea>
-         <DialogFooter className="sm:justify-between gap-2">
+         <DialogFooter className="sm:justify-between gap-2 pt-4">
            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des frais</Button>
            <div className="flex gap-2 justify-end">
-            {!editingTask && (
-                <Button type="button" onClick={() => handleSave(false)}>
-                    Enregistrer et ajouter une autre
-                </Button>
-            )}
-            <Button type="submit" onClick={() => handleSave(true)}>Enregistrer</Button>
+            <Button type="submit" onClick={() => handleSave()}>Enregistrer</Button>
            </div>
          </DialogFooter>
        </DialogContent>
