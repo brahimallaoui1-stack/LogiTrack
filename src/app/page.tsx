@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -75,7 +76,7 @@ export default function Home() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Pourcentage de missions par ville</CardTitle>
+            <CardTitle>Rapport de missions par ville</CardTitle>
             <CardDescription>Pourcentage de missions par ville.</CardDescription>
           </CardHeader>
           <CardContent>
