@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Task, City, Manager, MissionType, Expense } from './types';
+import type { Task, City, Manager, MissionType, Expense, ExpenseStatus } from './types';
 
 interface AppState {
   isInitialized: boolean;
@@ -31,7 +31,8 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
-  updateExpenseStatus: (taskId: string, newStatus: 'Comptabilisé' | 'Payé') => void;
+  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus, processedDate?: string) => void;
+  updateExpensesStatusByProcessedDate: (processedDate: string, newStatus: ExpenseStatus) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -58,6 +59,25 @@ export const useTaskStore = create<TaskState>()(
             if (task.id === taskId && task.expenses) {
               const updatedExpenses = task.expenses.map(exp => ({ ...exp, status: newStatus, processedDate: new Date().toISOString() }));
               return { ...task, expenses: updatedExpenses };
+            }
+            return task;
+          }),
+        })),
+        updateExpensesStatusByProcessedDate: (processedDate, newStatus) =>
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (!task.expenses) return task;
+            
+            const hasTargetExpense = task.expenses.some(exp => exp.processedDate?.startsWith(processedDate));
+
+            if (hasTargetExpense) {
+                const updatedExpenses = task.expenses.map(exp => {
+                    if (exp.processedDate?.startsWith(processedDate)) {
+                        return { ...exp, status: newStatus };
+                    }
+                    return exp;
+                });
+                return { ...task, expenses: updatedExpenses };
             }
             return task;
           }),

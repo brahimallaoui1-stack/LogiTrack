@@ -63,7 +63,7 @@ export default function DepensesPage() {
     }, [allExpenses, filterStatus]);
     
     const groupedProcessedExpenses = useMemo(() => {
-        if (filterStatus !== 'Comptabilisé') return [];
+        if (filterStatus !== 'Comptabilisé' && filterStatus !== 'Payé') return [];
 
         const groupedByDate: Record<string, { totalAmount: number, taskIds: string[] }> = {};
 
@@ -89,7 +89,7 @@ export default function DepensesPage() {
 
 
     const totalAmount = useMemo(() => {
-        if (filterStatus === 'Comptabilisé') {
+        if (filterStatus === 'Comptabilisé' || filterStatus === 'Payé') {
           return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
         }
         return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
@@ -116,22 +116,43 @@ export default function DepensesPage() {
              router.push(`/depenses/view/${id}`);
         }
     };
+    
+    const pageTitles = {
+        'Sans compte': 'Dépenses non traitées',
+        'Comptabilisé': 'Dépenses traitées',
+        'Payé': 'Dépenses payées'
+    }
 
-    const pageTitle = filterStatus === 'Sans compte' ? 'Dépenses non traitées' : 'Dépenses traitées';
-    const totalCardTitle = filterStatus === 'Sans compte' ? 'Total des dépenses non comptabilisées' : 'Total des dépenses comptabilisées';
-    const totalCardDescription = filterStatus === 'Sans compte' ? 'Montant total des dépenses non encore traitées.' : 'Montant total des dépenses déjà traitées.';
-    const dateCardTitle = filterStatus === 'Sans compte' ? 'Date de la première dépense non comptabilisée' : 'Date de la première dépense comptabilisée';
+    const totalCardTitles = {
+        'Sans compte': 'Total des dépenses non comptabilisées',
+        'Comptabilisé': 'Total des dépenses comptabilisées',
+        'Payé': 'Total des dépenses payées'
+    }
+
+    const totalCardDescriptions = {
+        'Sans compte': 'Montant total des dépenses non encore traitées.',
+        'Comptabilisé': 'Montant total des dépenses déjà traitées.',
+        'Payé': 'Montant total des dépenses payées.'
+    }
+
+    const dateCardTitles = {
+        'Sans compte': 'Date de la première dépense non comptabilisée',
+        'Comptabilisé': 'Date de la première dépense comptabilisée',
+        'Payé': 'Date de la première dépense payée'
+    }
+
     const dateCardDescription = oldestExpenseDate
-        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : 'traitée'}.`
-        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'comptabilisée'}.`;
+        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'payée'}.`
+        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'payée'}.`;
+
 
     return (
         <div className="flex flex-col gap-6">
             <div className="grid gap-4 md:grid-cols-2">
                  <Card>
                     <CardHeader>
-                        <CardTitle>{totalCardTitle}</CardTitle>
-                        <CardDescription>{totalCardDescription}</CardDescription>
+                        <CardTitle>{totalCardTitles[filterStatus]}</CardTitle>
+                        <CardDescription>{totalCardDescriptions[filterStatus]}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold">{formatCurrency(totalAmount)}</div>
@@ -139,7 +160,7 @@ export default function DepensesPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>{dateCardTitle}</CardTitle>
+                        <CardTitle>{dateCardTitles[filterStatus]}</CardTitle>
                         <CardDescription>{dateCardDescription}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -157,7 +178,7 @@ export default function DepensesPage() {
                 <CardHeader>
                    <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle>{pageTitle}</CardTitle>
+                            <CardTitle>{pageTitles[filterStatus]}</CardTitle>
                             <CardDescription>
                                 Voici la liste de toutes les dépenses.
                             </CardDescription>
@@ -169,6 +190,7 @@ export default function DepensesPage() {
                             <SelectContent>
                                 <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
                                 <SelectItem value="Comptabilisé">Dépenses traitées</SelectItem>
+                                <SelectItem value="Payé">Dépenses payées</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
