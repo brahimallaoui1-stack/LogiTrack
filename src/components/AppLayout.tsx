@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -24,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -42,89 +44,97 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === '/'}
-              >
-                <Link href="/">
-                  <LayoutDashboard />
-                  <span>Tableau de bord</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === '/missions'}
-              >
-                <Link href="/missions">
-                  <ListTodo />
-                  <span>Missions</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-             <Collapsible defaultOpen={isSettingsOpen}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                     <SidebarMenuButton
-                        className="w-full justify-between"
-                        isActive={isSettingsOpen}
-                      >
-                        <div className="flex items-center gap-2">
-                           <Settings />
-                           <span>Paramètres</span>
-                        </div>
-                        <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
-                      </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                </SidebarMenuItem>
-                <CollapsibleContent className="ml-4_">
+            <div className="flex flex-col h-full">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === '/'}
+                    >
+                        <Link href="/">
+                        <LayoutDashboard />
+                        <span>Tableau de bord</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === '/missions'}
+                    >
+                        <Link href="/missions">
+                        <ListTodo />
+                        <span>Missions</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+
+                <div className="mt-auto">
+                    <Separator className="my-2"/>
                     <SidebarMenu>
-                      <SidebarMenuItem>
-                         <SidebarMenuButton
-                            asChild
-                            variant="ghost"
-                            className="w-full justify-start"
-                            isActive={pathname === '/parametres/missions'}
-                          >
-                           <Link href="/parametres/missions">
-                              <ListTodo className="h-4 w-4 mr-2" />
-                              <span>Missions</span>
-                           </Link>
-                         </SidebarMenuButton>
-                      </SidebarMenuItem>
-                       <SidebarMenuItem>
-                          <SidebarMenuButton
-                              asChild
-                              variant="ghost"
-                              className="w-full justify-start"
-                              isActive={pathname === '/parametres/villes'}
-                            >
-                            <Link href="/parametres/villes">
-                               <Building className="h-4 w-4 mr-2" />
-                               <span>Villes</span>
-                            </Link>
-                          </SidebarMenuButton>
-                       </SidebarMenuItem>
-                       <SidebarMenuItem>
-                          <SidebarMenuButton
-                              asChild
-                              variant="ghost"
-                              className="w-full justify-start"
-                              isActive={pathname === '/parametres/gestionnaires'}
-                            >
-                             <Link href="/parametres/gestionnaires">
-                                <Users className="h-4 w-4 mr-2" />
-                                <span>Gestionnaires</span>
-                             </Link>
-                          </SidebarMenuButton>
-                       </SidebarMenuItem>
+                        <Collapsible defaultOpen={isSettingsOpen}>
+                            <SidebarMenuItem>
+                            <CollapsibleTrigger asChild>
+                                <SidebarMenuButton
+                                    className="w-full justify-between"
+                                    isActive={isSettingsOpen}
+                                >
+                                    <div className="flex items-center gap-2">
+                                    <Settings />
+                                    <span>Paramètres</span>
+                                    </div>
+                                    <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+                                </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                            </SidebarMenuItem>
+                            <CollapsibleContent className="ml-4_">
+                                <SidebarMenu>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                        isActive={pathname === '/parametres/missions'}
+                                    >
+                                    <Link href="/parametres/missions">
+                                        <ListTodo className="h-4 w-4 mr-2" />
+                                        <span>Missions</span>
+                                    </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                        isActive={pathname === '/parametres/villes'}
+                                        >
+                                        <Link href="/parametres/villes">
+                                        <Building className="h-4 w-4 mr-2" />
+                                        <span>Villes</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                        isActive={pathname === '/parametres/gestionnaires'}
+                                        >
+                                        <Link href="/parametres/gestionnaires">
+                                            <Users className="h-4 w-4 mr-2" />
+                                            <span>Gestionnaires</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                </SidebarMenu>
+                            </CollapsibleContent>
+                        </Collapsible>
                     </SidebarMenu>
-                </CollapsibleContent>
-             </Collapsible>
-          </SidebarMenu>
+                </div>
+            </div>
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
