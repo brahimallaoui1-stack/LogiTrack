@@ -126,7 +126,7 @@ export default function ViewMissionPage() {
                     {!isCasablancaMission && task.expenses && task.expenses.length > 0 && (
                         <div>
                             <Separator className="my-6"/>
-                            <h4 className="font-semibold text-lg mb-2">Frais</h4>
+                            <h4 className="font-semibold text-lg mb-2">Dépenses</h4>
                             <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
@@ -148,7 +148,7 @@ export default function ViewMissionPage() {
                                 </Table>
                             </div>
                                 <div className="text-right font-semibold pr-4 mt-2">
-                                Total des frais: {formatCurrency(totalExpenses)}
+                                Total des dépenses: {formatCurrency(totalExpenses)}
                             </div>
                         </div>
                     )}

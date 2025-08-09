@@ -117,7 +117,7 @@ function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogPr
           <Button onClick={() => onOpenChange(false)}>Terminé</Button>
           <Button onClick={handleAddExpense}>
             <Plus className="h-4 w-4 mr-2"/>
-            Ajouter le frais
+            Ajouter la dépense
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -466,7 +466,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                  <>
                 <Separator className="my-6"/>
                 <div className="grid gap-2 pt-4">
-                    <Label>Frais</Label>
+                    <Label>Dépenses</Label>
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
@@ -494,7 +494,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                         </Table>
                     </div>
                     <div className="text-right font-semibold pr-4">
-                        Total des frais: {formatCurrency(totalExpenses)}
+                        Total des dépenses: {formatCurrency(totalExpenses)}
                     </div>
                 </div>
                 </>
@@ -505,7 +505,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
         </ScrollArea>
          <DialogFooter className="sm:justify-between gap-2 pt-4">
            {!isCasablancaMission ? 
-            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des frais</Button> 
+            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des dépenses</Button> 
             : <div></div>}
            <div className="flex gap-2 justify-end">
             <Button type="submit" onClick={() => handleSave()}>Enregistrer</Button>

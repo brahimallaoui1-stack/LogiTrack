@@ -78,18 +78,21 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
             data={data}
             dataKey="value"
             nameKey="name"
-            innerRadius={60}
+            innerRadius={80}
+            outerRadius={110}
             strokeWidth={5}
             labelLine={false}
+            paddingAngle={5}
+            cornerRadius={5}
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
-           <foreignObject x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" width="120" height="40" dy="-20" dx="-60">
+           <foreignObject x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" width="160" height="40" dy="-20" dx="-80">
                 <div className="text-center">
-                    <p className="text-2xl font-bold">{totalMissions}</p>
-                    <p className="text-xs text-muted-foreground">Missions</p>
+                    <p className="text-3xl font-bold">{totalMissions}</p>
+                    <p className="text-sm text-muted-foreground">Missions</p>
                 </div>
             </foreignObject>
         </PieChart>
