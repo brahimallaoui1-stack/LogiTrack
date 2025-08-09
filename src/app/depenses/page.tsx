@@ -64,19 +64,16 @@ export default function DepensesPage() {
         return allExpenses.filter(expense => expense.status === filterStatus);
     }, [allExpenses, filterStatus]);
     
-    const totalNonComptabilisees = useMemo(() => {
-        return allExpenses
-            .filter(expense => expense.status === 'Sans compte')
-            .reduce((total, expense) => total + expense.montant, 0);
-    }, [allExpenses]);
+    const totalAmount = useMemo(() => {
+        return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
+    }, [filteredExpenses]);
 
-    const oldestUnaccountedExpenseDate = useMemo(() => {
-      const nonComptabiliseesExpenses = allExpenses.filter(expense => expense.status === 'Sans compte');
-      if (nonComptabiliseesExpenses.length === 0) {
+    const oldestExpenseDate = useMemo(() => {
+      if (filteredExpenses.length === 0) {
         return null;
       }
-      return nonComptabiliseesExpenses[0].missionDate;
-    }, [allExpenses]);
+      return filteredExpenses[0].missionDate;
+    }, [filteredExpenses]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -88,32 +85,36 @@ export default function DepensesPage() {
     const handleView = (taskId: string) => {
         router.push(`/missions/view/${taskId}`);
     };
-    
+
+    const pageTitle = filterStatus === 'Sans compte' ? 'Dépenses non traitées' : 'Dépenses traitées';
+    const totalCardTitle = filterStatus === 'Sans compte' ? 'Total des dépenses non comptabilisées' : 'Total des dépenses comptabilisées';
+    const totalCardDescription = filterStatus === 'Sans compte' ? 'Montant total des dépenses non encore traitées.' : 'Montant total des dépenses déjà traitées.';
+    const dateCardTitle = filterStatus === 'Sans compte' ? 'Date de la première dépense non comptabilisée' : 'Date de la première dépense comptabilisée';
+    const dateCardDescription = oldestExpenseDate
+        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : 'traitée'}.`
+        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'comptabilisée'}.`;
+
     return (
         <div className="flex flex-col gap-6">
             <div className="grid gap-4 md:grid-cols-2">
                  <Card>
                     <CardHeader>
-                        <CardTitle>Dépenses non comptabilisées</CardTitle>
-                        <CardDescription>Montant total des dépenses non encore traitées.</CardDescription>
+                        <CardTitle>{totalCardTitle}</CardTitle>
+                        <CardDescription>{totalCardDescription}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{formatCurrency(totalNonComptabilisees)}</div>
+                        <div className="text-3xl font-bold">{formatCurrency(totalAmount)}</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Date de la première dépense non comptabilisée</CardTitle>
-                        <CardDescription>
-                          {oldestUnaccountedExpenseDate 
-                            ? `La plus ancienne dépense non traitée.`
-                            : 'Aucune dépense non comptabilisée.'}
-                        </CardDescription>
+                        <CardTitle>{dateCardTitle}</CardTitle>
+                        <CardDescription>{dateCardDescription}</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <div className="text-3xl font-bold">
-                            {oldestUnaccountedExpenseDate 
-                                ? formatDate(oldestUnaccountedExpenseDate)
+                            {oldestExpenseDate 
+                                ? formatDate(oldestExpenseDate)
                                 : 'N/A'
                             }
                          </div>
@@ -125,7 +126,7 @@ export default function DepensesPage() {
                 <CardHeader>
                    <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle>Liste des dépenses</CardTitle>
+                            <CardTitle>{pageTitle}</CardTitle>
                             <CardDescription>
                                 Voici la liste de toutes les dépenses.
                             </CardDescription>
