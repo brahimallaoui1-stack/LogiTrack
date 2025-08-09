@@ -42,12 +42,9 @@ const initialFormState = {
   entreprise: "",
   gestionnaire: "",
   typeMission: "",
-  marqueVehiculeLivraison: "",
-  immatriculationLivraison: "",
-  remarqueLivraison: "",
-  marqueVehiculeRecuperation: "",
-  immatriculationRecuperation: "",
-  remarqueRecuperation: "",
+  marqueVehicule: "",
+  immatriculation: "",
+  remarque: "",
   label: "",
   expenses: [] as Expense[],
 };
@@ -139,12 +136,9 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
             entreprise: editingTask.entreprise || "",
             gestionnaire: editingTask.gestionnaire || "",
             typeMission: editingTask.typeMission || "",
-            marqueVehiculeLivraison: editingTask.marqueVehiculeLivraison || "",
-            immatriculationLivraison: editingTask.immatriculationLivraison || "",
-            remarqueLivraison: editingTask.remarqueLivraison || "",
-            marqueVehiculeRecuperation: editingTask.marqueVehiculeRecuperation || "",
-            immatriculationRecuperation: editingTask.immatriculationRecuperation || "",
-            remarqueRecuperation: editingTask.remarqueRecuperation || "",
+            marqueVehicule: editingTask.marqueVehicule || "",
+            immatriculation: editingTask.immatriculation || "",
+            remarque: editingTask.remarque || "",
             label: editingTask.label || "",
             expenses: editingTask.expenses || [],
           });
@@ -189,21 +183,15 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
         entreprise: formState.entreprise,
         gestionnaire: formState.gestionnaire,
         typeMission: formState.typeMission,
-        marqueVehiculeLivraison: formState.marqueVehiculeLivraison,
-        immatriculationLivraison: formState.immatriculationLivraison,
-        remarqueLivraison: formState.remarqueLivraison,
+        marqueVehicule: formState.marqueVehicule,
+        immatriculation: formState.immatriculation,
+        remarque: formState.remarque,
     };
     
     if (!isCasablancaMission) {
-        taskData.marqueVehiculeRecuperation = formState.marqueVehiculeRecuperation;
-        taskData.immatriculationRecuperation = formState.immatriculationRecuperation;
-        taskData.remarqueRecuperation = formState.remarqueRecuperation;
         taskData.expenses = formState.expenses;
     } else {
         taskData.expenses = [];
-        taskData.marqueVehiculeRecuperation = "";
-        taskData.immatriculationRecuperation = "";
-        taskData.remarqueRecuperation = "";
     }
 
 
@@ -293,44 +281,21 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
             <Separator className="my-4"/>
             
-            <div className={`grid ${!isCasablancaMission ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-x-8 gap-y-4`}>
-                <div>
-                     {!isCasablancaMission && <h4 className="font-semibold mb-4 text-center">Livraison</h4>}
-                     <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="marqueVehiculeLivraison">Marque de véhicule</Label>
-                            <Input id="marqueVehiculeLivraison" value={formState.marqueVehiculeLivraison} onChange={handleInputChange} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="immatriculationLivraison">Immatriculation</Label>
-                            <Input id="immatriculationLivraison" value={formState.immatriculationLivraison} onChange={handleInputChange} />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="remarqueLivraison">Remarque</Label>
-                          <Textarea id="remarqueLivraison" value={formState.remarqueLivraison} onChange={handleInputChange} />
-                      </div>
-                     </div>
+            <div className="grid gap-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
+                    <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
                 </div>
-                {!isCasablancaMission && (
-                <div>
-                     <h4 className="font-semibold mb-4 text-center">Récupération</h4>
-                     <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="marqueVehiculeRecuperation">Marque de véhicule</Label>
-                            <Input id="marqueVehiculeRecuperation" value={formState.marqueVehiculeRecuperation} onChange={handleInputChange} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="immatriculationRecuperation">Immatriculation</Label>
-                            <Input id="immatriculationRecuperation" value={formState.immatriculationRecuperation} onChange={handleInputChange} />
-                        </div>
-                         <div className="grid gap-2">
-                            <Label htmlFor="remarqueRecuperation">Remarque</Label>
-                            <Textarea id="remarqueRecuperation" value={formState.remarqueRecuperation} onChange={handleInputChange} />
-                        </div>
-                     </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="immatriculation">Immatriculation</Label>
+                    <Input id="immatriculation" value={formState.immatriculation} onChange={handleInputChange} />
                 </div>
-                )}
-            </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="remarque">Remarque</Label>
+                  <Textarea id="remarque" value={formState.remarque} onChange={handleInputChange} />
+              </div>
+             </div>
+            
 
               {!isCasablancaMission && formState.expenses.length > 0 && (
                 <div className="grid gap-2 pt-4">

@@ -77,31 +77,18 @@ export default function ViewMissionPage() {
 
                         <Separator/>
 
-                        <div className={`grid ${!isCasablancaMission ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-8`}>
-                             <div>
-                                {!isCasablancaMission && <h4 className="font-semibold text-lg mb-4 text-center">Livraison</h4>}
+                        <div className="space-y-4">
+                            <div>
+                                <h4 className="font-semibold text-lg mb-4">Informations sur le véhicule</h4>
                                 <div className="space-y-2">
-                                    <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehiculeLivraison || 'N/A'}</div>
-                                    <div><span className="font-semibold">Immatriculation:</span> {task.immatriculationLivraison || 'N/A'}</div>
+                                    <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehicule || 'N/A'}</div>
+                                    <div><span className="font-semibold">Immatriculation:</span> {task.immatriculation || 'N/A'}</div>
                                      <div>
                                         <h5 className="font-semibold mb-1">Remarque</h5>
-                                        <p className="text-sm text-muted-foreground">{task.remarqueLivraison || 'Aucune remarque'}</p>
+                                        <p className="text-sm text-muted-foreground">{task.remarque || 'Aucune remarque'}</p>
                                     </div>
                                 </div>
                             </div>
-                            {!isCasablancaMission && (
-                             <div>
-                                <h4 className="font-semibold text-lg mb-4 text-center">Récupération</h4>
-                                 <div className="space-y-2">
-                                    <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehiculeRecuperation || 'N/A'}</div>
-                                    <div><span className="font-semibold">Immatriculation:</span> {task.immatriculationRecuperation || 'N/A'}</div>
-                                     <div>
-                                        <h5 className="font-semibold mb-1">Remarque</h5>
-                                        <p className="text-sm text-muted-foreground">{task.remarqueRecuperation || 'Aucune remarque'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            )}
                         </div>
                         
                         {!isCasablancaMission && task.expenses && task.expenses.length > 0 && (
@@ -146,5 +133,3 @@ export default function ViewMissionPage() {
         </>
     );
 }
-
-    

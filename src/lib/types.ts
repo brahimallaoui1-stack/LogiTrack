@@ -16,15 +16,10 @@ export interface Task {
   gestionnaire?: string;
   typeMission?: string;
   
-  // Livraison
-  marqueVehiculeLivraison?: string;
-  immatriculationLivraison?: string;
-  remarqueLivraison?: string;
-
-  // Récupération
-  marqueVehiculeRecuperation?: string;
-  immatriculationRecuperation?: string;
-  remarqueRecuperation?: string;
+  // Champs Véhicule unifiés
+  marqueVehicule?: string;
+  immatriculation?: string;
+  remarque?: string;
   
   expenses?: Expense[];
 }
