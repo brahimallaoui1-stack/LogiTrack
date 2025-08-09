@@ -89,13 +89,13 @@ export default function ViewProcessedExpensesPage() {
         return sugg - adv - fees;
     }, [suggestedAmount, advance, accountantFees]);
 
-    const handleMarkAsPaid = () => {
+    const handleMarkAsConfirmed = () => {
         updateExpensesStatusByProcessedDate(id as string, 'Confirmé');
         toast({
             title: "Dépenses confirmées",
-            description: "Le lot de dépenses a été marqué comme confirmé.",
+            description: "Le lot de dépenses a été marqué comme confirmé et transféré à la facturation.",
         });
-        router.push('/depenses');
+        router.push('/facturation');
     };
 
     const formatCurrency = (amount: number) => {
@@ -220,7 +220,7 @@ export default function ViewProcessedExpensesPage() {
                   </CardContent>
                   {expenseStatus === 'Comptabilisé' && (
                     <CardFooter>
-                        <Button className="w-full" onClick={handleMarkAsPaid}>
+                        <Button className="w-full" onClick={handleMarkAsConfirmed}>
                             <Landmark className="mr-2 h-4 w-4" />
                             Marquer comme confirmé
                         </Button>

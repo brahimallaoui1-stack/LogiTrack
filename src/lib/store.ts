@@ -3,7 +3,8 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Task, City, Manager, MissionType, Expense, ExpenseStatus } from './types';
+import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice } from './types';
+import { format } from 'date-fns';
 
 interface AppState {
   isInitialized: boolean;
@@ -193,4 +194,46 @@ export const useMissionTypeStore = create<MissionTypeState>()(
       storage: createJSONStorage(() => localStorage),
     }
   )
+);
+
+// Store for Invoicing
+interface FacturationState {
+    invoices: Record<string, Invoice>;
+    updateInvoice: (id: string, receivedAmount: number) => void;
+}
+
+export const useFacturationStore = create<FacturationState>()(
+    persist(
+        (set, get) => ({
+            invoices: {},
+            updateInvoice: (id, receivedAmount) => {
+                const { tasks, updateExpensesStatusByProcessedDate } = useTaskStore.getState();
+                const invoices = get().invoices;
+                
+                const existingInvoice = invoices[id] || { id, receivedAmount: 0 };
+                const newReceivedAmount = existingInvoice.receivedAmount + receivedAmount;
+
+                set({
+                    invoices: {
+                        ...invoices,
+                        [id]: { ...existingInvoice, receivedAmount: newReceivedAmount }
+                    }
+                });
+
+                // Check if the total due amount is covered
+                const confirmedExpenses = tasks.flatMap(t => t.expenses ?? [])
+                    .filter(e => e.processedDate && format(new Date(e.processedDate), 'yyyy-MM-dd') === id && e.status === 'Confirmé');
+                
+                const totalDue = confirmedExpenses.reduce((sum, e) => sum + e.montant, 0);
+                
+                if (newReceivedAmount >= totalDue) {
+                    updateExpensesStatusByProcessedDate(id, 'Payé');
+                }
+            }
+        }),
+        {
+            name: 'facturation-storage',
+            storage: createJSONStorage(() => localStorage),
+        }
+    )
 );

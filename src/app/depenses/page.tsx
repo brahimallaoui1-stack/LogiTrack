@@ -64,7 +64,7 @@ export default function DepensesPage() {
     }, [allExpenses, filterStatus]);
     
     const groupedProcessedExpenses = useMemo(() => {
-        if (filterStatus !== 'Comptabilisé' && filterStatus !== 'Confirmé') return [];
+        if (filterStatus !== 'Comptabilisé') return [];
 
         const groupedByDate: Record<string, { totalAmount: number, taskIds: string[] }> = {};
 
@@ -90,7 +90,7 @@ export default function DepensesPage() {
 
 
     const totalAmount = useMemo(() => {
-        if (filterStatus === 'Comptabilisé' || filterStatus === 'Confirmé') {
+        if (filterStatus === 'Comptabilisé') {
           return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
         }
         return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
@@ -124,25 +124,29 @@ export default function DepensesPage() {
     const pageTitles = {
         'Sans compte': 'Dépenses non traitées',
         'Comptabilisé': 'Dépenses traitées',
-        'Confirmé': 'Dépenses confirmées'
+        'Confirmé': 'Dépenses confirmées',
+        'Payé': 'Dépenses Payées',
     }
 
     const totalCardTitles = {
         'Sans compte': 'Total des dépenses non comptabilisées',
         'Comptabilisé': 'Total des dépenses comptabilisées',
-        'Confirmé': 'Total des dépenses confirmées'
+        'Confirmé': 'Total des dépenses confirmées',
+        'Payé': 'Total des dépenses Payées',
     }
 
     const totalCardDescriptions = {
         'Sans compte': 'Montant total des dépenses non encore traitées.',
         'Comptabilisé': 'Montant total des dépenses déjà traitées.',
-        'Confirmé': 'Montant total des dépenses confirmées.'
+        'Confirmé': 'Montant total des dépenses confirmées.',
+        'Payé': 'Montant total des dépenses Payées.',
     }
 
     const dateCardTitles = {
         'Sans compte': 'Date de la première dépense non comptabilisée',
         'Comptabilisé': 'Date de la première dépense comptabilisée',
-        'Confirmé': 'Date de la première dépense confirmée'
+        'Confirmé': 'Date de la première dépense confirmée',
+        'Payé': 'Date de la première dépense Payée',
     }
 
     const dateCardDescription = oldestExpenseDate
@@ -194,7 +198,6 @@ export default function DepensesPage() {
                             <SelectContent>
                                 <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
                                 <SelectItem value="Comptabilisé">Dépenses traitées</SelectItem>
-                                <SelectItem value="Confirmé">Dépenses confirmées</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

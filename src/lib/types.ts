@@ -1,6 +1,6 @@
 // Les types de données seront définis ici.
 
-export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Confirmé';
+export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Confirmé' | 'Payé';
 
 export interface Expense {
   id: string;
@@ -57,4 +57,9 @@ export interface Manager {
 export interface MissionType {
   id: string;
   name: string;
+}
+
+export interface Invoice {
+    id: string; // yyyy-MM-dd date format
+    receivedAmount: number;
 }

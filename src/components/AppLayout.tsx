@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, PanelLeft, LayoutDashboard, ListTodo, Settings, Building, Users, ChevronDown, CreditCard } from 'lucide-react';
+import { Briefcase, PanelLeft, LayoutDashboard, ListTodo, Settings, Building, Users, ChevronDown, CreditCard, FileText } from 'lucide-react';
 
 import {
   Collapsible,
@@ -60,7 +60,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <SidebarMenuItem>
                     <SidebarMenuButton
                         asChild
-                        isActive={pathname === '/missions'}
+                        isActive={pathname.startsWith('/missions')}
                     >
                         <Link href="/missions">
                         <ListTodo />
@@ -71,11 +71,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <SidebarMenuItem>
                       <Link href="/depenses">
                         <SidebarMenuButton
-                            isActive={pathname === '/depenses'}
+                            isActive={pathname.startsWith('/depenses')}
                             className="w-full"
                         >
                             <CreditCard />
                             <span>Dépenses</span>
+                        </SidebarMenuButton>
+                      </Link>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                      <Link href="/facturation">
+                        <SidebarMenuButton
+                            isActive={pathname === '/facturation'}
+                            className="w-full"
+                        >
+                            <FileText />
+                            <span>Facturation</span>
                         </SidebarMenuButton>
                       </Link>
                     </SidebarMenuItem>
