@@ -17,6 +17,13 @@ type EnrichedExpense = Expense & {
     taskId: string;
 };
 
+type GroupedExpense = {
+    missionDate: string;
+    ville: string;
+    montant: number;
+    taskIds: string[];
+};
+
 export default function DepensesPage() {
     const router = useRouter();
     const { tasks } = useTaskStore((state) => ({
@@ -63,17 +70,49 @@ export default function DepensesPage() {
     const filteredExpenses = useMemo(() => {
         return allExpenses.filter(expense => expense.status === filterStatus);
     }, [allExpenses, filterStatus]);
+
+    const groupedAndFilteredExpenses = useMemo(() => {
+        if (filterStatus === 'Sans compte') {
+            return filteredExpenses;
+        }
+
+        const grouped = filteredExpenses.reduce((acc, expense) => {
+            const date = expense.missionDate || 'unknown';
+            if (!acc[date]) {
+                acc[date] = {
+                    missionDate: expense.missionDate!,
+                    ville: 'Multiple', // Or logic to determine city
+                    montant: 0,
+                    taskIds: [],
+                };
+            }
+            acc[date].montant += expense.montant;
+            if (!acc[date].taskIds.includes(expense.taskId)) {
+                acc[date].taskIds.push(expense.taskId);
+            }
+            return acc;
+        }, {} as Record<string, GroupedExpense>);
+
+        return Object.values(grouped).sort((a, b) => {
+            const dateA = new Date(a.missionDate);
+            const dateB = new Date(b.missionDate);
+            return dateA.getTime() - dateB.getTime();
+        });
+
+    }, [filteredExpenses, filterStatus]);
     
     const totalAmount = useMemo(() => {
-        return filteredExpenses.reduce((total, expense) => total + expense.montant, 0);
-    }, [filteredExpenses]);
+        const source = filterStatus === 'Sans compte' ? filteredExpenses : groupedAndFilteredExpenses;
+        return source.reduce((total, expense) => total + expense.montant, 0);
+    }, [filteredExpenses, groupedAndFilteredExpenses, filterStatus]);
 
     const oldestExpenseDate = useMemo(() => {
-      if (filteredExpenses.length === 0) {
+      const source = filterStatus === 'Sans compte' ? filteredExpenses : groupedAndFilteredExpenses;
+      if (source.length === 0) {
         return null;
       }
-      return filteredExpenses[0].missionDate;
-    }, [filteredExpenses]);
+      return source[0].missionDate;
+    }, [filteredExpenses, groupedAndFilteredExpenses, filterStatus]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -154,15 +193,17 @@ export default function DepensesPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredExpenses.map((expense) => (
-                                <TableRow key={expense.id}>
+                            {groupedAndFilteredExpenses.map((expense, index) => (
+                                <TableRow key={expense.missionDate || index}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    <TableCell>{expense.ville}</TableCell>
+                                    <TableCell>{'taskId' in expense ? (expense as EnrichedExpense).ville : (expense as GroupedExpense).ville}</TableCell>
                                     <TableCell>{formatCurrency(expense.montant)}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="outline" size="sm" onClick={() => handleView(expense.taskId)}>
-                                            Afficher
-                                        </Button>
+                                       { 'taskId' in expense &&
+                                            <Button variant="outline" size="sm" onClick={() => handleView((expense as EnrichedExpense).taskId)}>
+                                                Afficher
+                                            </Button>
+                                        }
                                     </TableCell>
                                 </TableRow>
                             ))}
