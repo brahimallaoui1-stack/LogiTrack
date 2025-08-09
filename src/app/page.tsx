@@ -15,12 +15,16 @@ import type { Task } from "@/lib/types";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type ReportCategory = 'city' | 'gestionnaire' | 'typeTache';
 
 export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
   const [timeRange, setTimeRange] = useState("month");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ReportCategory>("city");
 
   const filteredTasks = useMemo(() => {
     // La logique de filtrage sera implémentée ici ultérieurement
@@ -28,16 +32,65 @@ export default function Home() {
     return tasks;
   }, [tasks, timeRange, selectedDate]);
 
-  const cityTaskCounts = useMemo(() => {
+  const getTaskCounts = (category: ReportCategory) => {
     const counts = filteredTasks.reduce((acc, task) => {
-      acc[task.city] = (acc[task.city] || 0) + 1;
+      const key = task[category];
+      if (key) {
+        acc[key] = (acc[key] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
     return Object.entries(counts)
-      .map(([city, count]) => ({ city, count }))
+      .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
-  }, [filteredTasks]);
+  };
+
+  const cityTaskCounts = useMemo(() => getTaskCounts('city'), [filteredTasks]);
+  const managerTaskCounts = useMemo(() => getTaskCounts('gestionnaire'), [filteredTasks]);
+  const missionTypeTaskCounts = useMemo(() => getTaskCounts('typeTache'), [filteredTasks]);
+
+  const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
+     <TabsContent value={category} className="mt-0">
+        <div className="grid gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <TaskDistributionChart tasks={filteredTasks} category={category} label={chartLabel} />
+                </CardContent>
+                </Card>
+                <Card>
+                <CardHeader>
+                    <CardTitle>Classement des {tableHead}</CardTitle>
+                    <CardDescription>Nombre de missions par {tableHead.toLowerCase()}.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>{tableHead}</TableHead>
+                        <TableHead className="text-right">Missions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map(({ name, count }) => (
+                        <TableRow key={name}>
+                            <TableCell className="font-medium">{name}</TableCell>
+                            <TableCell className="text-right">{count}</TableCell>
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                    </Table>
+                </CardContent>
+                </Card>
+            </div>
+        </div>
+     </TabsContent>
+  );
 
   return (
     <div className="grid gap-6">
@@ -74,46 +127,18 @@ export default function Home() {
             </Select>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Rapport de missions par ville</CardTitle>
-            <CardDescription>Pourcentage de missions par ville.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TaskDistributionChart tasks={filteredTasks} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Classement des Villes</CardTitle>
-            <CardDescription>Nombre de missions par ville.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ville</TableHead>
-                  <TableHead className="text-right">Missions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cityTaskCounts.map(({ city, count }) => (
-                  <TableRow key={city}>
-                    <TableCell className="font-medium">{city}</TableCell>
-                    <TableCell className="text-right">{count}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="flex gap-4">
-        <Button variant="outline">Missions</Button>
-        <Button variant="outline">Villes</Button>
-        <Button variant="outline">Gestionnaires</Button>
-      </div>
+      
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReportCategory)} className="w-full">
+         {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeTache', 'Rapport de missions par type', 'Pourcentage de missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+        
+        <TabsList className="grid w-full grid-cols-3 mt-6">
+            <TabsTrigger value="city">Villes</TabsTrigger>
+            <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
+            <TabsTrigger value="typeTache">Missions</TabsTrigger>
+        </TabsList>
+      </Tabs>
     </div>
   );
 }

@@ -1,17 +1,20 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer } from "recharts"
+import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
 
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltipContent,
+  ChartLegendContent,
 } from "@/components/ui/chart"
 import { Task } from "@/lib/types"
 
 interface TaskDistributionChartProps {
   tasks: Task[];
+  category: keyof Task;
+  label: string;
 }
 
 const COLORS = [
@@ -22,27 +25,34 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-
-export function TaskDistributionChart({ tasks }: TaskDistributionChartProps) {
+export function TaskDistributionChart({ tasks, category, label }: TaskDistributionChartProps) {
     const data = React.useMemo(() => {
-        const cityCounts = tasks.reduce((acc, task) => {
-        acc[task.city] = (acc[task.city] || 0) + 1
-        return acc
+        const counts = tasks.reduce((acc, task) => {
+            const key = task[category] as string | undefined;
+            if (key) {
+                acc[key] = (acc[key] || 0) + 1
+            }
+            return acc
         }, {} as Record<string, number>)
 
-        return Object.keys(cityCounts).map((city) => ({
-            name: city,
-            value: cityCounts[city],
+        return Object.keys(counts).map((name) => ({
+            name: name,
+            value: counts[name],
+            fill: COLORS[Object.keys(counts).indexOf(name) % COLORS.length]
         }))
-    }, [tasks])
+    }, [tasks, category])
     
-    const chartConfig = data.reduce((acc, item, index) => {
+    const chartConfig = data.reduce((acc, item) => {
         acc[item.name] = {
             label: item.name,
-            color: COLORS[index % COLORS.length]
+            color: item.fill
         }
         return acc;
     }, {} as ChartConfig);
+
+  if (data.length === 0) {
+    return <div className="flex justify-center items-center h-full text-muted-foreground">Aucune donnée à afficher</div>
+  }
 
   return (
     <ChartContainer
@@ -60,11 +70,13 @@ export function TaskDistributionChart({ tasks }: TaskDistributionChartProps) {
             nameKey="name"
             innerRadius={60}
             strokeWidth={5}
+            labelLine={false}
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
+           <Legend content={<ChartLegendContent nameKey="name" />} />
         </PieChart>
       </ChartContainer>
   )
