@@ -10,7 +10,7 @@ export default function ParametresPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Le contenu de la page des paramètres sera bientôt disponible.</p>
+        <p>Veuillez sélectionner une catégorie de paramètres dans le menu latéral.</p>
       </CardContent>
     </Card>
   );

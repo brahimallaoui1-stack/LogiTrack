@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export default function VillesPage() {
+export default function ParametresMissionsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Villes</CardTitle>
+        <CardTitle>Paramètres des Missions</CardTitle>
         <CardDescription>
-          Gérez les villes à partir d'ici.
+          Gérez les paramètres des missions à partir d'ici.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Le contenu de la page des villes sera bientôt disponible.</p>
+        <p>Le contenu de la page des paramètres de missions sera bientôt disponible.</p>
       </CardContent>
     </Card>
   );
