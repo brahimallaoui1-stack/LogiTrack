@@ -39,7 +39,7 @@ export default function Home() {
 
   return (
     <div className="grid gap-6">
-       <div className="flex justify-end items-center">
+       <div className="flex justify-start items-center">
         <div className="flex items-center gap-2">
             <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
               <PopoverTrigger asChild>
