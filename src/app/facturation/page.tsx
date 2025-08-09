@@ -191,7 +191,7 @@ export default function FacturationPage() {
                     <TableCell className="md:hidden">{formatDate(group.id)}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>{formatCurrency(receivedAmount)}</TableCell>
-                    <TableCell className={balance <= 0 ? 'text-green-600' : 'text-orange-600'}>{formatCurrency(balance)}</TableCell>
+                    <TableCell className={balance <= 0 ? 'text-green-600' : 'text-destructive'}>{formatCurrency(balance)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 text-xs rounded-full ${group.status === 'Payé' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
                         {group.status}
