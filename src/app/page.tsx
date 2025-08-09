@@ -11,12 +11,13 @@ import type { Task } from "@/lib/types";
 export default function Home() {
   const tasks = useTaskStore((state) => state.tasks);
   const [timeRange, setTimeRange] = useState("month");
+  const [selectedDate, setSelectedDate] = useState("2024-07");
 
   const filteredTasks = useMemo(() => {
     // La logique de filtrage sera implémentée ici ultérieurement
     // Pour l'instant, nous utilisons toutes les tâches.
     return tasks;
-  }, [tasks, timeRange]);
+  }, [tasks, timeRange, selectedDate]);
 
   const cityTaskCounts = useMemo(() => {
     const counts = filteredTasks.reduce((acc, task) => {
@@ -33,15 +34,28 @@ export default function Home() {
     <div className="grid gap-6">
        <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Tableau de Bord</h1>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[90px] md:w-[180px]">
-            <SelectValue placeholder="Sélectionner une période" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="month">Mois</SelectItem>
-            <SelectItem value="year">Année</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+            <Select value={selectedDate} onValueChange={setSelectedDate}>
+              <SelectTrigger className="w-[110px] md:w-[180px]">
+                <SelectValue placeholder="Sélectionner une date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2024-07">Juillet 2024</SelectItem>
+                <SelectItem value="2024-06">Juin 2024</SelectItem>
+                <SelectItem value="2024-05">Mai 2024</SelectItem>
+                <SelectItem value="2024-04">Avril 2024</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-[90px] md:w-[180px]">
+                <SelectValue placeholder="Sélectionner une période" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">Mois</SelectItem>
+                <SelectItem value="year">Année</SelectItem>
+              </SelectContent>
+            </Select>
+        </div>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
