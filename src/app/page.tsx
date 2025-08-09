@@ -147,7 +147,7 @@ export default function Home() {
                 <Card>
                 <CardHeader>
                     <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
-                    <CardDescription>Nombre de missions par {tableHead.toLowerCase()}.</CardDescription>
+                    <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -228,9 +228,9 @@ export default function Home() {
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
             <TabsTrigger value="typeMission">Missions</TabsTrigger>
         </TabsList>
-         {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
-         {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeMission', 'Rapport par type de mission', 'Pourcentage de missions par type de mission.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+         {renderReport('city', 'Nombre de missions par ville', 'Répartition des missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Nombre de missions par gestionnaire', 'Répartition des missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeMission', 'Nombre de missions par type', 'Répartition des missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
