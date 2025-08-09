@@ -67,3 +67,8 @@ export interface MissionType {
   id: string;
   name: string;
 }
+
+export interface User {
+    uid: string;
+    email: string | null;
+}

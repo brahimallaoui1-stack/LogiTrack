@@ -3,9 +3,15 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice } from './types';
-import { db } from './firebase';
+import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice, User } from './types';
+import { db, auth } from './firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, orderBy } from 'firebase/firestore';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
 
 interface AppState {
   isHydrated: boolean;
@@ -18,6 +24,56 @@ export const useAppStore = create<AppState>()(
       setHydrated: (isHydrated) => set({ isHydrated }),
     }),
 );
+
+// --- AUTH STORE ---
+interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  error: string | null;
+  init: () => () => void;
+  signUp: (email: string, pass: string) => Promise<void>;
+  signIn: (email: string, pass: string) => Promise<void>;
+  signOut: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+    user: null,
+    isLoading: true,
+    error: null,
+    init: () => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                set({ user: { uid: user.uid, email: user.email }, isLoading: false });
+            } else {
+                set({ user: null, isLoading: false });
+            }
+        });
+        return unsubscribe;
+    },
+    signUp: async (email, password) => {
+        set({ isLoading: true, error: null });
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            set({ user: { uid: userCredential.user.uid, email: userCredential.user.email }, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.message, isLoading: false });
+        }
+    },
+    signIn: async (email, password) => {
+        set({ isLoading: true, error: null });
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            set({ user: { uid: userCredential.user.uid, email: userCredential.user.email }, isLoading: false });
+        } catch (error: any) {
+             set({ error: "Email ou mot de passe incorrect.", isLoading: false });
+        }
+    },
+    signOut: async () => {
+        await signOut(auth);
+        set({ user: null });
+    },
+}));
+
 
 interface TaskState {
   tasks: Task[];
