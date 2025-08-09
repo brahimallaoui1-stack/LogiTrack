@@ -28,7 +28,7 @@ export default function DepensesPage() {
         const expensesWithDate: EnrichedExpense[] = [];
         tasks.forEach(task => {
             if (task.expenses && task.expenses.length > 0) {
-                const missionDate = task.subMissions?.[0]?.date;
+                const missionDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
                 task.expenses.forEach(expense => {
                     expensesWithDate.push({ 
                       ...expense, 
@@ -47,10 +47,14 @@ export default function DepensesPage() {
         });
     }, [tasks]);
 
-    const filteredExpenses = useMemo(() => {
+    const nonComptabiliseesExpenses = useMemo(() => {
         return allExpenses.filter(expense => expense.status === 'Sans compte');
     }, [allExpenses]);
     
+    const totalNonComptabilisees = useMemo(() => {
+        return nonComptabiliseesExpenses.reduce((total, expense) => total + expense.montant, 0);
+    }, [nonComptabiliseesExpenses]);
+
     const chartExpenses = useMemo(() => {
         return allExpenses.filter(expense => expense.status === 'Sans compte' || expense.status === 'Comptabilisé');
     }, [allExpenses]);
@@ -82,44 +86,30 @@ export default function DepensesPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Rapport sur les Dépenses</CardTitle>
-                    <CardDescription>Répartition des dépenses par statut.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <ExpenseDistributionChart expenses={chartExpenses} category="status" label="Statut" />
-                    </div>
-                    <div>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Statut</TableHead>
-                                    <TableHead className="text-right">Nombre</TableHead>
-                                    <TableHead className="text-right">Pourcentage</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {expenseStatusCounts.map(({ name, count }) => {
-                                    const percentage = chartExpenses.length > 0 ? ((count / chartExpenses.length) * 100).toFixed(1) : 0;
-                                    return (
-                                    <TableRow key={name}>
-                                        <TableCell className="font-medium">{name}</TableCell>
-                                        <TableCell className="text-right">{count}</TableCell>
-                                        <TableCell className="text-right">{percentage}%</TableCell>
-                                    </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+            <div className="grid gap-4 md:grid-cols-2">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Dépenses non comptabilisées</CardTitle>
+                        <CardDescription>Montant total des dépenses non encore traitées.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold">{formatCurrency(totalNonComptabilisees)}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Rapport sur les Dépenses</CardTitle>
+                        <CardDescription>Répartition des dépenses par statut.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <ExpenseDistributionChart expenses={chartExpenses} category="status" label="Statut" />
+                    </CardContent>
+                </Card>
+            </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Dépenses Sans Compte</CardTitle>
+                    <CardTitle>Liste des dépenses non comptabilisées</CardTitle>
                     <CardDescription>
                         Voici la liste de toutes les dépenses qui n'ont pas encore été comptabilisées.
                     </CardDescription>
@@ -138,7 +128,7 @@ export default function DepensesPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredExpenses.map((expense) => (
+                            {nonComptabiliseesExpenses.map((expense) => (
                                 <TableRow key={expense.id}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
                                     <TableCell>{expense.missionLabel}</TableCell>
