@@ -59,6 +59,14 @@ export default function DepensesPage() {
         return allExpenses.filter(expense => expense.status === 'Sans compte' || expense.status === 'Comptabilisé');
     }, [allExpenses]);
 
+    const oldestUnaccountedExpenseDate = useMemo(() => {
+      if (nonComptabiliseesExpenses.length === 0) {
+        return null;
+      }
+      // The array is sorted from newest to oldest, so the last element is the oldest.
+      return nonComptabiliseesExpenses[nonComptabiliseesExpenses.length - 1].missionDate;
+    }, [nonComptabiliseesExpenses]);
+
 
     const handleStatusChange = (expense: Expense, taskId: string, newStatus: ExpenseStatus) => {
         const updatedExpense = { ...expense, status: newStatus };
@@ -98,8 +106,12 @@ export default function DepensesPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Dépenses non comptabilisées</CardTitle>
-                        <CardDescription>Répartition des dépenses.</CardDescription>
+                        <CardTitle>Date de la première dépense non comptabilisée</CardTitle>
+                        <CardDescription>
+                          {oldestUnaccountedExpenseDate 
+                            ? `La plus ancienne dépense date du ${formatDate(oldestUnaccountedExpenseDate)}.`
+                            : 'Aucune dépense non comptabilisée.'}
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                          <ExpenseDistributionChart expenses={chartExpenses} category="status" label="Statut" />
