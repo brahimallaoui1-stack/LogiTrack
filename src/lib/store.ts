@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice } from './types';
 import { db } from './firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 
 interface AppState {
   isHydrated: boolean;
@@ -103,8 +103,8 @@ export const useCityStore = create<CityState>()(
     cities: [],
     isLoading: true,
     fetchCities: async () => {
+      if (!get().isLoading) set({ isLoading: true });
       try {
-        set({ isLoading: true });
         const querySnapshot = await getDocs(collection(db, "cities"));
         const cities = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as City))
@@ -152,81 +152,123 @@ export const useCityStore = create<CityState>()(
 // Store for Managers
 interface ManagerState {
   managers: Manager[];
-  addManager: (manager: Omit<Manager, 'id'>) => void;
-  updateManager: (manager: Manager) => void;
-  deleteManager: (id: string) => void;
+  isLoading: boolean;
+  fetchManagers: () => Promise<void>;
+  addManager: (manager: Omit<Manager, 'id'>) => Promise<void>;
+  updateManager: (manager: Manager) => Promise<void>;
+  deleteManager: (id: string) => Promise<void>;
 }
 
 export const useManagerStore = create<ManagerState>()(
-  persist(
-    (set, get) => ({
-      managers: [],
-      addManager: (manager) => {
-        const newManager = { ...manager, id: `manager-${Date.now()}` };
+  (set, get) => ({
+    managers: [],
+    isLoading: true,
+     fetchManagers: async () => {
+      if (!get().isLoading) set({ isLoading: true });
+      try {
+        const querySnapshot = await getDocs(collection(db, "managers"));
+        const managers = querySnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as Manager))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        set({ managers, isLoading: false });
+      } catch (error) {
+        console.error("Error fetching managers: ", error);
+        set({ isLoading: false });
+      }
+    },
+    addManager: async (manager) => {
+       try {
+        const docRef = await addDoc(collection(db, "managers"), manager);
+        const newManager = { ...manager, id: docRef.id };
         const sortedManagers = [...get().managers, newManager].sort((a, b) => a.name.localeCompare(b.name));
         set({ managers: sortedManagers });
-      },
-       updateManager: (updatedManager) => {
+      } catch (error) {
+        console.error("Error adding manager: ", error);
+      }
+    },
+    updateManager: async (updatedManager) => {
+      try {
+        const managerRef = doc(db, "managers", updatedManager.id);
+        await updateDoc(managerRef, { name: updatedManager.name });
         const managers = get().managers.map((manager) =>
           manager.id === updatedManager.id ? updatedManager : manager
         );
         const sortedManagers = [...managers].sort((a, b) => a.name.localeCompare(b.name));
         set({ managers: sortedManagers });
-      },
-      deleteManager: (id) => {
+      } catch (error) {
+        console.error("Error updating manager: ", error);
+      }
+    },
+    deleteManager: async (id) => {
+      try {
+        await deleteDoc(doc(db, "managers", id));
         set({ managers: get().managers.filter((manager) => manager.id !== id) });
-      },
-    }),
-    {
-      name: 'manager-storage',
-      storage: createJSONStorage(() => localStorage),
-       onRehydrateStorage: () => (state) => {
-        if (state) {
-          useAppStore.setState({ isHydrated: true });
-        }
-      },
-    }
-  )
+      } catch (error) {
+        console.error("Error deleting manager: ", error);
+      }
+    },
+  })
 );
 
 // Store for Mission Types
 interface MissionTypeState {
   missionTypes: MissionType[];
-  addMissionType: (missionType: Omit<MissionType, 'id'>) => void;
-  updateMissionType: (missionType: MissionType) => void;
-  deleteMissionType: (id: string) => void;
+  isLoading: boolean;
+  fetchMissionTypes: () => Promise<void>;
+  addMissionType: (missionType: Omit<MissionType, 'id'>) => Promise<void>;
+  updateMissionType: (missionType: MissionType) => Promise<void>;
+  deleteMissionType: (id: string) => Promise<void>;
 }
 
 export const useMissionTypeStore = create<MissionTypeState>()(
-  persist(
-    (set, get) => ({
-      missionTypes: [],
-      addMissionType: (missionType) => {
-        const newMissionType = { ...missionType, id: `type-${Date.now()}` };
+   (set, get) => ({
+    missionTypes: [],
+    isLoading: true,
+     fetchMissionTypes: async () => {
+      if (!get().isLoading) set({ isLoading: true });
+      try {
+        const querySnapshot = await getDocs(collection(db, "missionTypes"));
+        const missionTypes = querySnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as MissionType))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        set({ missionTypes, isLoading: false });
+      } catch (error) {
+        console.error("Error fetching mission types: ", error);
+        set({ isLoading: false });
+      }
+    },
+    addMissionType: async (missionType) => {
+       try {
+        const docRef = await addDoc(collection(db, "missionTypes"), missionType);
+        const newMissionType = { ...missionType, id: docRef.id };
         const sortedMissionTypes = [...get().missionTypes, newMissionType].sort((a, b) => a.name.localeCompare(b.name));
         set({ missionTypes: sortedMissionTypes });
-      },
-      updateMissionType: (updatedType) => {
-        const missionTypes = get().missionTypes.map((type) =>
-          type.id === updatedType.id ? updatedType : type
-        );
-        const sortedMissionTypes = [...missionTypes].sort((a, b) => a.name.localeCompare(b.name));
-        set({ missionTypes: sortedMissionTypes });
-      },
-      deleteMissionType: (id) => {
-        set({ missionTypes: get().missionTypes.filter((type) => type.id !== id) });
-      },
-    }),
-    {
-      name: 'mission-type-storage',
-      storage: createJSONStorage(() => localStorage),
-       onRehydrateStorage: () => (state) => {
-        if (state) {
-          useAppStore.setState({ isHydrated: true });
+      } catch (error) {
+        console.error("Error adding mission type: ", error);
+      }
+    },
+    updateMissionType: async (updatedType) => {
+        try {
+            const typeRef = doc(db, "missionTypes", updatedType.id);
+            await updateDoc(typeRef, { name: updatedType.name });
+            const missionTypes = get().missionTypes.map((type) =>
+            type.id === updatedType.id ? updatedType : type
+            );
+            const sortedMissionTypes = [...missionTypes].sort((a, b) => a.name.localeCompare(b.name));
+            set({ missionTypes: sortedMissionTypes });
+        } catch (error) {
+            console.error("Error updating mission type: ", error);
         }
-      },
-    }
-  )
+    },
+    deleteMissionType: async (id) => {
+       try {
+        await deleteDoc(doc(db, "missionTypes", id));
+        set({ missionTypes: get().missionTypes.filter((type) => type.id !== id) });
+      } catch (error) {
+        console.error("Error deleting mission type: ", error);
+      }
+    },
+  })
 );
 
 // Store for Invoicing

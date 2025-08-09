@@ -8,20 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMissionTypeStore, useAppStore } from "@/lib/store";
+import { useMissionTypeStore } from "@/lib/store";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Trash2, Pencil } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { MissionType } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ParametresMissionsPage() {
-  const { missionTypes, addMissionType, updateMissionType, deleteMissionType } = useMissionTypeStore();
-  const isHydrated = useAppStore((state) => state.isHydrated);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const { missionTypes, isLoading, fetchMissionTypes, addMissionType, updateMissionType, deleteMissionType } = useMissionTypeStore();
 
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -30,6 +25,10 @@ export default function ParametresMissionsPage() {
   const [missionTypeToDelete, setMissionTypeToDelete] = useState<string | null>(null);
 
   const [typeName, setTypeName] = useState("");
+
+  useEffect(() => {
+    fetchMissionTypes();
+  }, [fetchMissionTypes]);
 
   const handleOpenFormDialog = (type: MissionType | null) => {
     setEditingMissionType(type);
@@ -43,12 +42,12 @@ export default function ParametresMissionsPage() {
     setIsFormDialogOpen(false);
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (typeName.trim()) {
       if (editingMissionType) {
-        updateMissionType({ ...editingMissionType, name: typeName.trim() });
+        await updateMissionType({ ...editingMissionType, name: typeName.trim() });
       } else {
-        addMissionType({ name: typeName.trim() });
+        await addMissionType({ name: typeName.trim() });
       }
       handleCloseFormDialog();
     }
@@ -59,17 +58,13 @@ export default function ParametresMissionsPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (missionTypeToDelete) {
-      deleteMissionType(missionTypeToDelete);
+      await deleteMissionType(missionTypeToDelete);
     }
     setMissionTypeToDelete(null);
     setIsDeleteDialogOpen(false);
   };
-
-  if (!isHydrated || !isClient) {
-    return <div>Chargement...</div>;
-  }
 
   return (
     <>
@@ -90,31 +85,40 @@ export default function ParametresMissionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missionTypes.map((type) => (
-                <TableRow key={type.id}>
-                  <TableCell>{type.name}</TableCell>
-                   <TableCell className="text-right">
-                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Ouvrir le menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleOpenFormDialog(type)}>
-                          <Pencil className="mr-2 h-4 w-4"/>
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(type.id)} className="text-destructive">
-                           <Trash2 className="mr-2 h-4 w-4"/>
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-8 inline-block" /></TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                missionTypes.map((type) => (
+                  <TableRow key={type.id}>
+                    <TableCell>{type.name}</TableCell>
+                     <TableCell className="text-right">
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Ouvrir le menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenFormDialog(type)}>
+                            <Pencil className="mr-2 h-4 w-4"/>
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(type.id)} className="text-destructive">
+                             <Trash2 className="mr-2 h-4 w-4"/>
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

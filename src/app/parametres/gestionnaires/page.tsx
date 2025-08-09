@@ -8,20 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useManagerStore, useAppStore } from "@/lib/store";
+import { useManagerStore } from "@/lib/store";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Trash2, Pencil } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { Manager } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ParametresGestionnairesPage() {
-  const { managers, addManager, updateManager, deleteManager } = useManagerStore();
-  const isHydrated = useAppStore((state) => state.isHydrated);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const { managers, isLoading, fetchManagers, addManager, updateManager, deleteManager } = useManagerStore();
   
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -30,6 +25,10 @@ export default function ParametresGestionnairesPage() {
   const [managerToDelete, setManagerToDelete] = useState<string | null>(null);
 
   const [managerName, setManagerName] = useState("");
+  
+  useEffect(() => {
+    fetchManagers();
+  }, [fetchManagers]);
 
   const handleOpenFormDialog = (manager: Manager | null) => {
     setEditingManager(manager);
@@ -43,12 +42,12 @@ export default function ParametresGestionnairesPage() {
     setIsFormDialogOpen(false);
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (managerName.trim()) {
       if (editingManager) {
-        updateManager({ ...editingManager, name: managerName.trim() });
+        await updateManager({ ...editingManager, name: managerName.trim() });
       } else {
-        addManager({ name: managerName.trim() });
+        await addManager({ name: managerName.trim() });
       }
       handleCloseFormDialog();
     }
@@ -59,17 +58,13 @@ export default function ParametresGestionnairesPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (managerToDelete) {
-      deleteManager(managerToDelete);
+      await deleteManager(managerToDelete);
     }
     setManagerToDelete(null);
     setIsDeleteDialogOpen(false);
   };
-
-  if (!isHydrated || !isClient) {
-    return <div>Chargement...</div>;
-  }
 
   return (
     <>
@@ -90,31 +85,40 @@ export default function ParametresGestionnairesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {managers.map((manager) => (
-                <TableRow key={manager.id}>
-                  <TableCell>{manager.name}</TableCell>
-                  <TableCell className="text-right">
-                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Ouvrir le menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleOpenFormDialog(manager)}>
-                          <Pencil className="mr-2 h-4 w-4"/>
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(manager.id)} className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4"/>
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isLoading ? (
+                 Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-8 inline-block" /></TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                managers.map((manager) => (
+                  <TableRow key={manager.id}>
+                    <TableCell>{manager.name}</TableCell>
+                    <TableCell className="text-right">
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Ouvrir le menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenFormDialog(manager)}>
+                            <Pencil className="mr-2 h-4 w-4"/>
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(manager.id)} className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4"/>
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
