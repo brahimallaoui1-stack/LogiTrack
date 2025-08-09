@@ -250,10 +250,10 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
                     </Select>
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="typeTache">Type de tâche</Label>
+                    <Label htmlFor="typeTache">Types de Mission</Label>
                      <Select value={formState.typeTache} onValueChange={(value) => handleSelectChange('typeTache', value)}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un type de tâche" />
+                            <SelectValue placeholder="Sélectionner un type de mission" />
                         </SelectTrigger>
                         <SelectContent>
                             {missionTypes.map(type => (

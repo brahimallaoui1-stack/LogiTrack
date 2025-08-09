@@ -147,7 +147,7 @@ export default function Home() {
         </TabsList>
          {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
          {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeTache', 'Rapport de missions par type', 'Pourcentage de missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+         {renderReport('typeTache', 'Rapport par type de mission', 'Pourcentage de missions par type de mission.', missionTypeTaskCounts, 'Missions', 'Types de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
