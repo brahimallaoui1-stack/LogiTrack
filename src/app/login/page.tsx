@@ -21,13 +21,25 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, error, isLoading } = useAuthStore();
+  const { signIn, signUp, error, isLoading } = useAuthStore();
   const router = useRouter();
+  const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn(email, password);
-    router.push("/");
+    if (isSignUp) {
+      await signUp(email, password);
+    } else {
+      await signIn(email, password);
+    }
+    // Only push if there's no error
+    if (!error) {
+       router.push("/");
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
   };
 
   return (
@@ -39,11 +51,14 @@ export default function LoginPage() {
             </div>
           <CardTitle className="text-2xl">LogiTrack</CardTitle>
           <CardDescription>
-            Veuillez entrer vos identifiants pour accéder à votre espace.
+            {isSignUp 
+              ? "Créez un compte pour commencer à suivre vos missions."
+              : "Veuillez entrer vos identifiants pour accéder à votre espace."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -67,15 +82,26 @@ export default function LoginPage() {
             </div>
             {error && (
               <Alert variant="destructive">
-                <AlertTitle>Erreur de connexion</AlertTitle>
+                <AlertTitle>{isSignUp ? "Erreur d'inscription" : "Erreur de connexion"}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Connexion en cours..." : "Se connecter"}
+                {isLoading 
+                    ? (isSignUp ? "Création du compte..." : "Connexion en cours...") 
+                    : (isSignUp ? "S'inscrire" : "Se connecter")
+                }
              </Button>
           </form>
         </CardContent>
+         <CardFooter className="flex justify-center text-sm">
+            <p>
+              {isSignUp ? "Vous avez déjà un compte ?" : "Vous n'avez pas de compte ?"}
+              <Button variant="link" onClick={toggleMode} className="p-1">
+                {isSignUp ? "Se connecter" : "S'inscrire"}
+              </Button>
+            </p>
+        </CardFooter>
       </Card>
     </div>
   );

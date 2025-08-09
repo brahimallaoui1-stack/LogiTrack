@@ -2,7 +2,6 @@
 "use client";
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice, User } from './types';
 import { db, auth } from './firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, orderBy } from 'firebase/firestore';
@@ -31,8 +30,8 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   init: () => () => void;
-  signUp: (email: string, pass: string) => Promise<void>;
-  signIn: (email: string, pass: string) => Promise<void>;
+  signUp: (email: string, pass: string) => Promise<boolean>;
+  signIn: (email: string, pass: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -43,9 +42,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     init: () => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                set({ user: { uid: user.uid, email: user.email }, isLoading: false });
+                set({ user: { uid: user.uid, email: user.email }, isLoading: false, error: null });
             } else {
-                set({ user: null, isLoading: false });
+                set({ user: null, isLoading: false, error: null });
             }
         });
         return unsubscribe;
@@ -54,23 +53,27 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            set({ user: { uid: userCredential.user.uid, email: userCredential.user.email }, isLoading: false });
+            set({ user: { uid: userCredential.user.uid, email: userCredential.user.email }, isLoading: false, error: null });
+            return true;
         } catch (error: any) {
-            set({ error: error.message, isLoading: false });
+            set({ error: "L'adresse e-mail est peut-être déjà utilisée.", isLoading: false });
+            return false;
         }
     },
     signIn: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            set({ user: { uid: userCredential.user.uid, email: userCredential.user.email }, isLoading: false });
+            set({ user: { uid: userCredential.user.uid, email: userCredential.user.email }, isLoading: false, error: null });
+            return true;
         } catch (error: any) {
              set({ error: "Email ou mot de passe incorrect.", isLoading: false });
+             return false;
         }
     },
     signOut: async () => {
         await signOut(auth);
-        set({ user: null });
+        set({ user: null, error: null });
     },
 }));
 
@@ -92,9 +95,14 @@ export const useTaskStore = create<TaskState>()(
       isLoading: true,
       fetchTasks: async () => {
         if (!get().isLoading) set({ isLoading: true });
+        const user = useAuthStore.getState().user;
+        if (!user) {
+            set({ tasks: [], isLoading: false });
+            return;
+        }
         try {
-          // No specific ordering needed here as it's handled in components
-          const querySnapshot = await getDocs(collection(db, "tasks"));
+          const q = query(collection(db, `users/${user.uid}/tasks`));
+          const querySnapshot = await getDocs(q);
           const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
           set({ tasks, isLoading: false });
         } catch (error) {
@@ -103,8 +111,10 @@ export const useTaskStore = create<TaskState>()(
         }
       },
       addTask: async (task) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
         try {
-            const docRef = await addDoc(collection(db, "tasks"), task);
+            const docRef = await addDoc(collection(db, `users/${user.uid}/tasks`), task);
             const newTask = { ...task, id: docRef.id };
             set({ tasks: [newTask, ...get().tasks] });
         } catch (error) {
@@ -112,8 +122,10 @@ export const useTaskStore = create<TaskState>()(
         }
       },
       updateTask: async (updatedTask) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
         try {
-            const taskRef = doc(db, "tasks", updatedTask.id);
+            const taskRef = doc(db, `users/${user.uid}/tasks`, updatedTask.id);
             await updateDoc(taskRef, { ...updatedTask });
             set((state) => ({
               tasks: state.tasks.map((task) =>
@@ -125,8 +137,10 @@ export const useTaskStore = create<TaskState>()(
         }
       },
       deleteTask: async (id) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
          try {
-            await deleteDoc(doc(db, "tasks", id));
+            await deleteDoc(doc(db, `users/${user.uid}/tasks`, id));
             set((state) => ({
                 tasks: state.tasks.filter((task) => task.id !== id),
             }));
@@ -141,8 +155,11 @@ export const useTaskStore = create<TaskState>()(
             const updatedExpenses = taskToUpdate.expenses.map(exp => ({ ...exp, status: newStatus, processedDate: new Date().toISOString() }));
             const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
             
+            const user = useAuthStore.getState().user;
+            if (!user) return;
+            
             try {
-                const taskRef = doc(db, "tasks", taskId);
+                const taskRef = doc(db, `users/${user.uid}/tasks`, taskId);
                 await updateDoc(taskRef, { expenses: updatedExpenses });
                 set({
                   tasks: tasks.map((task) =>
@@ -156,6 +173,9 @@ export const useTaskStore = create<TaskState>()(
        },
         updateExpensesStatusByProcessedDate: async (processedDate, newStatus, paymentData) => {
             const tasks = get().tasks;
+            const user = useAuthStore.getState().user;
+            if (!user) return;
+
             const batch = writeBatch(db);
             const tasksToUpdateLocally: Task[] = [];
 
@@ -178,7 +198,7 @@ export const useTaskStore = create<TaskState>()(
                 if (hasChanged) {
                     const updatedTask = { ...task, expenses: updatedExpenses };
                     tasksToUpdateLocally.push(updatedTask);
-                    const taskRef = doc(db, "tasks", task.id);
+                    const taskRef = doc(db, `users/${user.uid}/tasks`, task.id);
                     batch.update(taskRef, { expenses: updatedExpenses });
                 }
             });
@@ -214,8 +234,13 @@ export const useCityStore = create<CityState>()(
     isLoading: true,
     fetchCities: async () => {
       if (!get().isLoading) set({ isLoading: true });
+       const user = useAuthStore.getState().user;
+       if (!user) {
+           set({ cities: [], isLoading: false });
+           return;
+       }
       try {
-        const q = query(collection(db, "cities"), orderBy("name"));
+        const q = query(collection(db, `users/${user.uid}/cities`), orderBy("name"));
         const querySnapshot = await getDocs(q);
         const cities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as City));
         set({ cities, isLoading: false });
@@ -225,8 +250,10 @@ export const useCityStore = create<CityState>()(
       }
     },
     addCity: async (city) => {
+       const user = useAuthStore.getState().user;
+       if (!user) return;
       try {
-        const docRef = await addDoc(collection(db, "cities"), city);
+        const docRef = await addDoc(collection(db, `users/${user.uid}/cities`), city);
         const newCity = { ...city, id: docRef.id };
         const sortedCities = [...get().cities, newCity].sort((a, b) => a.name.localeCompare(b.name));
         set({ cities: sortedCities });
@@ -235,8 +262,10 @@ export const useCityStore = create<CityState>()(
       }
     },
     updateCity: async (updatedCity) => {
+       const user = useAuthStore.getState().user;
+       if (!user) return;
        try {
-        const cityRef = doc(db, "cities", updatedCity.id);
+        const cityRef = doc(db, `users/${user.uid}/cities`, updatedCity.id);
         await updateDoc(cityRef, { name: updatedCity.name });
         const cities = get().cities.map((city) =>
           city.id === updatedCity.id ? updatedCity : city
@@ -248,8 +277,10 @@ export const useCityStore = create<CityState>()(
       }
     },
     deleteCity: async (id) => {
+       const user = useAuthStore.getState().user;
+       if (!user) return;
        try {
-        await deleteDoc(doc(db, "cities", id));
+        await deleteDoc(doc(db, `users/${user.uid}/cities`, id));
         set({ cities: get().cities.filter((city) => city.id !== id) });
       } catch (error) {
         console.error("Error deleting city: ", error);
@@ -274,8 +305,13 @@ export const useManagerStore = create<ManagerState>()(
     isLoading: true,
      fetchManagers: async () => {
       if (!get().isLoading) set({ isLoading: true });
+       const user = useAuthStore.getState().user;
+       if (!user) {
+           set({ managers: [], isLoading: false });
+           return;
+       }
       try {
-        const q = query(collection(db, "managers"), orderBy("name"));
+        const q = query(collection(db, `users/${user.uid}/managers`), orderBy("name"));
         const querySnapshot = await getDocs(q);
         const managers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Manager));
         set({ managers, isLoading: false });
@@ -285,8 +321,10 @@ export const useManagerStore = create<ManagerState>()(
       }
     },
     addManager: async (manager) => {
+       const user = useAuthStore.getState().user;
+       if (!user) return;
        try {
-        const docRef = await addDoc(collection(db, "managers"), manager);
+        const docRef = await addDoc(collection(db, `users/${user.uid}/managers`), manager);
         const newManager = { ...manager, id: docRef.id };
         const sortedManagers = [...get().managers, newManager].sort((a, b) => a.name.localeCompare(b.name));
         set({ managers: sortedManagers });
@@ -295,8 +333,10 @@ export const useManagerStore = create<ManagerState>()(
       }
     },
     updateManager: async (updatedManager) => {
+      const user = useAuthStore.getState().user;
+      if (!user) return;
       try {
-        const managerRef = doc(db, "managers", updatedManager.id);
+        const managerRef = doc(db, `users/${user.uid}/managers`, updatedManager.id);
         await updateDoc(managerRef, { name: updatedManager.name });
         const managers = get().managers.map((manager) =>
           manager.id === updatedManager.id ? updatedManager : manager
@@ -308,8 +348,10 @@ export const useManagerStore = create<ManagerState>()(
       }
     },
     deleteManager: async (id) => {
+      const user = useAuthStore.getState().user;
+      if (!user) return;
       try {
-        await deleteDoc(doc(db, "managers", id));
+        await deleteDoc(doc(db, `users/${user.uid}/managers`, id));
         set({ managers: get().managers.filter((manager) => manager.id !== id) });
       } catch (error) {
         console.error("Error deleting manager: ", error);
@@ -334,8 +376,13 @@ export const useMissionTypeStore = create<MissionTypeState>()(
     isLoading: true,
      fetchMissionTypes: async () => {
       if (!get().isLoading) set({ isLoading: true });
+       const user = useAuthStore.getState().user;
+       if (!user) {
+           set({ missionTypes: [], isLoading: false });
+           return;
+       }
       try {
-        const q = query(collection(db, "missionTypes"), orderBy("name"));
+        const q = query(collection(db, `users/${user.uid}/missionTypes`), orderBy("name"));
         const querySnapshot = await getDocs(q);
         const missionTypes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MissionType));
         set({ missionTypes, isLoading: false });
@@ -345,8 +392,10 @@ export const useMissionTypeStore = create<MissionTypeState>()(
       }
     },
     addMissionType: async (missionType) => {
+       const user = useAuthStore.getState().user;
+       if (!user) return;
        try {
-        const docRef = await addDoc(collection(db, "missionTypes"), missionType);
+        const docRef = await addDoc(collection(db, `users/${user.uid}/missionTypes`), missionType);
         const newMissionType = { ...missionType, id: docRef.id };
         const sortedMissionTypes = [...get().missionTypes, newMissionType].sort((a, b) => a.name.localeCompare(b.name));
         set({ missionTypes: sortedMissionTypes });
@@ -355,8 +404,10 @@ export const useMissionTypeStore = create<MissionTypeState>()(
       }
     },
     updateMissionType: async (updatedType) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
         try {
-            const typeRef = doc(db, "missionTypes", updatedType.id);
+            const typeRef = doc(db, `users/${user.uid}/missionTypes`, updatedType.id);
             await updateDoc(typeRef, { name: updatedType.name });
             const missionTypes = get().missionTypes.map((type) =>
             type.id === updatedType.id ? updatedType : type
@@ -368,8 +419,10 @@ export const useMissionTypeStore = create<MissionTypeState>()(
         }
     },
     deleteMissionType: async (id) => {
+       const user = useAuthStore.getState().user;
+       if (!user) return;
        try {
-        await deleteDoc(doc(db, "missionTypes", id));
+        await deleteDoc(doc(db, `users/${user.uid}/missionTypes`, id));
         set({ missionTypes: get().missionTypes.filter((type) => type.id !== id) });
       } catch (error) {
         console.error("Error deleting mission type: ", error);
