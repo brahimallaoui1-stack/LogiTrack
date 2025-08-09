@@ -72,16 +72,18 @@ export default function ViewProcessedExpensesPage() {
         return processedExpenses.reduce((total, expense) => total + expense.montant, 0);
     }, [processedExpenses]);
     
-    const [suggestedAmount, setSuggestedAmount] = useState(totalAmount);
+    const [suggestedAmount, setSuggestedAmount] = useState(0);
     const [accountantFees, setAccountantFees] = useState(0);
+    const [advance, setAdvance] = useState(0);
 
     useEffect(() => {
-        setSuggestedAmount(totalAmount);
+        // We keep totalAmount for display, but suggestedAmount starts at 0
+        setSuggestedAmount(0);
     }, [totalAmount]);
 
     const remainder = useMemo(() => {
-        return suggestedAmount - accountantFees;
-    }, [suggestedAmount, accountantFees]);
+        return suggestedAmount - advance - accountantFees;
+    }, [suggestedAmount, advance, accountantFees]);
 
     const handleMarkAsPaid = () => {
         updateExpensesStatusByProcessedDate(id as string, 'Payé');
@@ -156,7 +158,7 @@ export default function ViewProcessedExpensesPage() {
                         </TableBody>
                     </Table>
                      <div className="text-right font-bold pr-4 mt-4 text-lg">
-                        Total: {formatCurrency(totalAmount)}
+                        Total des dépenses: {formatCurrency(totalAmount)}
                     </div>
                 </CardContent>
 
@@ -164,15 +166,27 @@ export default function ViewProcessedExpensesPage() {
                   <>
                   <Separator className="my-6" />
                   <CardContent className="grid gap-6">
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid md:grid-cols-3 gap-6">
                           <div className="grid gap-2">
-                              <Label htmlFor="suggestedAmount">Montant suggéré par le comptable</Label>
+                              <Label htmlFor="suggestedAmount">Montant suggéré</Label>
                               <Input 
                                   id="suggestedAmount" 
                                   type="number" 
                                   value={suggestedAmount} 
                                   onChange={(e) => setSuggestedAmount(parseFloat(e.target.value) || 0)}
                                   disabled={expenseStatus === 'Payé'}
+                                  placeholder="Entrer le montant"
+                              />
+                          </div>
+                          <div className="grid gap-2">
+                              <Label htmlFor="advance">Avance (Tasbiq)</Label>
+                              <Input 
+                                  id="advance" 
+                                  type="number" 
+                                  value={advance} 
+                                  onChange={(e) => setAdvance(parseFloat(e.target.value) || 0)}
+                                  disabled={expenseStatus === 'Payé'}
+                                   placeholder="Entrer l'avance"
                               />
                           </div>
                           <div className="grid gap-2">
@@ -183,6 +197,7 @@ export default function ViewProcessedExpensesPage() {
                                   value={accountantFees} 
                                   onChange={(e) => setAccountantFees(parseFloat(e.target.value) || 0)}
                                   disabled={expenseStatus === 'Payé'}
+                                   placeholder="Entrer les honoraires"
                               />
                           </div>
                       </div>
@@ -213,4 +228,3 @@ export default function ViewProcessedExpensesPage() {
         </div>
     )
 }
-
