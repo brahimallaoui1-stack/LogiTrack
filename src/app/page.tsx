@@ -74,15 +74,20 @@ export default function Home() {
                         <TableRow>
                         <TableHead>{tableHead}</TableHead>
                         <TableHead className="text-right">Missions</TableHead>
+                        <TableHead className="text-right">Pourcentage</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {data.map(({ name, count }) => (
-                        <TableRow key={name}>
-                            <TableCell className="font-medium">{name}</TableCell>
-                            <TableCell className="text-right">{count}</TableCell>
-                        </TableRow>
-                        ))}
+                        {data.map(({ name, count }) => {
+                          const percentage = filteredTasks.length > 0 ? ((count / filteredTasks.length) * 100).toFixed(1) : 0;
+                          return (
+                            <TableRow key={name}>
+                                <TableCell className="font-medium">{name}</TableCell>
+                                <TableCell className="text-right">{count}</TableCell>
+                                <TableCell className="text-right">{percentage}%</TableCell>
+                            </TableRow>
+                          );
+                        })}
                     </TableBody>
                     </Table>
                 </CardContent>
