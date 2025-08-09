@@ -45,7 +45,7 @@ export default function MissionsPage() {
       const dateA = getDate(a);
       const dateB = getDate(b);
 
-      return dateB.getTime() - a.getTime();
+      return dateB.getTime() - dateA.getTime();
     });
   }, [tasks]);
   
