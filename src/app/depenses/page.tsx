@@ -4,10 +4,9 @@
 import { useTaskStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Expense, ExpenseStatus } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
@@ -24,7 +23,6 @@ export default function DepensesPage() {
       tasks: state.tasks,
       updateExpense: state.updateExpense
     }));
-    const [statusFilter, setStatusFilter] = useState<ExpenseStatus | "Tous">("Sans compte");
 
     const allExpenses = useMemo(() => {
         const expensesWithDate: EnrichedExpense[] = [];
@@ -50,11 +48,8 @@ export default function DepensesPage() {
     }, [tasks]);
 
     const filteredExpenses = useMemo(() => {
-        if (statusFilter === "Tous") {
-          return allExpenses;
-        }
-        return allExpenses.filter(expense => expense.status === statusFilter);
-    }, [allExpenses, statusFilter]);
+        return allExpenses.filter(expense => expense.status === 'Sans compte');
+    }, [allExpenses]);
     
     const chartExpenses = useMemo(() => {
         return allExpenses.filter(expense => expense.status === 'Sans compte' || expense.status === 'Comptabilisé');
@@ -124,27 +119,10 @@ export default function DepensesPage() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle>Dépenses</CardTitle>
-                            <CardDescription>
-                                Voici la liste de toutes les dépenses enregistrées.
-                            </CardDescription>
-                        </div>
-                        <Select value={statusFilter} onValueChange={(value: ExpenseStatus | "Tous") => setStatusFilter(value)}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Filtrer par statut" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectItem value="Tous">Tous</SelectItem>
-                                    <SelectItem value="Sans compte">Sans compte</SelectItem>
-                                    <SelectItem value="Comptabilisé">Comptabilisé</SelectItem>
-                                    <SelectItem value="Payé">Payé</SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <CardTitle>Dépenses Sans Compte</CardTitle>
+                    <CardDescription>
+                        Voici la liste de toutes les dépenses qui n'ont pas encore été comptabilisées.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
