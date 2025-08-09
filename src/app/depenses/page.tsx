@@ -248,7 +248,7 @@ export default function DepensesPage() {
                         <TableBody>
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
-                                    <TableRow key={group.id}>
+                                    <TableRow key={group.taskId}>
                                         <TableCell>{formatDate(group.displayDate)}</TableCell>
                                         <TableCell>{group.ville}</TableCell>
                                         <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
