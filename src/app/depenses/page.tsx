@@ -187,24 +187,26 @@ export default function DepensesPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date de mission</TableHead>
-                                <TableHead>Ville</TableHead>
+                                {filterStatus === 'Sans compte' && <TableHead>Ville</TableHead>}
                                 <TableHead>Montant</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                {filterStatus === 'Sans compte' && <TableHead className="text-right">Actions</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {groupedAndFilteredExpenses.map((expense, index) => (
                                 <TableRow key={expense.missionDate || index}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    <TableCell>{'ville' in expense ? (expense as EnrichedExpense | GroupedExpense).ville : ''}</TableCell>
+                                    {filterStatus === 'Sans compte' && <TableCell>{'ville' in expense ? (expense as EnrichedExpense | GroupedExpense).ville : ''}</TableCell>}
                                     <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                    <TableCell className="text-right">
-                                       { filterStatus === 'Sans compte' && 'taskId' in expense &&
-                                            <Button variant="outline" size="sm" onClick={() => handleView((expense as EnrichedExpense).taskId)}>
-                                                Afficher
-                                            </Button>
-                                        }
-                                    </TableCell>
+                                    { filterStatus === 'Sans compte' && 
+                                        <TableCell className="text-right">
+                                        { 'taskId' in expense &&
+                                                <Button variant="outline" size="sm" onClick={() => handleView((expense as EnrichedExpense).taskId)}>
+                                                    Afficher
+                                                </Button>
+                                            }
+                                        </TableCell>
+                                    }
                                 </TableRow>
                             ))}
                         </TableBody>
