@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/AppLayout';
 export const metadata: Metadata = {
   title: 'LogiTrack',
   description: 'Une application construite avec Firebase Studio',
+  manifest: '/manifest.json'
 };
 
 export default function RootLayout({
