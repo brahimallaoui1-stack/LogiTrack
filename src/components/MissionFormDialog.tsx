@@ -166,13 +166,23 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
           });
         } else {
             const cityValue = prefilledCity === 'Casablanca' ? 'Casablanca' : '';
-            const newLabel = cityValue === 'Casablanca' ? 'Mission Casablanca' : 'Mission Hors Casablanca';
-            setFormState({...initialFormState, city: cityValue, label: newLabel});
+            setFormState({...initialFormState, city: cityValue, label: ''});
         }
     } else {
          setFormState(initialFormState);
     }
   }, [editingTask, isOpen, prefilledCity]);
+  
+  const generatedLabel = useMemo(() => {
+    if (isCasablancaMission) {
+      return formState.typeMission || '';
+    } else {
+       const missionTypes = formState.subMissions?.map(sub => sub.typeMission).filter(Boolean) || [];
+       const uniqueMissionTypes = [...new Set(missionTypes)];
+       return uniqueMissionTypes.join(' / ');
+    }
+  }, [isCasablancaMission, formState.typeMission, formState.subMissions]);
+
 
  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number) => {
     const { id, value } = e.target;
@@ -235,7 +245,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
   const handleSave = () => {
      const taskData: Omit<Task, 'id'> = {
-        label: formState.label || (isCasablancaMission ? 'Mission Casablanca' : 'Mission Hors Casablanca'),
+        label: formState.label || generatedLabel,
         city: isCasablancaMission ? 'Casablanca' : 'Hors Casablanca',
     };
     
@@ -372,7 +382,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
          <ScrollArea className="max-h-[70vh] p-4">
           <div className="grid gap-2">
               <Label htmlFor="label">Libellé de la mission</Label>
-              <Input id="label" value={formState.label} onChange={handleInputChange} placeholder={isCasablancaMission ? 'Ex: Mission Casablanca' : 'Ex: Mission A-B-C'}/>
+              <Input id="label" value={formState.label} onChange={handleInputChange} placeholder={generatedLabel || (isCasablancaMission ? 'Ex: Livraison' : 'Ex: Livraison / Récupération')}/>
           </div>
 
           <Separator className="my-6"/>
