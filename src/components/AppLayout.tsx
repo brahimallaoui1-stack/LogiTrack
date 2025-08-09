@@ -18,6 +18,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Toaster } from "@/components/ui/toaster";
@@ -61,30 +62,22 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     return null;
 }
 
-
-export function AppLayout({ children }: { children: React.ReactNode }) {
+function MainAppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, signOut } = useAuthStore();
+  const { setOpenMobile } = useSidebar();
 
   const handleLogout = async () => {
     await signOut();
   };
-
-  if (pathname === '/login') {
-    return (
-        <AuthGuard>
-            <main className="flex-1">
-                {children}
-                <Toaster />
-            </main>
-        </AuthGuard>
-    )
+  
+  const handleLinkClick = () => {
+    setOpenMobile(false);
   }
 
   return (
-    <AuthGuard>
-        <SidebarProvider>
-        <Sidebar>
+    <>
+       <Sidebar>
             <SidebarHeader className="p-4">
                 <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-3">
@@ -100,6 +93,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <SidebarMenuButton
                             asChild
                             isActive={pathname === '/'}
+                             onClick={handleLinkClick}
                         >
                             <Link href="/">
                             <LayoutDashboard />
@@ -111,6 +105,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <SidebarMenuButton
                             asChild
                             isActive={pathname.startsWith('/missions')}
+                             onClick={handleLinkClick}
                         >
                             <Link href="/missions">
                             <ListTodo />
@@ -119,37 +114,40 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
-                        <Link href="/depenses">
-                            <SidebarMenuButton
-                                isActive={pathname.startsWith('/depenses')}
-                                className="w-full"
-                            >
+                        <SidebarMenuButton
+                            asChild
+                            isActive={pathname.startsWith('/depenses')}
+                             onClick={handleLinkClick}
+                        >
+                            <Link href="/depenses">
                                 <CreditCard />
                                 <span>Dépenses</span>
-                            </SidebarMenuButton>
-                        </Link>
+                            </Link>
+                        </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
-                        <Link href="/facturation">
-                            <SidebarMenuButton
-                                isActive={pathname === '/facturation'}
-                                className="w-full"
-                            >
+                        <SidebarMenuButton
+                            asChild
+                            isActive={pathname === '/facturation'}
+                             onClick={handleLinkClick}
+                        >
+                            <Link href="/facturation">
                                 <FileText />
                                 <span>Facturation</span>
-                            </SidebarMenuButton>
-                        </Link>
+                            </Link>
+                        </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
-                            <Link href="/parametres">
-                                <SidebarMenuButton
-                                    isActive={pathname.startsWith('/parametres')}
-                                    className="w-full"
-                                >
+                            <SidebarMenuButton
+                                asChild
+                                isActive={pathname.startsWith('/parametres')}
+                                 onClick={handleLinkClick}
+                            >
+                                <Link href="/parametres">
                                     <Settings />
                                     <span>Paramètres</span>
-                                </SidebarMenuButton>
-                            </Link>
+                                </Link>
+                            </SidebarMenuButton>
                         </SidebarMenuItem>
                          <SidebarMenuItem>
                             <SidebarMenuButton onClick={handleLogout} className="w-full">
@@ -181,6 +179,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <Toaster />
             </main>
         </SidebarInset>
+    </>
+  )
+}
+
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  if (pathname === '/login') {
+    return (
+        <AuthGuard>
+            <main className="flex-1">
+                {children}
+                <Toaster />
+            </main>
+        </AuthGuard>
+    )
+  }
+
+  return (
+    <AuthGuard>
+        <SidebarProvider>
+            <MainAppLayout>{children}</MainAppLayout>
         </SidebarProvider>
     </AuthGuard>
   );
