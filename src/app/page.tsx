@@ -107,6 +107,10 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+      <div className="flex gap-4">
+        <Button variant="outline">Villes</Button>
+        <Button variant="outline">Responsables</Button>
+      </div>
     </div>
   );
 }
