@@ -129,15 +129,14 @@ export default function Home() {
       </div>
       
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReportCategory)} className="w-full">
-         {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
-         {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeTache', 'Rapport de missions par type', 'Pourcentage de missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
-        
-        <TabsList className="grid w-full grid-cols-3 mt-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="city">Villes</TabsTrigger>
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
             <TabsTrigger value="typeTache">Missions</TabsTrigger>
         </TabsList>
+         {renderReport('city', 'Rapport de missions par ville', 'Pourcentage de missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Pourcentage de missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeTache', 'Rapport de missions par type', 'Pourcentage de missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
   );
