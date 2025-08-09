@@ -7,10 +7,10 @@ import { useTaskStore } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { MissionFormDialog } from '@/components/MissionFormDialog';
 import { Separator } from '@/components/ui/separator';
-import type { SubMission, ExpenseStatus } from '@/lib/types';
+import type { SubMission, ExpenseStatus, Task } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 import {
   AlertDialog,
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function ViewMissionPage() {
     const router = useRouter();
@@ -30,14 +31,16 @@ export default function ViewMissionPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const { id } = params;
-    const { tasks, updateExpenseStatus } = useTaskStore((state) => ({
+    const { tasks, updateExpenseStatus, deleteTask } = useTaskStore((state) => ({
         tasks: state.tasks,
         updateExpenseStatus: state.updateExpenseStatus,
+        deleteTask: state.deleteTask,
     }));
     const task = tasks.find((t) => t.id === id);
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const cameFromDepenses = searchParams.get('from') === 'depenses';
     const hasUnprocessedExpenses = task?.expenses?.some(exp => exp.status === 'Sans compte');
@@ -62,6 +65,18 @@ export default function ViewMissionPage() {
             });
             setIsConfirmDialogOpen(false);
             router.push('/depenses');
+        }
+    };
+    
+    const handleEdit = (task: Task) => {
+        setIsEditDialogOpen(true);
+    };
+
+    const handleDelete = () => {
+        if (task) {
+            deleteTask(task.id);
+            setIsDeleteDialogOpen(false);
+            router.push('/missions');
         }
     };
 
@@ -124,7 +139,23 @@ export default function ViewMissionPage() {
                             Dépense traitée
                         </Button>
                     )}
-                    <Button onClick={() => setIsEditDialogOpen(true)}>Modifier la mission</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(task)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
             <Card>
@@ -215,6 +246,20 @@ export default function ViewMissionPage() {
                 <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                     <AlertDialogAction onClick={handleProcessExpense}>Confirmer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Cela supprimera définitivement la mission.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

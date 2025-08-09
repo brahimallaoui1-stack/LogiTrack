@@ -17,22 +17,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTaskStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
-import { MoreHorizontal } from "lucide-react";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 
 
 export default function MissionsPage() {
   const tasks = useTaskStore((state) => state.tasks);
-  const deleteTask = useTaskStore((state) => state.deleteTask);
   const router = useRouter();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
   const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
@@ -50,14 +45,9 @@ export default function MissionsPage() {
       const dateA = getDate(a);
       const dateB = getDate(b);
 
-      return dateB.getTime() - dateA.getTime();
+      return dateB.getTime() - a.getTime();
     });
   }, [tasks]);
-
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
-    setIsDialogOpen(true);
-  };
   
   const handleView = (taskId: string) => {
     router.push(`/missions/view/${taskId}`);
@@ -73,19 +63,6 @@ export default function MissionsPage() {
     setIsCityChoiceDialogOpen(false);
     setIsDialogOpen(true);
   }
-
-  const handleDeleteClick = (id: string) => {
-    setTaskToDelete(id);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (taskToDelete) {
-      deleteTask(taskToDelete);
-    }
-    setTaskToDelete(null);
-    setIsDeleteDialogOpen(false);
-  };
 
   const getTaskDisplayData = (task: Task) => {
     if (task.city === 'Casablanca') {
@@ -140,19 +117,9 @@ export default function MissionsPage() {
                     <TableCell>{displayData.ville || 'N/A'}</TableCell>
                     <TableCell>{displayData.typeMission || 'N/A'}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Ouvrir le menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleView(task.id)}>Afficher</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(task)}>Modifier</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteClick(task.id)} className="text-destructive">Supprimer</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        <Button variant="outline" size="sm" onClick={() => handleView(task.id)}>
+                            Afficher
+                        </Button>
                     </TableCell>
                   </TableRow>
                 )
@@ -183,21 +150,6 @@ export default function MissionsPage() {
                 <Button onClick={() => handleCityChoice('Casablanca')}>Casablanca</Button>
             </AlertDialogFooter>
         </AlertDialogContent>
-    </AlertDialog>
-
-    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Cette action est irréversible. Cela supprimera définitivement la mission.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirmDelete}>Supprimer</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
     </AlertDialog>
     </>
   );
