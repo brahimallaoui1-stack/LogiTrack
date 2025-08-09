@@ -5,11 +5,10 @@ import { useTaskStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMemo } from "react";
-import type { Expense, ExpenseStatus } from "@/lib/types";
+import type { Expense } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type EnrichedExpense = Expense & { 
     missionDate?: string; 
@@ -18,9 +17,9 @@ type EnrichedExpense = Expense & {
 };
 
 export default function DepensesPage() {
-    const { tasks, updateExpense } = useTaskStore((state) => ({
+    const router = useRouter();
+    const { tasks } = useTaskStore((state) => ({
       tasks: state.tasks,
-      updateExpense: state.updateExpense
     }));
 
     const allExpenses = useMemo(() => {
@@ -76,17 +75,15 @@ export default function DepensesPage() {
       return nonComptabiliseesExpenses[nonComptabiliseesExpenses.length - 1].missionDate;
     }, [nonComptabiliseesExpenses]);
 
-
-    const handleStatusChange = (expense: Expense, taskId: string, newStatus: ExpenseStatus) => {
-        const updatedExpense = { ...expense, status: newStatus };
-        updateExpense(taskId, updatedExpense);
-    };
-
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(amount) + ' MAD';
+    };
+
+    const handleView = (taskId: string) => {
+        router.push(`/missions/view/${taskId}`);
     };
     
     return (
@@ -145,25 +142,9 @@ export default function DepensesPage() {
                                     <TableCell>{expense.ville}</TableCell>
                                     <TableCell>{formatCurrency(expense.montant)}</TableCell>
                                     <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                <span className="sr-only">Ouvrir le menu</span>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleStatusChange(expense, expense.taskId, 'Sans compte')}>
-                                                    Sans compte
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleStatusChange(expense, expense.taskId, 'Comptabilisé')}>
-                                                    Comptabilisé
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleStatusChange(expense, expense.taskId, 'Payé')}>
-                                                    Payé
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <Button variant="outline" size="sm" onClick={() => handleView(expense.taskId)}>
+                                            Afficher
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
