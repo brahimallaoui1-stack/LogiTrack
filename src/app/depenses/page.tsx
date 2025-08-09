@@ -196,10 +196,10 @@ export default function DepensesPage() {
                             {groupedAndFilteredExpenses.map((expense, index) => (
                                 <TableRow key={expense.missionDate || index}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    <TableCell>{'taskId' in expense ? (expense as EnrichedExpense).ville : (expense as GroupedExpense).ville}</TableCell>
+                                    <TableCell>{'ville' in expense ? (expense as EnrichedExpense | GroupedExpense).ville : ''}</TableCell>
                                     <TableCell>{formatCurrency(expense.montant)}</TableCell>
                                     <TableCell className="text-right">
-                                       { 'taskId' in expense &&
+                                       { filterStatus === 'Sans compte' && 'taskId' in expense &&
                                             <Button variant="outline" size="sm" onClick={() => handleView((expense as EnrichedExpense).taskId)}>
                                                 Afficher
                                             </Button>
