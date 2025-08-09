@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useTaskStore } from "@/lib/store";
+import { useTaskStore, useFacturationStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
@@ -28,6 +28,7 @@ export default function ViewProcessedExpensesPage() {
     const { id } = params; // This can be a date string 'yyyy-MM-dd'
 
     const { tasks, fetchTasks, updateExpensesStatusByProcessedDate } = useTaskStore();
+    const { updatePaymentInfo } = useFacturationStore();
 
     useEffect(() => {
         if (tasks.length === 0) {
@@ -40,20 +41,26 @@ export default function ViewProcessedExpensesPage() {
       return isValid(date);
     }, [id])
 
-    const { processedExpenses, expenseStatus } = useMemo(() => {
-      if (!isDateId) return { processedExpenses: [], expenseStatus: null };
+    const { processedExpenses, expenseStatus, paymentDetails } = useMemo(() => {
+      if (!isDateId) return { processedExpenses: [], expenseStatus: null, paymentDetails: {} };
 
       let status: Expense['status'] | null = null;
       const allExpenses: EnrichedExpense[] = [];
+      let paymentData = {};
       
       tasks.forEach(task => {
         task.expenses
             ?.filter(exp => {
-                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé') &&
+                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé' || exp.status === 'Payé') &&
                                 exp.processedDate && 
                                 format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
-                if(isMatch && !status) {
-                    status = exp.status;
+                if(isMatch) {
+                    if (!status || exp.status === 'Confirmé' || exp.status === 'Payé') {
+                       status = exp.status;
+                    }
+                    if (exp.payment) {
+                        paymentData = { ...paymentData, ...exp.payment };
+                    }
                 }
                 return isMatch;
             })
@@ -67,7 +74,7 @@ export default function ViewProcessedExpensesPage() {
                 });
             });
       });
-      return { processedExpenses: allExpenses, expenseStatus: status };
+      return { processedExpenses: allExpenses, expenseStatus: status, paymentDetails: paymentData };
 
     }, [tasks, id, isDateId]);
 
@@ -78,12 +85,13 @@ export default function ViewProcessedExpensesPage() {
     const [suggestedAmount, setSuggestedAmount] = useState<number | ''>('');
     const [accountantFees, setAccountantFees] = useState<number | ''>('');
     const [advance, setAdvance] = useState<number | ''>('');
-
+    
     useEffect(() => {
-        setSuggestedAmount('');
-        setAccountantFees('');
-        setAdvance('');
-    }, [totalAmount]);
+        setSuggestedAmount(paymentDetails.suggestedAmount ?? '');
+        setAccountantFees(paymentDetails.accountantFees ?? '');
+        setAdvance(paymentDetails.advance ?? '');
+    }, [paymentDetails]);
+
 
     const remainder = useMemo(() => {
         const sugg = typeof suggestedAmount === 'number' ? suggestedAmount : 0;
@@ -93,7 +101,11 @@ export default function ViewProcessedExpensesPage() {
     }, [suggestedAmount, advance, accountantFees]);
 
     const handleMarkAsConfirmed = async () => {
-        await updateExpensesStatusByProcessedDate(id as string, 'Confirmé');
+        await updateExpensesStatusByProcessedDate(id as string, 'Confirmé', {
+            suggestedAmount: typeof suggestedAmount === 'number' ? suggestedAmount : 0,
+            accountantFees: typeof accountantFees === 'number' ? accountantFees : 0,
+            advance: typeof advance === 'number' ? advance : 0,
+        });
         toast({
             title: "Dépenses confirmées",
             description: "Le lot de dépenses a été marqué comme confirmé et transféré à la facturation.",
@@ -107,6 +119,8 @@ export default function ViewProcessedExpensesPage() {
           maximumFractionDigits: 0,
         }).format(amount) + ' MAD';
     };
+    
+    const isPaymentFinalized = expenseStatus === 'Confirmé' || expenseStatus === 'Payé';
 
     if (!isDateId || processedExpenses.length === 0) {
         return (
@@ -128,9 +142,10 @@ export default function ViewProcessedExpensesPage() {
     }
     
     const pageTitle = `Détail des dépenses du ${formatDate(id as string)}`;
-    const pageDescription = expenseStatus === 'Comptabilisé' 
-      ? 'Finalisez le paiement ou mettez à jour les montants.'
-      : 'Voici le récapitulatif des dépenses qui ont été confirmées.';
+    const pageDescription = isPaymentFinalized
+      ? 'Voici le récapitulatif des dépenses qui ont été confirmées ou payées.'
+      : 'Finalisez le paiement ou mettez à jour les montants.';
+
 
     return (
         <div className="flex flex-col gap-6">
@@ -169,7 +184,7 @@ export default function ViewProcessedExpensesPage() {
                     </div>
                 </CardContent>
 
-                {(expenseStatus === 'Comptabilisé' || expenseStatus === 'Confirmé') && (
+                {(expenseStatus === 'Comptabilisé' || isPaymentFinalized) && (
                   <>
                   <Separator className="my-6" />
                   <CardContent className="grid gap-6">
@@ -181,7 +196,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={suggestedAmount} 
                                   onChange={(e) => setSuggestedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={expenseStatus === 'Confirmé'}
+                                  disabled={isPaymentFinalized}
                                   placeholder="Entrer le montant"
                               />
                           </div>
@@ -192,7 +207,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={advance} 
                                   onChange={(e) => setAdvance(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={expenseStatus === 'Confirmé'}
+                                  disabled={isPaymentFinalized}
                                    placeholder="Entrer l'avance"
                               />
                           </div>
@@ -203,7 +218,7 @@ export default function ViewProcessedExpensesPage() {
                                   type="number" 
                                   value={accountantFees} 
                                   onChange={(e) => setAccountantFees(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={expenseStatus === 'Confirmé'}
+                                  disabled={isPaymentFinalized}
                                    placeholder="Entrer les honoraires"
                               />
                           </div>

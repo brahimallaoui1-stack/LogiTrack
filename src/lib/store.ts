@@ -27,7 +27,7 @@ interface TaskState {
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus, processedDate?: string) => Promise<void>;
-  updateExpensesStatusByProcessedDate: (processedDate: string, newStatus: ExpenseStatus) => Promise<void>;
+  updateExpensesStatusByProcessedDate: (processedDate: string, newStatus: ExpenseStatus, paymentData?: Partial<Invoice>) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -37,8 +37,8 @@ export const useTaskStore = create<TaskState>()(
       fetchTasks: async () => {
         if (!get().isLoading) set({ isLoading: true });
         try {
-          const q = query(collection(db, "tasks"), orderBy("date", "desc"));
-          const querySnapshot = await getDocs(q);
+          // No specific ordering needed here as it's handled in components
+          const querySnapshot = await getDocs(collection(db, "tasks"));
           const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
           set({ tasks, isLoading: false });
         } catch (error) {
@@ -98,7 +98,7 @@ export const useTaskStore = create<TaskState>()(
             }
          }
        },
-        updateExpensesStatusByProcessedDate: async (processedDate, newStatus) => {
+        updateExpensesStatusByProcessedDate: async (processedDate, newStatus, paymentData) => {
             const tasks = get().tasks;
             const batch = writeBatch(db);
             const tasksToUpdateLocally: Task[] = [];
@@ -106,15 +106,20 @@ export const useTaskStore = create<TaskState>()(
             tasks.forEach((task) => {
                 if (!task.expenses) return;
 
-                const hasTargetExpense = task.expenses.some(exp => exp.processedDate?.startsWith(processedDate));
+                let hasChanged = false;
+                const updatedExpenses = task.expenses.map(exp => {
+                    if (exp.processedDate?.startsWith(processedDate)) {
+                        hasChanged = true;
+                        return { 
+                            ...exp, 
+                            status: newStatus,
+                            ...(paymentData && { payment: { ...(exp.payment || {}), ...paymentData } })
+                        };
+                    }
+                    return exp;
+                });
 
-                if (hasTargetExpense) {
-                    const updatedExpenses = task.expenses.map(exp => {
-                        if (exp.processedDate?.startsWith(processedDate)) {
-                            return { ...exp, status: newStatus };
-                        }
-                        return exp;
-                    });
+                if (hasChanged) {
                     const updatedTask = { ...task, expenses: updatedExpenses };
                     tasksToUpdateLocally.push(updatedTask);
                     const taskRef = doc(db, "tasks", task.id);
@@ -154,10 +159,9 @@ export const useCityStore = create<CityState>()(
     fetchCities: async () => {
       if (!get().isLoading) set({ isLoading: true });
       try {
-        const querySnapshot = await getDocs(collection(db, "cities"));
-        const cities = querySnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() } as City))
-            .sort((a, b) => a.name.localeCompare(b.name));
+        const q = query(collection(db, "cities"), orderBy("name"));
+        const querySnapshot = await getDocs(q);
+        const cities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as City));
         set({ cities, isLoading: false });
       } catch (error) {
         console.error("Error fetching cities: ", error);
@@ -215,10 +219,9 @@ export const useManagerStore = create<ManagerState>()(
      fetchManagers: async () => {
       if (!get().isLoading) set({ isLoading: true });
       try {
-        const querySnapshot = await getDocs(collection(db, "managers"));
-        const managers = querySnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() } as Manager))
-            .sort((a, b) => a.name.localeCompare(b.name));
+        const q = query(collection(db, "managers"), orderBy("name"));
+        const querySnapshot = await getDocs(q);
+        const managers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Manager));
         set({ managers, isLoading: false });
       } catch (error) {
         console.error("Error fetching managers: ", error);
@@ -276,10 +279,9 @@ export const useMissionTypeStore = create<MissionTypeState>()(
      fetchMissionTypes: async () => {
       if (!get().isLoading) set({ isLoading: true });
       try {
-        const querySnapshot = await getDocs(collection(db, "missionTypes"));
-        const missionTypes = querySnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() } as MissionType))
-            .sort((a, b) => a.name.localeCompare(b.name));
+        const q = query(collection(db, "missionTypes"), orderBy("name"));
+        const querySnapshot = await getDocs(q);
+        const missionTypes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MissionType));
         set({ missionTypes, isLoading: false });
       } catch (error) {
         console.error("Error fetching mission types: ", error);
@@ -320,42 +322,19 @@ export const useMissionTypeStore = create<MissionTypeState>()(
   })
 );
 
-// Store for Invoicing
+// Store for Invoicing - This store is now simplified as payment info is part of the task
 interface FacturationState {
-    invoices: Record<string, Invoice>;
-    updateInvoice: (id: string, receivedAmount: number, totalDue: number) => void;
+    updatePaymentInfo: (processedDate: string, paymentInfo: { receivedAmount?: number, suggestedAmount?: number, accountantFees?: number, advance?: number }) => Promise<void>;
+    markAsPaid: (processedDate: string) => Promise<void>;
 }
 
-export const useFacturationStore = create<FacturationState>()(
-    persist(
-        (set, get) => ({
-            invoices: {},
-            updateInvoice: async (id, receivedAmount, totalDue) => {
-                const invoices = get().invoices;
-                
-                const existingInvoice = invoices[id] || { id, receivedAmount: 0 };
-                const newReceivedAmount = existingInvoice.receivedAmount + receivedAmount;
-
-                set({
-                    invoices: {
-                        ...invoices,
-                        [id]: { ...existingInvoice, receivedAmount: newReceivedAmount }
-                    }
-                });
-                
-                if (newReceivedAmount >= totalDue) {
-                   await useTaskStore.getState().updateExpensesStatusByProcessedDate(id, 'Payé');
-                }
-            }
-        }),
-        {
-            name: 'facturation-storage',
-            storage: createJSONStorage(() => localStorage),
-             onRehydrateStorage: () => (state) => {
-              if (state) {
-                useAppStore.setState({ isHydrated: true });
-              }
-            },
-        }
-    )
-);
+export const useFacturationStore = create<FacturationState>(() => ({
+    updatePaymentInfo: async (processedDate, paymentInfo) => {
+        // The logic is now handled within updateExpensesStatusByProcessedDate
+        // We call it with a 'Confirmé' status to just update payment details
+        await useTaskStore.getState().updateExpensesStatusByProcessedDate(processedDate, 'Confirmé', paymentInfo);
+    },
+    markAsPaid: async (processedDate: string) => {
+        await useTaskStore.getState().updateExpensesStatusByProcessedDate(processedDate, 'Payé');
+    },
+}));

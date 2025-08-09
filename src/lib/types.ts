@@ -2,6 +2,14 @@
 
 export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Confirmé' | 'Payé';
 
+export interface Invoice {
+  // Not a separate document anymore, but part of an expense
+  suggestedAmount?: number;
+  advance?: number;
+  accountantFees?: number;
+  receivedAmount?: number;
+}
+
 export interface Expense {
   id: string;
   typeDepense: string;
@@ -9,6 +17,7 @@ export interface Expense {
   remarque?: string;
   status: ExpenseStatus;
   processedDate?: string;
+  payment?: Invoice;
 }
 
 export interface SubMission {
@@ -57,9 +66,4 @@ export interface Manager {
 export interface MissionType {
   id: string;
   name: string;
-}
-
-export interface Invoice {
-    id: string; // yyyy-MM-dd date format
-    receivedAmount: number;
 }

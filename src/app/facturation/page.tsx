@@ -11,48 +11,50 @@ import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { DollarSign, Banknote } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Expense } from "@/lib/types";
 
 type GroupedExpense = {
   id: string; // The date 'yyyy-MM-dd'
   totalAmount: number;
   status: 'Confirmé' | 'Payé';
+  payment?: Expense['payment'];
 };
 
 export default function FacturationPage() {
   const { tasks, isLoading: isLoadingTasks, fetchTasks } = useTaskStore();
-  const { invoices, updateInvoice } = useFacturationStore();
+  const { updatePaymentInfo, markAsPaid } = useFacturationStore();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    fetchTasks();
-  }, [fetchTasks]);
+    if(tasks.length === 0) fetchTasks();
+  }, [fetchTasks, tasks.length]);
   
   const [receivedAmounts, setReceivedAmounts] = useState<Record<string, number | "">>({});
 
   const confirmedAndPaidExpenses = useMemo(() => {
-    const grouped: Record<string, { totalAmount: number; status: 'Confirmé' | 'Payé' }> = {};
+    const grouped: Record<string, GroupedExpense> = {};
 
     tasks.forEach(task => {
       task.expenses?.forEach(expense => {
         if ((expense.status === 'Confirmé' || expense.status === 'Payé') && expense.processedDate) {
           const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
           if (!grouped[dateKey]) {
-            grouped[dateKey] = { totalAmount: 0, status: 'Confirmé' };
+            grouped[dateKey] = { id: dateKey, totalAmount: 0, status: 'Confirmé', payment: {} };
           }
           grouped[dateKey].totalAmount += expense.montant;
-          // If any expense in the group is paid, the whole group is considered paid
+          // The whole group status is determined by the most "advanced" status
           if (expense.status === 'Payé') {
             grouped[dateKey].status = 'Payé';
+          }
+          if (expense.payment) {
+             grouped[dateKey].payment = {...grouped[dateKey].payment, ...expense.payment};
           }
         }
       });
     });
 
-    return Object.entries(grouped).map(([id, data]) => ({
-      id,
-      ...data,
-    })).sort((a,b) => new Date(b.id).getTime() - new Date(a.id).getTime());
+    return Object.values(grouped).sort((a,b) => new Date(b.id).getTime() - new Date(a.id).getTime());
   }, [tasks]);
   
  const totals = useMemo(() => {
@@ -60,37 +62,37 @@ export default function FacturationPage() {
     let totalPaidOff = 0;
 
     confirmedAndPaidExpenses.forEach(e => {
+        const received = e.payment?.receivedAmount ?? 0;
         if (e.status === 'Payé') {
             totalPaidOff += e.totalAmount;
         } else { // 'Confirmé'
-            totalDue += e.totalAmount;
+            totalDue += e.totalAmount - received;
         }
+        totalPaidOff += received;
     });
 
-    const totalReceivedFromInvoices = Object.values(invoices).reduce((sum, inv) => {
-        // Only sum received amounts for invoices that are not yet fully paid
-        const correspondingExpense = confirmedAndPaidExpenses.find(e => e.id === inv.id);
-        if (correspondingExpense && correspondingExpense.status !== 'Payé') {
-            return sum + inv.receivedAmount;
-        }
-        return sum;
-    }, 0);
-
     return {
-        totalDue: totalDue - totalReceivedFromInvoices,
-        totalReceived: totalPaidOff + totalReceivedFromInvoices,
+        totalDue: totalDue,
+        totalReceived: totalPaidOff,
     }
-  }, [confirmedAndPaidExpenses, invoices]);
+  }, [confirmedAndPaidExpenses]);
 
   const handleAmountChange = (id: string, value: string) => {
     setReceivedAmounts(prev => ({ ...prev, [id]: value === '' ? '' : parseFloat(value) }));
   };
 
-  const handleSaveReceivedAmount = (id: string, totalDue: number) => {
-    const amount = receivedAmounts[id];
+  const handleSaveReceivedAmount = async (group: GroupedExpense) => {
+    const amount = receivedAmounts[group.id];
     if (typeof amount === 'number' && amount > 0) {
-      updateInvoice(id, amount, totalDue);
-      setReceivedAmounts(prev => ({ ...prev, [id]: '' }));
+      const currentReceived = group.payment?.receivedAmount ?? 0;
+      const newReceivedAmount = currentReceived + amount;
+      
+      await updatePaymentInfo(group.id, { receivedAmount: newReceivedAmount });
+      
+      if (newReceivedAmount >= group.totalAmount) {
+        await markAsPaid(group.id);
+      }
+      setReceivedAmounts(prev => ({ ...prev, [group.id]: '' }));
     }
   };
   
@@ -181,8 +183,7 @@ export default function FacturationPage() {
             </TableHeader>
             <TableBody>
               {confirmedAndPaidExpenses.map((group) => {
-                const invoice = invoices[group.id];
-                const receivedAmount = invoice?.receivedAmount ?? 0;
+                const receivedAmount = group.payment?.receivedAmount ?? 0;
                 const balance = group.totalAmount - receivedAmount;
                 return (
                   <TableRow key={group.id}>
@@ -206,7 +207,7 @@ export default function FacturationPage() {
                             value={receivedAmounts[group.id] ?? ''}
                             onChange={(e) => handleAmountChange(group.id, e.target.value)}
                           />
-                          <Button onClick={() => handleSaveReceivedAmount(group.id, group.totalAmount)} className="w-full sm:w-auto">
+                          <Button onClick={() => handleSaveReceivedAmount(group)} className="w-full sm:w-auto">
                             Enregistrer
                           </Button>
                         </div>
