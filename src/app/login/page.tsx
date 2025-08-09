@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Briefcase } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -27,13 +27,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let success = false;
     if (isSignUp) {
-      await signUp(email, password);
+      success = await signUp(email, password);
     } else {
-      await signIn(email, password);
+      success = await signIn(email, password);
     }
-    // Only push if there's no error
-    if (!error) {
+    
+    if (success) {
        router.push("/");
     }
   };
@@ -47,7 +48,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Briefcase className="h-10 w-10 text-primary" />
+              <Image src="/icons/icon-192x192.png" alt="LogiTrack Logo" width={40} height={40} />
             </div>
           <CardTitle className="text-2xl">LogiTrack</CardTitle>
           <CardDescription>
