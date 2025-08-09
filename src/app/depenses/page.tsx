@@ -27,7 +27,6 @@ export default function DepensesPage() {
         tasks.forEach(task => {
             if (task.expenses && task.expenses.length > 0) {
                 if (task.city === 'Casablanca') {
-                     // Expenses for Casablanca missions, if any were to be added in the future
                      task.expenses.forEach(expense => {
                         expensesWithDate.push({ 
                           ...expense, 
@@ -37,8 +36,6 @@ export default function DepensesPage() {
                         });
                     });
                 } else {
-                     // For 'Hors Casablanca' missions, we need to associate the expense with the correct sub-mission city
-                     // Since expenses are at the task level for HC, we'll associate it with the first sub-mission's city and date for now.
                     const firstSubMission = task.subMissions?.[0];
                     task.expenses.forEach(expense => {
                          expensesWithDate.push({ 
@@ -71,7 +68,6 @@ export default function DepensesPage() {
       if (nonComptabiliseesExpenses.length === 0) {
         return null;
       }
-      // The array is sorted from newest to oldest, so the last element is the oldest.
       return nonComptabiliseesExpenses[nonComptabiliseesExpenses.length - 1].missionDate;
     }, [nonComptabiliseesExpenses]);
 

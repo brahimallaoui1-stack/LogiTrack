@@ -268,6 +268,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
       const totalExpenses = formState.expenses.reduce((sum, exp) => sum + exp.montant, 0);
   
       if (totalExpenses > 0) {
+        // Consolidate expenses into a single entry for the task
         taskData.expenses = [{
           id: `expense-total-${Date.now()}`,
           typeDepense: "Frais de mission",
@@ -478,54 +479,57 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                     </Button>
                 </div>
 
-                {formState.expenses.length > 0 && (
-                 <>
-                <Separator className="my-6"/>
-                <div className="grid gap-2 pt-4">
-                    <Label>Dépenses</Label>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Montant</TableHead>
-                                    <TableHead>Remarque</TableHead>
-                                    <TableHead className="text-right"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {formState.expenses.map((expense) => (
-                                    <TableRow key={expense.id}>
-                                        <TableCell>{expense.typeDepense}</TableCell>
-                                        <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                        <TableCell className="truncate max-w-[100px]">{expense.remarque}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveExpense(expense.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive"/>
-                                            </Button>
-                                        </TableCell>
+                 <Separator className="my-6"/>
+                <div className="grid gap-4 pt-4">
+                     <div className="flex justify-between items-center">
+                        <Label className="text-lg font-semibold">Dépenses</Label>
+                         <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Ajouter des dépenses
+                        </Button>
+                    </div>
+
+                    {formState.expenses.length > 0 && (
+                        <>
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Montant</TableHead>
+                                        <TableHead>Remarque</TableHead>
+                                        <TableHead className="text-right"></TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <div className="text-right font-semibold pr-4">
-                        Total des dépenses: {formatCurrency(totalExpenses)}
-                    </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {formState.expenses.map((expense) => (
+                                        <TableRow key={expense.id}>
+                                            <TableCell>{expense.typeDepense}</TableCell>
+                                            <TableCell>{formatCurrency(expense.montant)}</TableCell>
+                                            <TableCell className="truncate max-w-[100px]">{expense.remarque}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleRemoveExpense(expense.id)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive"/>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <div className="text-right font-semibold pr-4">
+                            Total des dépenses: {formatCurrency(totalExpenses)}
+                        </div>
+                        </>
+                    )}
                 </div>
-                </>
-              )}
             </>
           )}
 
         </ScrollArea>
-         <DialogFooter className="sm:justify-between gap-2 pt-4">
-           {!isCasablancaMission ? 
-            <Button type="button" variant="secondary" onClick={() => setIsExpenseDialogOpen(true)}>Ajouter des dépenses</Button> 
-            : <div></div>}
-           <div className="flex gap-2 justify-end">
-            <Button type="submit" onClick={() => handleSave()}>Enregistrer</Button>
-           </div>
+         <DialogFooter className="pt-4 border-t">
+           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+           <Button type="submit" onClick={() => handleSave()}>Enregistrer</Button>
          </DialogFooter>
        </DialogContent>
      </Dialog>
@@ -537,5 +541,3 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
-
-    
