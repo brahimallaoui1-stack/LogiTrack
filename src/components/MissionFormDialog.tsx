@@ -139,14 +139,9 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
             expenses: editingTask.expenses || [],
           });
         } else {
-            // Keep the previous state if we are adding another one
-            // but reset if it's the first one being added.
-            if(formState.label === ''){
-               setFormState(initialFormState);
-            }
+            setFormState(initialFormState);
         }
     } else {
-        // Reset form when dialog is closed and not editing.
          setFormState(initialFormState);
     }
   }, [editingTask, isOpen]);
@@ -199,12 +194,8 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
     if(closeOnSave) {
         onOpenChange(false);
     } else {
-        // "Enregistrer et ajouter une autre": Keep form data, clear some fields
-        setFormState(prevState => ({
-            ...prevState,
-            date: "", // Clear date for the new mission
-            remarque: "", // Clear remark for the new mission
-        }));
+        // "Enregistrer et ajouter une autre": clear form for a new mission
+        setFormState(initialFormState);
     }
   };
   
