@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTaskStore, useCityStore, useManagerStore, useMissionTypeStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Task, Expense } from "@/lib/types";
+import type { Task, Expense, SubMission } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,17 +35,31 @@ interface ExpenseFormDialogProps {
   onSave: (expense: Omit<Expense, 'id'>) => void;
 }
 
-const initialFormState = {
+const initialSubMissionState: Omit<SubMission, 'id'> = {
   date: "",
   reservation: "",
-  ville: "",
+  city: "",
   entreprise: "",
   gestionnaire: "",
   typeMission: "",
   marqueVehicule: "",
   immatriculation: "",
   remarque: "",
+};
+
+
+const initialFormState: Omit<Task, 'id' | 'label' | 'city'> & { label: string, city: string } = {
   label: "",
+  city: "",
+  date: "",
+  reservation: "",
+  entreprise: "",
+  gestionnaire: "",
+  typeMission: "",
+  marqueVehicule: "",
+  immatriculation: "",
+  remarque: "",
+  subMissions: [{...initialSubMissionState, id: `sub-${Date.now()}`}],
   expenses: [] as Expense[],
 };
 
@@ -124,7 +138,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   const [formState, setFormState] = useState(initialFormState);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   
-  const isCasablancaMission = useMemo(() => formState.ville === 'Casablanca' || prefilledCity === 'Casablanca', [formState.ville, prefilledCity]);
+  const isCasablancaMission = useMemo(() => prefilledCity === 'Casablanca', [prefilledCity]);
 
    const availableCities = useMemo(() => {
     if (prefilledCity === 'Casablanca') {
@@ -136,35 +150,73 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   useEffect(() => {
     if (isOpen) {
         if (editingTask) {
-          setFormState({
+           setFormState({
+            label: editingTask.label || "",
+            city: editingTask.city || "",
             date: editingTask.date || "",
             reservation: editingTask.reservation || "",
-            ville: editingTask.city || "",
             entreprise: editingTask.entreprise || "",
             gestionnaire: editingTask.gestionnaire || "",
             typeMission: editingTask.typeMission || "",
             marqueVehicule: editingTask.marqueVehicule || "",
             immatriculation: editingTask.immatriculation || "",
             remarque: editingTask.remarque || "",
-            label: editingTask.label || "",
+            subMissions: editingTask.subMissions && editingTask.subMissions.length > 0 ? editingTask.subMissions : [{...initialSubMissionState, id: `sub-${Date.now()}`}],
             expenses: editingTask.expenses || [],
           });
         } else {
-            setFormState({...initialFormState, ville: prefilledCity || "" });
+            const cityValue = prefilledCity === 'Casablanca' ? 'Casablanca' : '';
+            const newLabel = cityValue === 'Casablanca' ? 'Mission Casablanca' : 'Mission Hors Casablanca';
+            setFormState({...initialFormState, city: cityValue, label: newLabel});
         }
     } else {
          setFormState(initialFormState);
     }
   }, [editingTask, isOpen, prefilledCity]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number) => {
     const { id, value } = e.target;
-    setFormState(prevState => ({ ...prevState, [id]: value }));
+     if (isCasablancaMission) {
+       setFormState(prevState => ({ ...prevState, [id]: value }));
+    } else if (typeof index === 'number') {
+      setFormState(prevState => {
+        const newSubMissions = [...(prevState.subMissions ?? [])];
+        newSubMissions[index] = { ...newSubMissions[index], [id]: value };
+        return { ...prevState, subMissions: newSubMissions };
+      });
+    } else {
+         setFormState(prevState => ({ ...prevState, [id]: value }));
+    }
   };
 
-  const handleSelectChange = (id: string, value: string) => {
-    setFormState(prevState => ({ ...prevState, [id]: value }));
+  const handleSelectChange = (id: string, value: string, index?: number) => {
+     if (isCasablancaMission) {
+       setFormState(prevState => ({ ...prevState, [id]: value }));
+    } else if (typeof index === 'number') {
+       setFormState(prevState => {
+        const newSubMissions = [...(prevState.subMissions ?? [])];
+        newSubMissions[index] = { ...newSubMissions[index], [id]: value };
+        return { ...prevState, subMissions: newSubMissions };
+      });
+    } else {
+       setFormState(prevState => ({ ...prevState, [id]: value }));
+    }
   };
+  
+  const addSubMission = () => {
+    setFormState(prevState => ({
+      ...prevState,
+      subMissions: [...(prevState.subMissions ?? []), {...initialSubMissionState, id: `sub-${Date.now()}`}]
+    }));
+  };
+
+  const removeSubMission = (index: number) => {
+    setFormState(prevState => ({
+      ...prevState,
+      subMissions: prevState.subMissions?.filter((_, i) => i !== index)
+    }));
+  };
+
 
   const handleSaveExpense = (expense: Omit<Expense, 'id'>) => {
     const newExpense = { ...expense, id: `expense-${Date.now()}-${Math.random()}` };
@@ -182,23 +234,26 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   }
 
   const handleSave = () => {
-    const taskData: Omit<Task, 'id'> = {
-        label: formState.typeMission || 'Nouvelle mission',
-        city: formState.ville,
-        date: formState.date,
-        reservation: formState.reservation,
-        entreprise: formState.entreprise,
-        gestionnaire: formState.gestionnaire,
-        typeMission: formState.typeMission,
-        marqueVehicule: formState.marqueVehicule,
-        immatriculation: formState.immatriculation,
-        remarque: formState.remarque,
+     const taskData: Omit<Task, 'id'> = {
+        label: formState.label || (isCasablancaMission ? 'Mission Casablanca' : 'Mission Hors Casablanca'),
+        city: isCasablancaMission ? 'Casablanca' : 'Hors Casablanca',
     };
     
-    if (!isCasablancaMission) {
-        taskData.expenses = formState.expenses;
-    } else {
+    if (isCasablancaMission) {
+        taskData.date = formState.date;
+        taskData.reservation = formState.reservation;
+        taskData.entreprise = formState.entreprise;
+        taskData.gestionnaire = formState.gestionnaire;
+        taskData.typeMission = formState.typeMission;
+        taskData.marqueVehicule = formState.marqueVehicule;
+        taskData.immatriculation = formState.immatriculation;
+        taskData.remarque = formState.remarque;
+        taskData.subMissions = [];
         taskData.expenses = [];
+
+    } else {
+        taskData.subMissions = formState.subMissions;
+        taskData.expenses = formState.expenses;
     }
 
 
@@ -219,11 +274,95 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
       maximumFractionDigits: 0,
     }).format(amount) + ' MAD';
   };
+  
+  const renderSubMissionForm = (subMission: SubMission, index: number) => (
+     <div key={subMission.id} className="grid gap-6 py-4 border-b pb-8 mb-4 relative">
+        { (formState.subMissions?.length ?? 0) > 1 &&
+            <div className="flex justify-between items-center">
+                 <h4 className="font-semibold text-lg">Étape {index + 1}</h4>
+                 <Button variant="ghost" size="icon" onClick={() => removeSubMission(index)} className="text-destructive">
+                    <Trash2 className="h-4 w-4"/>
+                </Button>
+            </div>
+        }
+        <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid gap-2">
+                <Label htmlFor={`date-${index}`}>Date</Label>
+                <Input id="date" type="date" value={subMission.date} onChange={(e) => handleInputChange(e, index)} />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor={`reservation-${index}`}>Réservation</Label>
+                <Input id="reservation" value={subMission.reservation} onChange={(e) => handleInputChange(e, index)} />
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor={`typeMission-${index}`}>Types de Mission</Label>
+                 <Select value={subMission.typeMission} onValueChange={(value) => handleSelectChange('typeMission', value, index)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un type de mission" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {missionTypes.map(type => (
+                            <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor={`city-${index}`}>Ville</Label>
+                 <Select value={subMission.city} onValueChange={(value) => handleSelectChange('city', value, index)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une ville" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableCities.map(city => (
+                            <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor={`entreprise-${index}`}>Client</Label>
+                <Input id="entreprise" value={subMission.entreprise} onChange={(e) => handleInputChange(e, index)} />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor={`gestionnaire-${index}`}>Gestionnaire</Label>
+                 <Select value={subMission.gestionnaire} onValueChange={(value) => handleSelectChange('gestionnaire', value, index)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un gestionnaire" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {managers.map(manager => (
+                            <SelectItem key={manager.id} value={manager.name}>{manager.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+
+        <Separator className="my-4"/>
+        
+        <h4 className="font-semibold text-lg">Informations sur le véhicule</h4>
+        <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+                <Label htmlFor={`marqueVehicule-${index}`}>Marque de véhicule</Label>
+                <Input id="marqueVehicule" value={subMission.marqueVehicule} onChange={(e) => handleInputChange(e, index)} />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor={`immatriculation-${index}`}>Immatriculation</Label>
+                <Input id="immatriculation" value={subMission.immatriculation} onChange={(e) => handleInputChange(e, index)} />
+            </div>
+        </div>
+         <div className="grid gap-2">
+              <Label htmlFor={`remarque-${index}`}>Remarque</Label>
+              <Textarea id="remarque" value={subMission.remarque} onChange={(e) => handleInputChange(e, index)} />
+          </div>
+     </div>
+  );
 
   return (
      <>
      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-       <DialogContent className="sm:max-w-3xl">
+       <DialogContent className="sm:max-w-4xl">
          <DialogHeader>
            <DialogTitle>{editingTask ? "Modifier la mission" : "Ajouter une mission"}</DialogTitle>
            <DialogDescription>
@@ -231,7 +370,15 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
            </DialogDescription>
          </DialogHeader>
          <ScrollArea className="max-h-[70vh] p-4">
-          <div className="grid gap-6 py-4">
+          <div className="grid gap-2">
+              <Label htmlFor="label">Libellé de la mission</Label>
+              <Input id="label" value={formState.label} onChange={handleInputChange} placeholder={isCasablancaMission ? 'Ex: Mission Casablanca' : 'Ex: Mission A-B-C'}/>
+          </div>
+
+          <Separator className="my-6"/>
+
+          {isCasablancaMission ? (
+             <div className="grid gap-6 py-4">
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="date">Date</Label>
@@ -256,16 +403,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="ville">Ville</Label>
-                     <Select value={formState.ville} onValueChange={(value) => handleSelectChange('ville', value)} disabled={!!prefilledCity}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner une ville" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableCities.map(city => (
-                                <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                     <Input id="ville" value="Casablanca" disabled />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="entreprise">Client</Label>
@@ -289,23 +427,37 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
             <Separator className="my-4"/>
             
             <div className="grid gap-4">
-                 {!isCasablancaMission && <h3 className="font-semibold text-lg">Informations sur le véhicule</h3>}
-                <div className="grid gap-2">
-                    <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
-                    <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
+                <h3 className="font-semibold text-lg">Informations sur le véhicule</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
+                        <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="immatriculation">Immatriculation</Label>
+                        <Input id="immatriculation" value={formState.immatriculation} onChange={handleInputChange} />
+                    </div>
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="immatriculation">Immatriculation</Label>
-                    <Input id="immatriculation" value={formState.immatriculation} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
+                 <div className="grid gap-2">
                   <Label htmlFor="remarque">Remarque</Label>
                   <Textarea id="remarque" value={formState.remarque} onChange={handleInputChange} />
               </div>
              </div>
-            
+            </div>
+          ) : (
+            <>
+                {formState.subMissions?.map((sub, index) => renderSubMissionForm(sub, index))}
+                
+                <div className="flex justify-center mt-4">
+                    <Button variant="outline" onClick={addSubMission}>
+                        <Plus className="h-4 w-4 mr-2"/>
+                        Ajouter une étape
+                    </Button>
+                </div>
 
-              {!isCasablancaMission && formState.expenses.length > 0 && (
+                {formState.expenses.length > 0 && (
+                 <>
+                <Separator className="my-6"/>
                 <div className="grid gap-2 pt-4">
                     <Label>Frais</Label>
                     <div className="rounded-md border">
@@ -338,8 +490,11 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                         Total des frais: {formatCurrency(totalExpenses)}
                     </div>
                 </div>
+                </>
               )}
-          </div>
+            </>
+          )}
+
         </ScrollArea>
          <DialogFooter className="sm:justify-between gap-2 pt-4">
            {!isCasablancaMission ? 

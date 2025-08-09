@@ -6,21 +6,37 @@ export interface Expense {
   montant: number;
   remarque?: string;
 }
-export interface Task {
+
+export interface SubMission {
   id: string;
-  label: string;
-  city: string;
   date?: string;
   reservation?: string;
-  entreprise?: string; // Maintenu comme 'entreprise' en interne, mais libellé 'Client'
+  city?: string;
+  entreprise?: string; 
+  typeMission?: string;
+  gestionnaire?: string;
+  marqueVehicule?: string;
+  immatriculation?: string;
+  remarque?: string;
+}
+
+export interface Task {
+  id: string;
+  label: string; // Le nom global de la mission
+  city: string; // Casablanca ou Hors Casablanca
+  
+  // Pour les missions simples (Casablanca)
+  date?: string;
+  reservation?: string;
+  entreprise?: string; 
   gestionnaire?: string;
   typeMission?: string;
-  
-  // Champs Véhicule unifiés
   marqueVehicule?: string;
   immatriculation?: string;
   remarque?: string;
   
+  // Pour les missions complexes (Hors Casablanca)
+  subMissions?: SubMission[];
   expenses?: Expense[];
 }
 
