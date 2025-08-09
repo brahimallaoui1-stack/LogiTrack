@@ -4,7 +4,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice } from './types';
-import { format } from 'date-fns';
+import { db } from './firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
 interface AppState {
   isHydrated: boolean;
@@ -90,41 +91,62 @@ export const useTaskStore = create<TaskState>()(
 // Store for Cities
 interface CityState {
   cities: City[];
-  addCity: (city: Omit<City, 'id'>) => void;
-  updateCity: (city: City) => void;
-  deleteCity: (id: string) => void;
+  isLoading: boolean;
+  fetchCities: () => Promise<void>;
+  addCity: (city: Omit<City, 'id'>) => Promise<void>;
+  updateCity: (city: City) => Promise<void>;
+  deleteCity: (id: string) => Promise<void>;
 }
 
 export const useCityStore = create<CityState>()(
-  persist(
-    (set, get) => ({
-      cities: [],
-      addCity: (city) => {
-        const newCity = { ...city, id: `city-${Date.now()}` };
+  (set, get) => ({
+    cities: [],
+    isLoading: true,
+    fetchCities: async () => {
+      try {
+        set({ isLoading: true });
+        const querySnapshot = await getDocs(collection(db, "cities"));
+        const cities = querySnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as City))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        set({ cities, isLoading: false });
+      } catch (error) {
+        console.error("Error fetching cities: ", error);
+        set({ isLoading: false });
+      }
+    },
+    addCity: async (city) => {
+      try {
+        const docRef = await addDoc(collection(db, "cities"), city);
+        const newCity = { ...city, id: docRef.id };
         const sortedCities = [...get().cities, newCity].sort((a, b) => a.name.localeCompare(b.name));
         set({ cities: sortedCities });
-      },
-      updateCity: (updatedCity) => {
+      } catch (error) {
+        console.error("Error adding city: ", error);
+      }
+    },
+    updateCity: async (updatedCity) => {
+       try {
+        const cityRef = doc(db, "cities", updatedCity.id);
+        await updateDoc(cityRef, { name: updatedCity.name });
         const cities = get().cities.map((city) =>
           city.id === updatedCity.id ? updatedCity : city
         );
         const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name));
         set({ cities: sortedCities });
-      },
-      deleteCity: (id) => {
+      } catch (error) {
+        console.error("Error updating city: ", error);
+      }
+    },
+    deleteCity: async (id) => {
+       try {
+        await deleteDoc(doc(db, "cities", id));
         set({ cities: get().cities.filter((city) => city.id !== id) });
-      },
-    }),
-    {
-      name: 'city-storage',
-      storage: createJSONStorage(() => localStorage),
-       onRehydrateStorage: () => (state) => {
-        if (state) {
-          useAppStore.setState({ isHydrated: true });
-        }
-      },
-    }
-  )
+      } catch (error) {
+        console.error("Error deleting city: ", error);
+      }
+    },
+  })
 );
 
 // Store for Managers
