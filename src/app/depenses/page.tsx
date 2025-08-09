@@ -44,23 +44,25 @@ export default function DepensesPage() {
             const unprocessedExpenses = task.expenses?.filter(exp => exp.status === 'Sans compte');
     
             if (unprocessedExpenses && unprocessedExpenses.length > 0) {
-                const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
-                
-                const displayDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
-                let ville = task.city;
-                if(ville !== 'Casablanca') {
-                    const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
-                    const uniqueCities = [...new Set(allCities)];
-                    ville = uniqueCities.join(' / ') || 'Hors Casablanca';
-                }
+                if (!groupedByTask[task.id]) {
+                    const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
+                    
+                    const displayDate = task.city === 'Casablanca' ? task.date : task.subMissions?.[0]?.date;
+                    let ville = task.city;
+                    if(ville !== 'Casablanca') {
+                        const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
+                        const uniqueCities = [...new Set(allCities)];
+                        ville = uniqueCities.join(' / ') || 'Hors Casablanca';
+                    }
 
-                groupedByTask[task.id] = {
-                    id: task.id,
-                    displayDate,
-                    ville,
-                    totalAmount,
-                    taskId: task.id
-                };
+                    groupedByTask[task.id] = {
+                        id: task.id,
+                        displayDate,
+                        ville,
+                        totalAmount,
+                        taskId: task.id
+                    };
+                }
             }
         });
     
@@ -277,5 +279,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
