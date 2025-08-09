@@ -22,6 +22,7 @@ import { useTaskStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
 import { MoreHorizontal } from "lucide-react";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
+import { formatDate } from "@/lib/utils";
 
 
 export default function MissionsPage() {
@@ -135,7 +136,7 @@ export default function MissionsPage() {
                 const displayData = getTaskDisplayData(task);
                 return (
                   <TableRow key={task.id}>
-                    <TableCell>{displayData.date || 'N/A'}</TableCell>
+                    <TableCell>{formatDate(displayData.date)}</TableCell>
                     <TableCell>{displayData.ville || 'N/A'}</TableCell>
                     <TableCell>{displayData.typeMission || 'N/A'}</TableCell>
                     <TableCell className="text-right">

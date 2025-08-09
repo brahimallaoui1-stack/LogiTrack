@@ -11,6 +11,7 @@ import { ArrowLeft, Car } from 'lucide-react';
 import { MissionFormDialog } from '@/components/MissionFormDialog';
 import { Separator } from '@/components/ui/separator';
 import type { SubMission } from '@/lib/types';
+import { formatDate } from '@/lib/utils';
 
 export default function ViewMissionPage() {
     const router = useRouter();
@@ -54,7 +55,7 @@ export default function ViewMissionPage() {
         <div key={subMission.id} className="p-4 border rounded-lg space-y-4">
              <h3 className="font-bold text-xl">Étape {index + 1}</h3>
              <div className="grid md:grid-cols-3 gap-4">
-                <div><span className="font-semibold">Date:</span> {subMission.date || 'N/A'}</div>
+                <div><span className="font-semibold">Date:</span> {formatDate(subMission.date)}</div>
                 <div><span className="font-semibold">Réservation:</span> {subMission.reservation || 'N/A'}</div>
                 <div><span className="font-semibold">Type de Mission:</span> {subMission.typeMission || 'N/A'}</div>
                 <div><span className="font-semibold">Ville:</span> {subMission.city || 'N/A'}</div>
@@ -93,7 +94,7 @@ export default function ViewMissionPage() {
                     {isCasablancaMission ? (
                         <div className="grid gap-6">
                             <div className="grid md:grid-cols-3 gap-4">
-                                <div><span className="font-semibold">Date:</span> {task.date || 'N/A'}</div>
+                                <div><span className="font-semibold">Date:</span> {formatDate(task.date)}</div>
                                 <div><span className="font-semibold">Réservation:</span> {task.reservation || 'N/A'}</div>
                                 <div><span className="font-semibold">Type de Mission:</span> {task.typeMission || 'N/A'}</div>
                                 <div><span className="font-semibold">Ville:</span> {task.city || 'N/A'}</div>
