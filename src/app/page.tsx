@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { MonthPicker } from "@/components/MonthPicker";
+import { YearPicker } from "@/components/YearPicker";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -195,7 +196,11 @@ export default function Home() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                 <MonthPicker date={selectedDate} onChange={setSelectedDate} />
+                {timeRange === 'year' ? (
+                  <YearPicker date={selectedDate} onChange={setSelectedDate} />
+                ) : (
+                  <MonthPicker date={selectedDate} onChange={setSelectedDate} />
+                )}
               </PopoverContent>
             </Popover>
             <Select value={timeRange} onValueChange={setTimeRange}>
