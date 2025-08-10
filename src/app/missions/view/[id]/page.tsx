@@ -130,6 +130,8 @@ export default function ViewMissionPage() {
             </div>
         );
     }
+    
+    const isCasablancaMission = task.city === 'Casablanca';
 
     const renderSubMissionDetails = (subMission: SubMission, index: number) => (
         <div key={subMission.id} className="p-4 border rounded-lg space-y-4">
