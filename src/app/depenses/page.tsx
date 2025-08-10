@@ -306,7 +306,7 @@ export default function DepensesPage() {
                             )}
                             >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {paymentDate ? format(paymentDate, "dd-MM-yyyy") : <span>Choisir une date</span>}
+                            {paymentDate ? formatDate(paymentDate.toISOString(), "dd-MM-yyyy") : <span>Choisir une date</span>}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -348,7 +348,7 @@ export default function DepensesPage() {
                         <CardContent className="p-6 pt-0">
                             <div className="text-3xl font-bold">
                                 {oldestExpenseDate
-                                    ? formatDate(oldestExpenseDate)
+                                    ? formatDate(oldestExpenseDate, "dd-MM-yyyy")
                                     : 'N/A'
                                 }
                             </div>
@@ -401,7 +401,7 @@ export default function DepensesPage() {
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
                                     <TableRow key={group.taskId}>
-                                        <TableCell className="p-2 sm:p-4">{formatDate(group.displayDate)}</TableCell>
+                                        <TableCell className="p-2 sm:p-4">{formatDate(group.displayDate, "dd-MM-yyyy")}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{group.ville}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
                                         <TableCell className="text-right p-2 sm:p-4">
@@ -416,7 +416,7 @@ export default function DepensesPage() {
                                     const statusInfo = statusConfig[group.status];
                                     return (
                                         <TableRow key={group.id}>
-                                        <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate)}</TableCell>
+                                        <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate, "dd-MM-yyyy")}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
                                         <TableCell className="p-2 sm:p-4">
                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>

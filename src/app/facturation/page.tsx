@@ -136,9 +136,9 @@ export default function FacturationPage() {
               {paidExpenses.map((group) => {
                 return (
                   <TableRow key={group.id}>
-                    <TableCell className="hidden md:table-cell">{formatDate(group.processedDate)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDate(group.processedDate, "dd-MM-yyyy")}</TableCell>
                     <TableCell className="md:hidden">{formatDate(group.processedDate, "dd/MM/yy")}</TableCell>
-                    <TableCell>{formatDate(group.paymentDate)}</TableCell>
+                    <TableCell>{formatDate(group.paymentDate, "dd-MM-yyyy")}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 text-xs rounded-full bg-green-100 text-green-800`}>

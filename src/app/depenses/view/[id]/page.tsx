@@ -197,7 +197,7 @@ export default function ViewProcessedExpensesPage() {
         )
     }
     
-    const pageTitle = `Détail des dépenses du ${formatDate(id as string)}`;
+    const pageTitle = `Détail des dépenses du ${formatDate(id as string, "dd-MM-yyyy")}`;
     const pageDescription = isPaid
       ? 'Voici le récapitulatif des dépenses pour ce lot qui a été soldé.'
       : isConfirmed
@@ -253,7 +253,7 @@ export default function ViewProcessedExpensesPage() {
                         <TableBody>
                             {groupedMissionExpenses.map((mission) => (
                                 <TableRow key={mission.missionId}>
-                                    <TableCell>{formatDate(mission.missionDate)}</TableCell>
+                                    <TableCell>{formatDate(mission.missionDate, "dd-MM-yyyy")}</TableCell>
                                     <TableCell>{mission.ville}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(mission.totalAmount)}</TableCell>
                                 </TableRow>

@@ -142,7 +142,7 @@ export default function MissionsPage() {
                 const displayData = getTaskDisplayData(task);
                 return (
                   <TableRow key={task.id}>
-                    <TableCell>{formatDate(displayData.date)}</TableCell>
+                    <TableCell>{formatDate(displayData.date, "dd-MM-yyyy")}</TableCell>
                     <TableCell>{displayData.ville || 'N/A'}</TableCell>
                     <TableCell>{displayData.typeMission || 'N/A'}</TableCell>
                     <TableCell className="text-right">
