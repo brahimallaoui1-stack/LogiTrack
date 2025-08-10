@@ -86,7 +86,7 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus) => Promise<void>;
+  createExpenseBatch: (taskIds: string[]) => Promise<void>;
   confirmExpenseBatch: (
     batchId: string,
     batchData: { approvedAmount: number; advance: number; accountantFees: number }
@@ -152,36 +152,43 @@ export const useTaskStore = create<TaskState>()(
             console.error("Error deleting task: ", error);
         }
       },
-       updateExpenseStatus: async (taskId, newStatus) => {
-         const tasks = get().tasks;
-         const taskToUpdate = tasks.find(t => t.id === taskId);
-         if (taskToUpdate && taskToUpdate.expenses) {
-            const batchId = `batch-${Date.now()}`;
-            const processedDate = new Date().toISOString();
-            
-            const updatedExpenses = taskToUpdate.expenses.map(exp => {
-                if(exp.status === 'Sans compte') {
-                   return { ...exp, status: newStatus, processedDate, batchId };
-                }
-                return exp;
-            });
-            const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
-            
-            const user = useAuthStore.getState().user;
-            if (!user) return;
-            
-            try {
-                const taskRef = doc(db, `users/${user.uid}/tasks`, taskId);
-                await updateDoc(taskRef, { expenses: updatedExpenses });
-                set({
-                  tasks: tasks.map((task) =>
-                    task.id === taskId ? updatedTask : task
-                  ),
+       createExpenseBatch: async (taskIds) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        
+        const batch = writeBatch(db);
+        const tasks = get().tasks;
+        const batchId = `batch-${Date.now()}`;
+        const processedDate = new Date().toISOString();
+        const tasksToUpdateLocally: Task[] = [];
+
+        taskIds.forEach(taskId => {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && task.expenses) {
+                const updatedExpenses = task.expenses.map(exp => {
+                    if (exp.status === 'Sans compte') {
+                        return { ...exp, status: 'Comptabilisé' as ExpenseStatus, processedDate, batchId };
+                    }
+                    return exp;
                 });
-            } catch (error) {
-                console.error("Error updating expense status: ", error);
+                const updatedTask = { ...task, expenses: updatedExpenses };
+                const taskRef = doc(db, `users/${user.uid}/tasks`, taskId);
+                batch.update(taskRef, { expenses: updatedExpenses });
+                tasksToUpdateLocally.push(updatedTask);
             }
-         }
+        });
+
+        try {
+            await batch.commit();
+            set(state => ({
+                tasks: state.tasks.map(task => {
+                    const updatedVersion = tasksToUpdateLocally.find(t => t.id === task.id);
+                    return updatedVersion || task;
+                })
+            }));
+        } catch (error) {
+            console.error("Error creating expense batch: ", error);
+        }
        },
        confirmExpenseBatch: async (batchId, batchData) => {
         const user = useAuthStore.getState().user;
@@ -553,3 +560,5 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         }
     }
 }));
+
+    
