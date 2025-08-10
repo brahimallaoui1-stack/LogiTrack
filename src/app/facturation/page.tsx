@@ -14,11 +14,12 @@ import type { Expense } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
 type GroupedExpense = {
-  id: string; // The paymentId
+  id: string; // The batchId
   processedDate: string; // The original processedDate
   totalAmount: number;
   status: 'Payé';
   paymentDate?: string;
+  paymentId: string;
 };
 
 export default function FacturationPage() {
@@ -36,19 +37,20 @@ export default function FacturationPage() {
 
     tasks.forEach(task => {
       task.expenses?.forEach(expense => {
-        if (expense.status === 'Payé' && expense.payment?.paymentId && expense.processedDate) {
-          const paymentId = expense.payment.paymentId;
+        if (expense.status === 'Payé' && expense.payment?.paymentId && expense.batchId && expense.processedDate) {
+          const batchId = expense.batchId;
           
-          if (!groupedByPayment[paymentId]) {
-            groupedByPayment[paymentId] = { 
-                id: paymentId,
-                processedDate: format(new Date(expense.processedDate), 'yyyy-MM-dd'),
+          if (!groupedByPayment[batchId]) {
+            groupedByPayment[batchId] = { 
+                id: batchId,
+                processedDate: expense.processedDate,
                 totalAmount: 0, 
                 status: 'Payé',
                 paymentDate: expense.payment.paymentDate,
+                paymentId: expense.payment.paymentId,
             };
           }
-          groupedByPayment[paymentId].totalAmount += expense.montant;
+          groupedByPayment[batchId].totalAmount += expense.montant;
         }
       });
     });
@@ -72,8 +74,8 @@ export default function FacturationPage() {
     }).format(amount) + ' MAD';
   };
   
-  const handleView = (processedDate: string) => {
-    router.push(`/depenses/view/${processedDate}`);
+  const handleView = (batchId: string) => {
+    router.push(`/depenses/view/${batchId}`);
   };
 
   if (!isClient || isLoadingTasks) {
@@ -146,7 +148,7 @@ export default function FacturationPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                        <Button variant="outline" size="icon" onClick={() => handleView(group.processedDate)} className="h-8 w-8">
+                        <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
                             <Eye className="h-4 w-4" />
                         </Button>
                     </TableCell>

@@ -10,7 +10,6 @@ import { useRouter, useParams } from "next/navigation";
 import { useMemo, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import type { Expense } from "@/lib/types";
-import { parse, isValid, format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -56,30 +55,22 @@ export default function ViewProcessedExpensesPage() {
         }
     }, [tasks.length, fetchTasks]);
 
-    const isDateId = useMemo(() => {
-      const date = parse(id as string, 'yyyy-MM-dd', new Date());
-      return isValid(date);
-    }, [id])
+    const batchId = id as string;
 
-    const { groupedMissionExpenses, expenseStatus, initialTotal } = useMemo(() => {
-        if (!isDateId) return { groupedMissionExpenses: [], expenseStatus: null, initialTotal: 0 };
+    const { groupedMissionExpenses, expenseStatus, initialTotal, processedDate } = useMemo(() => {
+        if (!batchId) return { groupedMissionExpenses: [], expenseStatus: null, initialTotal: 0, processedDate: null };
     
         let status: Expense['status'] | null = null;
         let total = 0;
+        let pDate: string | undefined = undefined;
         const missionsInBatch: Record<string, GroupedMissionExpense> = {};
 
         tasks.forEach(task => {
             const expensesInBatch = task.expenses?.filter(exp => {
-                const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé' || exp.status === 'Payé') &&
-                                exp.processedDate && 
-                                format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
+                const isMatch = exp.batchId === batchId;
                 if (isMatch) {
-                    // The status of the batch is determined by the status of its expenses.
-                    // If any expense is 'Comptabilisé', the whole batch is considered so.
-                    // Otherwise, it can be 'Confirmé' or 'Payé'.
-                    if (!status || status === 'Payé' || status === 'Confirmé') {
-                       status = exp.status;
-                    }
+                   if (!pDate) pDate = exp.processedDate;
+                   status = exp.status;
                 }
                 return isMatch;
             });
@@ -107,27 +98,22 @@ export default function ViewProcessedExpensesPage() {
         });
 
         const allExpenses = tasks.flatMap(t => t.expenses || []);
-        const firstExpenseOfBatch = allExpenses.find(exp => exp.processedDate?.startsWith(id as string));
+        const firstExpenseOfBatch = allExpenses.find(exp => exp.batchId === batchId);
         if (firstExpenseOfBatch) {
+            status = firstExpenseOfBatch.status;
             setApprovedAmount(firstExpenseOfBatch.approvedAmount ?? '');
             setAdvance(firstExpenseOfBatch.advance ?? '');
             setAccountantFees(firstExpenseOfBatch.accountantFees ?? '');
         }
         
-        // Correctly determine batch status
-        const expensesForStatus = tasks.flatMap(t => t.expenses || []).filter(exp => exp.processedDate?.startsWith(id as string));
-        if (expensesForStatus.every(e => e.status === 'Payé')) status = 'Payé';
-        else if (expensesForStatus.every(e => e.status === 'Confirmé' || e.status === 'Payé')) status = 'Confirmé';
-        else if (expensesForStatus.some(e => e.status === 'Comptabilisé')) status = 'Comptabilisé';
-
-
         return { 
             groupedMissionExpenses: Object.values(missionsInBatch), 
             expenseStatus: status, 
-            initialTotal: total 
+            initialTotal: total,
+            processedDate: pDate
         };
 
-    }, [tasks, id, isDateId]);
+    }, [tasks, batchId]);
 
 
     const handleConfirmBatch = async () => {
@@ -140,8 +126,7 @@ export default function ViewProcessedExpensesPage() {
             return;
         }
 
-        const batchDate = id as string;
-        await confirmExpenseBatch(batchDate, {
+        await confirmExpenseBatch(batchId, {
             approvedAmount: Number(approvedAmount),
             advance: Number(advance),
             accountantFees: Number(accountantFees)
@@ -188,7 +173,7 @@ export default function ViewProcessedExpensesPage() {
         )
     }
 
-    if (!isDateId || groupedMissionExpenses.length === 0) {
+    if (!batchId || groupedMissionExpenses.length === 0) {
         return (
              <div className="flex flex-col items-center justify-center h-full text-center p-4">
                  <Card>
@@ -207,7 +192,7 @@ export default function ViewProcessedExpensesPage() {
         )
     }
     
-    const pageTitle = `Détail des dépenses du ${formatDate(id as string, "dd-MM-yyyy")}`;
+    const pageTitle = `Détail des dépenses du ${formatDate(processedDate, "dd-MM-yyyy")}`;
     const pageDescription = isPaid
       ? 'Voici le récapitulatif des dépenses pour ce lot qui a été soldé.'
       : isConfirmed

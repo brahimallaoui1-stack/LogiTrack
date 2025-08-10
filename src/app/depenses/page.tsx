@@ -29,7 +29,7 @@ type GroupedExpense = {
 
 
 type GroupedProcessedExpense = {
-  id: string; // The date 'yyyy-MM-dd'
+  id: string; // The batchId
   processedDate: string;
   totalAmount: number;
   status: ExpenseStatus;
@@ -101,18 +101,18 @@ export default function DepensesPage() {
         
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
-                if (expense.status === filterStatus && expense.processedDate) {
-                    const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
+                if (expense.status === filterStatus && expense.batchId) {
+                    const batchId = expense.batchId;
                     
-                    if (!grouped[dateKey]) {
-                        grouped[dateKey] = {
-                            id: dateKey,
-                            processedDate: dateKey,
+                    if (!grouped[batchId]) {
+                        grouped[batchId] = {
+                            id: batchId,
+                            processedDate: expense.processedDate || new Date().toISOString(),
                             totalAmount: 0,
                             status: expense.status
                         };
                     }
-                    grouped[dateKey].totalAmount += expense.montant;
+                    grouped[batchId].totalAmount += expense.montant;
                 }
             });
         });

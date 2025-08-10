@@ -16,7 +16,8 @@ export interface Expense {
   montant: number;
   remarque?: string;
   status: ExpenseStatus;
-  processedDate?: string;
+  processedDate?: string; // Date when the expense batch was created
+  batchId?: string; // Unique ID for the batch of processed expenses
   
   // New accounting fields - applied to the whole batch but stored per expense
   approvedAmount?: number;

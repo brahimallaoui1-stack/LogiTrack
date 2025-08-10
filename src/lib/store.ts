@@ -86,9 +86,9 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus, processedDate?: string) => Promise<void>;
+  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus) => Promise<void>;
   confirmExpenseBatch: (
-    processedDate: string,
+    batchId: string,
     batchData: { approvedAmount: number; advance: number; accountantFees: number }
   ) => Promise<void>;
 }
@@ -156,7 +156,9 @@ export const useTaskStore = create<TaskState>()(
          const tasks = get().tasks;
          const taskToUpdate = tasks.find(t => t.id === taskId);
          if (taskToUpdate && taskToUpdate.expenses) {
-            const updatedExpenses = taskToUpdate.expenses.map(exp => ({ ...exp, status: newStatus, processedDate: new Date().toISOString() }));
+            const batchId = `batch-${Date.now()}`;
+            const processedDate = new Date().toISOString();
+            const updatedExpenses = taskToUpdate.expenses.map(exp => ({ ...exp, status: newStatus, processedDate, batchId }));
             const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
             
             const user = useAuthStore.getState().user;
@@ -175,7 +177,7 @@ export const useTaskStore = create<TaskState>()(
             }
          }
        },
-       confirmExpenseBatch: async (processedDate, batchData) => {
+       confirmExpenseBatch: async (batchId, batchData) => {
         const user = useAuthStore.getState().user;
         if (!user) return;
 
@@ -188,7 +190,7 @@ export const useTaskStore = create<TaskState>()(
 
             let hasChanged = false;
             const updatedExpenses = task.expenses.map(exp => {
-                if (exp.processedDate?.startsWith(processedDate) && exp.status === 'Comptabilisé') {
+                if (exp.batchId === batchId && exp.status === 'Comptabilisé') {
                     hasChanged = true;
                     return {
                         ...exp,
@@ -477,36 +479,36 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
 
         const tasks = useTaskStore.getState().tasks;
 
-        const groupedExpenses: Record<string, { totalApprovedAmount: number; taskIds: Set<string> }> = {};
+        const groupedExpenses: Record<string, { totalApprovedAmount: number; taskIds: Set<string>; processedDate: string }> = {};
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
-                if (expense.status === 'Confirmé' && expense.processedDate) {
-                    const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
-                    if (!groupedExpenses[dateKey]) {
-                        groupedExpenses[dateKey] = { totalApprovedAmount: 0, taskIds: new Set() };
+                if (expense.status === 'Confirmé' && expense.batchId && expense.processedDate) {
+                    const batchId = expense.batchId;
+                    if (!groupedExpenses[batchId]) {
+                        groupedExpenses[batchId] = { totalApprovedAmount: 0, taskIds: new Set(), processedDate: expense.processedDate };
                     }
                      // Since approvedAmount is the same for all expenses in the batch, we can just take the first one.
-                    groupedExpenses[dateKey].totalApprovedAmount = expense.approvedAmount ?? 0;
-                    groupedExpenses[dateKey].taskIds.add(task.id);
+                    groupedExpenses[batchId].totalApprovedAmount = expense.approvedAmount ?? 0;
+                    groupedExpenses[batchId].taskIds.add(task.id);
                 }
             });
         });
 
-        const sortedGroups = Object.entries(groupedExpenses).sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime());
+        const sortedGroups = Object.entries(groupedExpenses).sort(([, groupA], [, groupB]) => new Date(groupA.processedDate).getTime() - new Date(groupB.processedDate).getTime());
 
         const batch = writeBatch(db);
         let balanceChanged = false;
         let balanceToDeduct = 0;
         const paymentId = `payment-${Date.now()}`;
 
-        for (const [date, group] of sortedGroups) {
+        for (const [batchId, group] of sortedGroups) {
             if (currentBalance >= group.totalApprovedAmount) {
                 group.taskIds.forEach(taskId => {
                     const taskRef = doc(db, `users/${user.uid}/tasks/${taskId}`);
                     const taskData = tasks.find(t => t.id === taskId);
                     if (taskData) {
                         const updatedExpenses = taskData.expenses?.map(exp => {
-                            if (exp.processedDate?.startsWith(date)) {
+                            if (exp.batchId === batchId) {
                                 return { 
                                     ...exp, 
                                     status: 'Payé' as ExpenseStatus,
