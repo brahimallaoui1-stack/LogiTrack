@@ -230,8 +230,7 @@ export default function ViewProcessedExpensesPage() {
                             <TableRow>
                                 <TableHead>Date Mission</TableHead>
                                 <TableHead>Ville</TableHead>
-                                <TableHead>Type Dépense</TableHead>
-                                <TableHead className="text-right">Montant Initial</TableHead>
+                                <TableHead className="text-right">Montant</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -239,7 +238,6 @@ export default function ViewProcessedExpensesPage() {
                                 <TableRow key={expense.id}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
                                     <TableCell>{expense.ville}</TableCell>
-                                    <TableCell>{expense.typeDepense}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(expense.montant)}</TableCell>
                                 </TableRow>
                             ))}
