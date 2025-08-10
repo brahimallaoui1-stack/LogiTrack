@@ -7,7 +7,7 @@ import { useTaskStore } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Pencil, Trash2, CheckSquare } from 'lucide-react';
 import { MissionFormDialog } from '@/components/MissionFormDialog';
 import { Separator } from '@/components/ui/separator';
 import type { SubMission, Task } from '@/lib/types';
@@ -32,7 +32,7 @@ export default function ViewMissionPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const { id } = params;
-    const { tasks, isLoading, fetchTasks, deleteTask } = useTaskStore();
+    const { tasks, isLoading, fetchTasks, deleteTask, processMissionExpenses } = useTaskStore();
     
     useEffect(() => {
         if(tasks.length === 0) {
@@ -44,6 +44,7 @@ export default function ViewMissionPage() {
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isProcessingDialogOpen, setIsProcessingDialogOpen] = useState(false);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -52,7 +53,8 @@ export default function ViewMissionPage() {
         }).format(amount) + ' MAD';
     };
     
-    const totalExpenses = task?.expenses?.reduce((sum, exp) => sum + exp.montant, 0) ?? 0;
+    const unprocessedExpenses = task?.expenses?.filter(e => e.status === 'Sans compte') ?? [];
+    const totalExpenses = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0) ?? 0;
     const isCasablancaMission = task?.city === 'Casablanca';
     
     const handleEdit = () => {
@@ -66,6 +68,17 @@ export default function ViewMissionPage() {
             router.push('/missions');
         }
     };
+    
+    const handleProcessExpenses = async () => {
+        if (task) {
+            await processMissionExpenses(task.id);
+            toast({
+                title: "Dépenses traitées",
+                description: "Les dépenses de cette mission ont été ajoutées au lot actif.",
+            });
+            setIsProcessingDialogOpen(false);
+        }
+    }
 
 
     if (isLoading) {
@@ -149,6 +162,12 @@ export default function ViewMissionPage() {
                     Retour
                 </Button>
                 <div className="flex gap-2">
+                    {unprocessedExpenses.length > 0 && (
+                        <Button onClick={() => setIsProcessingDialogOpen(true)}>
+                            <CheckSquare className="mr-2 h-4 w-4" />
+                            Dépense traitée
+                        </Button>
+                    )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">
@@ -207,10 +226,10 @@ export default function ViewMissionPage() {
                          </div>
                     )}
                     
-                    {!isCasablancaMission && task.expenses && task.expenses.length > 0 && (
+                    {unprocessedExpenses.length > 0 && (
                         <div>
                             <Separator className="my-6"/>
-                            <h4 className="font-semibold text-lg mb-2">Dépenses</h4>
+                            <h4 className="font-semibold text-lg mb-2">Dépenses non-traitées</h4>
                             <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
@@ -221,7 +240,7 @@ export default function ViewMissionPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {task.expenses.map((expense) => (
+                                        {unprocessedExpenses.map((expense) => (
                                             <TableRow key={expense.id}>
                                                 <TableCell>{expense.typeDepense}</TableCell>
                                                 <TableCell>{formatCurrency(expense.montant)}</TableCell>
@@ -256,6 +275,20 @@ export default function ViewMissionPage() {
                 <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+         <AlertDialog open={isProcessingDialogOpen} onOpenChange={setIsProcessingDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Traiter les dépenses ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action ajoutera toutes les dépenses non traitées de cette mission au lot de confirmation actif.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleProcessExpenses}>Confirmer</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

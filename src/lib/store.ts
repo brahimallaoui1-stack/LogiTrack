@@ -86,7 +86,7 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus) => Promise<void>;
+  processMissionExpenses: (taskId: string) => Promise<void>;
   confirmExpenseBatch: (
     batchId: string,
     batchData: { approvedAmount: number; advance: number; accountantFees: number }
@@ -152,22 +152,37 @@ export const useTaskStore = create<TaskState>()(
             console.error("Error deleting task: ", error);
         }
       },
-       updateExpenseStatus: async (taskId, newStatus) => {
+       processMissionExpenses: async (taskId) => {
          const user = useAuthStore.getState().user;
          if (!user) return;
 
          const taskToUpdate = get().tasks.find(t => t.id === taskId);
          if (!taskToUpdate || !taskToUpdate.expenses) return;
+
+         const activeBatchRef = doc(db, `users/${user.uid}/state/activeBatch`);
+         const activeBatchSnap = await getDoc(activeBatchRef);
          
-         const batchId = `batch-${Date.now()}`;
+         let batchId: string;
          const processedDate = new Date().toISOString();
 
-         const updatedExpenses = taskToUpdate.expenses.map(exp => ({
-             ...exp,
-             status: newStatus,
-             batchId,
-             processedDate,
-         }));
+         if (activeBatchSnap.exists() && activeBatchSnap.data().batchId) {
+            batchId = activeBatchSnap.data().batchId;
+         } else {
+            batchId = `batch-${Date.now()}`;
+            await setDoc(activeBatchRef, { batchId });
+         }
+
+         const updatedExpenses = taskToUpdate.expenses.map(exp => {
+            if (exp.status === 'Sans compte') {
+                return {
+                    ...exp,
+                    status: 'Comptabilisé' as ExpenseStatus,
+                    batchId,
+                    processedDate,
+                }
+            }
+            return exp;
+         });
 
          const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
          
@@ -178,7 +193,7 @@ export const useTaskStore = create<TaskState>()(
                  tasks: state.tasks.map(t => t.id === taskId ? updatedTask : t)
              }));
          } catch (error) {
-             console.error("Error updating expense status: ", error);
+             console.error("Error processing mission expenses: ", error);
          }
        },
        confirmExpenseBatch: async (batchId, batchData) => {
@@ -213,6 +228,10 @@ export const useTaskStore = create<TaskState>()(
                 tasksToUpdateLocally.push({ ...task, expenses: updatedExpenses });
             }
         });
+        
+        // Clear the active batch ID
+        const activeBatchRef = doc(db, `users/${user.uid}/state/activeBatch`);
+        batch.delete(activeBatchRef);
 
         try {
             await batch.commit();
