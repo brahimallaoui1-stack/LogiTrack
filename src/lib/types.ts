@@ -1,3 +1,4 @@
+
 // Les types de données seront définis ici.
 
 export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Confirmé' | 'Payé';
@@ -71,4 +72,8 @@ export interface MissionType {
 export interface User {
     uid: string;
     email: string | null;
+}
+
+export interface ClientBalance {
+    amount: number;
 }

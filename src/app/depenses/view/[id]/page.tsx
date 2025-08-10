@@ -1,20 +1,17 @@
 
 "use client";
 
-import { useTaskStore, useFacturationStore } from "@/lib/store";
+import { useTaskStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, Banknote, Landmark } from "lucide-react";
+import { useMemo, useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
 import type { Expense } from "@/lib/types";
 import { parse, isValid, format } from "date-fns";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type EnrichedExpense = Expense & {
     missionDate?: string;
@@ -24,11 +21,9 @@ type EnrichedExpense = Expense & {
 export default function ViewProcessedExpensesPage() {
     const router = useRouter();
     const params = useParams();
-    const { toast } = useToast();
-    const { id } = params; // This can be a date string 'yyyy-MM-dd'
+    const { id } = params; 
 
-    const { tasks, fetchTasks, updateExpensesStatusByProcessedDate } = useTaskStore();
-    const { updatePaymentInfo } = useFacturationStore();
+    const { tasks, fetchTasks } = useTaskStore();
 
     useEffect(() => {
         if (tasks.length === 0) {
@@ -41,25 +36,21 @@ export default function ViewProcessedExpensesPage() {
       return isValid(date);
     }, [id])
 
-    const { processedExpenses, expenseStatus, paymentDetails } = useMemo(() => {
-      if (!isDateId) return { processedExpenses: [], expenseStatus: null, paymentDetails: {} };
+    const { processedExpenses, expenseStatus } = useMemo(() => {
+      if (!isDateId) return { processedExpenses: [], expenseStatus: null };
 
       let status: Expense['status'] | null = null;
       const allExpenses: EnrichedExpense[] = [];
-      let paymentData = {};
       
       tasks.forEach(task => {
         task.expenses
             ?.filter(exp => {
-                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé' || exp.status === 'Payé') &&
+                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Payé') &&
                                 exp.processedDate && 
                                 format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
                 if(isMatch) {
-                    if (!status || exp.status === 'Confirmé' || exp.status === 'Payé') {
+                    if (!status || exp.status === 'Payé') {
                        status = exp.status;
-                    }
-                    if (exp.payment) {
-                        paymentData = { ...paymentData, ...exp.payment };
                     }
                 }
                 return isMatch;
@@ -74,7 +65,7 @@ export default function ViewProcessedExpensesPage() {
                 });
             });
       });
-      return { processedExpenses: allExpenses, expenseStatus: status, paymentDetails: paymentData };
+      return { processedExpenses: allExpenses, expenseStatus: status };
 
     }, [tasks, id, isDateId]);
 
@@ -82,37 +73,6 @@ export default function ViewProcessedExpensesPage() {
         return processedExpenses.reduce((total, expense) => total + expense.montant, 0);
     }, [processedExpenses]);
     
-    const [suggestedAmount, setSuggestedAmount] = useState<number | ''>('');
-    const [accountantFees, setAccountantFees] = useState<number | ''>('');
-    const [advance, setAdvance] = useState<number | ''>('');
-    
-    useEffect(() => {
-        setSuggestedAmount(paymentDetails.suggestedAmount ?? '');
-        setAccountantFees(paymentDetails.accountantFees ?? '');
-        setAdvance(paymentDetails.advance ?? '');
-    }, [paymentDetails]);
-
-
-    const remainder = useMemo(() => {
-        const sugg = typeof suggestedAmount === 'number' ? suggestedAmount : 0;
-        const adv = typeof advance === 'number' ? advance : 0;
-        const fees = typeof accountantFees === 'number' ? accountantFees : 0;
-        return sugg - adv - fees;
-    }, [suggestedAmount, advance, accountantFees]);
-
-    const handleMarkAsConfirmed = async () => {
-        await updateExpensesStatusByProcessedDate(id as string, 'Confirmé', {
-            suggestedAmount: typeof suggestedAmount === 'number' ? suggestedAmount : 0,
-            accountantFees: typeof accountantFees === 'number' ? accountantFees : 0,
-            advance: typeof advance === 'number' ? advance : 0,
-        });
-        toast({
-            title: "Dépenses confirmées",
-            description: "Le lot de dépenses a été marqué comme confirmé et transféré à la facturation.",
-        });
-        router.push('/facturation');
-    };
-
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
           minimumFractionDigits: 0,
@@ -120,7 +80,23 @@ export default function ViewProcessedExpensesPage() {
         }).format(amount) + ' MAD';
     };
     
-    const isPaymentFinalized = expenseStatus === 'Confirmé' || expenseStatus === 'Payé';
+    const isPaid = expenseStatus === 'Payé';
+
+    if (tasks.length === 0) {
+        return (
+             <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                 <Card>
+                    <CardHeader>
+                         <Skeleton className="h-8 w-48 mb-2" />
+                         <Skeleton className="h-4 w-80" />
+                    </CardHeader>
+                    <CardContent>
+                         <Skeleton className="h-10 w-48" />
+                    </CardContent>
+                 </Card>
+            </div>
+        )
+    }
 
     if (!isDateId || processedExpenses.length === 0) {
         return (
@@ -142,9 +118,9 @@ export default function ViewProcessedExpensesPage() {
     }
     
     const pageTitle = `Détail des dépenses du ${formatDate(id as string)}`;
-    const pageDescription = isPaymentFinalized
-      ? 'Voici le récapitulatif des dépenses qui ont été confirmées ou payées.'
-      : 'Finalisez le paiement ou mettez à jour les montants.';
+    const pageDescription = isPaid
+      ? 'Voici le récapitulatif des dépenses pour ce lot qui a été soldé.'
+      : 'Voici le détail des dépenses pour ce lot en attente de paiement.';
 
 
     return (
@@ -157,8 +133,17 @@ export default function ViewProcessedExpensesPage() {
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>{pageTitle}</CardTitle>
-                    <CardDescription>{pageDescription}</CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>{pageTitle}</CardTitle>
+                            <CardDescription>{pageDescription}</CardDescription>
+                        </div>
+                        {expenseStatus && (
+                             <span className={`px-3 py-1.5 text-sm font-semibold rounded-full ${isPaid ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                                {expenseStatus}
+                            </span>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
                      <Table>
@@ -183,69 +168,6 @@ export default function ViewProcessedExpensesPage() {
                         Total des dépenses: {formatCurrency(totalAmount)}
                     </div>
                 </CardContent>
-
-                {(expenseStatus === 'Comptabilisé' || isPaymentFinalized) && (
-                  <>
-                  <Separator className="my-6" />
-                  <CardContent className="grid gap-6">
-                      <div className="grid md:grid-cols-3 gap-6">
-                          <div className="grid gap-2">
-                              <Label htmlFor="suggestedAmount">Montant suggéré</Label>
-                              <Input 
-                                  id="suggestedAmount" 
-                                  type="number" 
-                                  value={suggestedAmount} 
-                                  onChange={(e) => setSuggestedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={isPaymentFinalized}
-                                  placeholder="Entrer le montant"
-                              />
-                          </div>
-                          <div className="grid gap-2">
-                              <Label htmlFor="advance">Avance (Tasbiq)</Label>
-                              <Input 
-                                  id="advance" 
-                                  type="number" 
-                                  value={advance} 
-                                  onChange={(e) => setAdvance(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={isPaymentFinalized}
-                                   placeholder="Entrer l'avance"
-                              />
-                          </div>
-                          <div className="grid gap-2">
-                              <Label htmlFor="accountantFees">Honoraires du comptable</Label>
-                              <Input 
-                                  id="accountantFees" 
-                                  type="number" 
-                                  value={accountantFees} 
-                                  onChange={(e) => setAccountantFees(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                  disabled={isPaymentFinalized}
-                                   placeholder="Entrer les honoraires"
-                              />
-                          </div>
-                      </div>
-                      <Card className="bg-muted/50 p-4 md:p-6">
-                          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                              <div className="flex items-center gap-4">
-                                  <Banknote className="h-8 w-8 text-muted-foreground" />
-                                  <div>
-                                      <p className="font-semibold">Reste à verser</p>
-                                      <p className="text-sm text-muted-foreground">Le montant final à déposer sur le compte bancaire.</p>
-                                  </div>
-                              </div>
-                              <p className="text-2xl font-bold self-end md:self-center">{formatCurrency(remainder)}</p>
-                          </div>
-                      </Card>
-                  </CardContent>
-                  {expenseStatus === 'Comptabilisé' && (
-                    <CardFooter>
-                        <Button className="w-full" onClick={handleMarkAsConfirmed}>
-                            <Landmark className="mr-2 h-4 w-4" />
-                            Marquer comme confirmé
-                        </Button>
-                    </CardFooter>
-                  )}
-                </>
-                )}
             </Card>
         </div>
     )

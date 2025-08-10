@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useTaskStore } from "@/lib/store";
+import { useTaskStore, useFacturationStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMemo, useState, useEffect } from "react";
@@ -12,6 +12,9 @@ import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 type GroupedExpense = {
   id: string;
@@ -30,13 +33,18 @@ type GroupedProcessedExpense = {
 
 export default function DepensesPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const { tasks, isLoading, fetchTasks } = useTaskStore();
+    const { clientBalance, fetchClientBalance, addPayment, applyBalanceToExpenses } = useFacturationStore();
+
     const [isClient, setIsClient] = useState(false);
+    const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
 
     useEffect(() => {
         setIsClient(true);
         fetchTasks();
-    }, [fetchTasks]);
+        fetchClientBalance();
+    }, [fetchTasks, fetchClientBalance]);
     
     const [filterStatus, setFilterStatus] = useState<ExpenseStatus>('Sans compte');
 
@@ -110,7 +118,7 @@ export default function DepensesPage() {
             id: date,
             processedDate: date,
             totalAmount: group.totalAmount
-        })).sort((a, b) => new Date(b.processedDate).getTime() - new Date(a.processedDate).getTime());
+        })).sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime()); // oldest first
     }, [tasks, filterStatus]);
 
 
@@ -132,9 +140,22 @@ export default function DepensesPage() {
         }).displayDate;
       }
       if (groupedProcessedExpenses.length === 0) return null;
-      return groupedProcessedExpenses[groupedProcessedExpenses.length - 1].processedDate;
+      return groupedProcessedExpenses[0].processedDate; // Now sorted oldest first
 
     }, [groupedUnprocessedExpenses, groupedProcessedExpenses, filterStatus]);
+    
+     const handleAddPayment = async () => {
+        if (typeof receivedAmount === 'number' && receivedAmount > 0) {
+            await addPayment(receivedAmount);
+            await applyBalanceToExpenses();
+            setReceivedAmount('');
+            toast({
+                title: "Paiement ajouté",
+                description: `Le solde a été mis à jour et appliqué aux dépenses en attente.`,
+            });
+        }
+    };
+
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -153,35 +174,35 @@ export default function DepensesPage() {
     
     const pageTitles = {
         'Sans compte': 'Dépenses non traitées',
-        'Comptabilisé': 'Dépenses traitées',
-        'Confirmé': 'Dépenses confirmées',
+        'Comptabilisé': 'Dépenses en attente de paiement',
         'Payé': 'Dépenses Payées',
+        'Confirmé': 'Dépenses Confirmées'
     }
 
     const totalCardTitles = {
         'Sans compte': 'Total des dépenses non comptabilisées',
-        'Comptabilisé': 'Total des dépenses comptabilisées',
-        'Confirmé': 'Total des dépenses confirmées',
+        'Comptabilisé': 'Total des dépenses en attente',
         'Payé': 'Total des dépenses Payées',
+        'Confirmé': 'Total des dépenses Confirmées'
     }
 
     const totalCardDescriptions = {
         'Sans compte': 'Montant total des dépenses non encore traitées.',
-        'Comptabilisé': 'Montant total des dépenses déjà traitées.',
-        'Confirmé': 'Montant total des dépenses confirmées.',
+        'Comptabilisé': 'Montant total des dépenses en attente de paiement.',
         'Payé': 'Montant total des dépenses Payées.',
+        'Confirmé': 'Montant total des dépenses Confirmées'
     }
 
     const dateCardTitles = {
         'Sans compte': 'Date de la première dépense non comptabilisée',
-        'Comptabilisé': 'Date de la première dépense comptabilisée',
-        'Confirmé': 'Date de la première dépense confirmée',
+        'Comptabilisé': 'Date du lot le plus ancien',
         'Payé': 'Date de la première dépense Payée',
+        'Confirmé': 'Date de la première dépense Confirmée'
     }
 
     const dateCardDescription = oldestExpenseDate
-        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : filterStatus === 'Comptabilisé' ? 'traitée' : 'confirmée'}.`
-        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : filterStatus === 'Comptabilisé' ? 'comptabilisée' : 'confirmée'}.`;
+        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : 'traitée'}.`
+        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'comptabilisée'}.`;
 
     if (!isClient || isLoading) {
         return (
@@ -223,34 +244,76 @@ export default function DepensesPage() {
             </div>
         );
     }
+    
+    const renderPaymentSection = () => (
+        <div className="grid gap-6 md:grid-cols-3 mb-6">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Total en attente</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Solde client</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{formatCurrency(clientBalance)}</div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Ajouter un paiement reçu</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <div className="flex items-center gap-2">
+                      <Input 
+                        id="receivedAmount" 
+                        type="number" 
+                        value={receivedAmount} 
+                        onChange={(e) => setReceivedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        placeholder="Montant reçu"
+                      />
+                      <Button onClick={handleAddPayment} disabled={!receivedAmount}>Ajouter</Button>
+                   </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="grid gap-4 md:grid-cols-2">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>{totalCardTitles[filterStatus]}</CardTitle>
-                        <CardDescription>{totalCardDescriptions[filterStatus]}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{formatCurrency(totalAmount)}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{dateCardTitles[filterStatus]}</CardTitle>
-                        <CardDescription>{dateCardDescription}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <div className="text-3xl font-bold">
-                            {oldestExpenseDate
-                                ? formatDate(oldestExpenseDate)
-                                : 'N/A'
-                            }
-                         </div>
-                    </CardContent>
-                </Card>
-            </div>
+             {filterStatus === 'Comptabilisé' && renderPaymentSection()}
+             
+             {filterStatus !== 'Comptabilisé' && (
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{totalCardTitles[filterStatus]}</CardTitle>
+                            <CardDescription>{totalCardDescriptions[filterStatus]}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{formatCurrency(totalAmount)}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{dateCardTitles[filterStatus]}</CardTitle>
+                            <CardDescription>{dateCardDescription}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">
+                                {oldestExpenseDate
+                                    ? formatDate(oldestExpenseDate)
+                                    : 'N/A'
+                                }
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+             )}
 
             <Card>
                 <CardHeader>
@@ -267,7 +330,7 @@ export default function DepensesPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
-                                <SelectItem value="Comptabilisé">Dépenses traitées</SelectItem>
+                                <SelectItem value="Comptabilisé">Dépenses en attente</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

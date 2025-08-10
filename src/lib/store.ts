@@ -2,15 +2,16 @@
 "use client";
 
 import { create } from 'zustand';
-import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice, User } from './types';
+import type { Task, City, Manager, MissionType, Expense, ExpenseStatus, Invoice, User, ClientBalance } from './types';
 import { db, auth } from './firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, orderBy, getDoc, setDoc, increment } from 'firebase/firestore';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
+import { format } from 'date-fns';
 
 interface AppState {
   isHydrated: boolean;
@@ -431,19 +432,109 @@ export const useMissionTypeStore = create<MissionTypeState>()(
   })
 );
 
-// Store for Invoicing - This store is now simplified as payment info is part of the task
+// Store for Invoicing
 interface FacturationState {
-    updatePaymentInfo: (processedDate: string, paymentInfo: { receivedAmount?: number, suggestedAmount?: number, accountantFees?: number, advance?: number }) => Promise<void>;
-    markAsPaid: (processedDate: string) => Promise<void>;
+    clientBalance: number;
+    fetchClientBalance: () => Promise<void>;
+    addPayment: (amount: number) => Promise<void>;
+    applyBalanceToExpenses: () => Promise<void>;
 }
 
-export const useFacturationStore = create<FacturationState>(() => ({
-    updatePaymentInfo: async (processedDate, paymentInfo) => {
-        // The logic is now handled within updateExpensesStatusByProcessedDate
-        // We call it with a 'Confirmé' status to just update payment details
-        await useTaskStore.getState().updateExpensesStatusByProcessedDate(processedDate, 'Confirmé', paymentInfo);
+export const useFacturationStore = create<FacturationState>((set, get) => ({
+    clientBalance: 0,
+    fetchClientBalance: async () => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        const balanceRef = doc(db, `users/${user.uid}/balance/client`);
+        const docSnap = await getDoc(balanceRef);
+        if (docSnap.exists()) {
+            set({ clientBalance: docSnap.data().amount });
+        } else {
+            set({ clientBalance: 0 });
+        }
     },
-    markAsPaid: async (processedDate: string) => {
-        await useTaskStore.getState().updateExpensesStatusByProcessedDate(processedDate, 'Payé');
+    addPayment: async (amount) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        const balanceRef = doc(db, `users/${user.uid}/balance/client`);
+        try {
+            await setDoc(balanceRef, { amount: increment(amount) }, { merge: true });
+            set((state) => ({ clientBalance: state.clientBalance + amount }));
+        } catch (error) {
+            console.error("Error adding payment:", error);
+        }
     },
+    applyBalanceToExpenses: async () => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+
+        let currentBalance = get().clientBalance;
+        if (currentBalance <= 0) return;
+
+        const tasks = useTaskStore.getState().tasks;
+
+        // 1. Group all 'Comptabilisé' expenses by processedDate
+        const groupedExpenses: Record<string, { totalAmount: number; taskIds: Set<string> }> = {};
+        tasks.forEach(task => {
+            task.expenses?.forEach(expense => {
+                if (expense.status === 'Comptabilisé' && expense.processedDate) {
+                    const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
+                    if (!groupedExpenses[dateKey]) {
+                        groupedExpenses[dateKey] = { totalAmount: 0, taskIds: new Set() };
+                    }
+                    groupedExpenses[dateKey].totalAmount += expense.montant;
+                    groupedExpenses[dateKey].taskIds.add(task.id);
+                }
+            });
+        });
+
+        // 2. Sort groups by date (oldest first)
+        const sortedGroups = Object.entries(groupedExpenses).sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime());
+
+        const batch = writeBatch(db);
+        let balanceChanged = false;
+        let balanceToDeduct = 0;
+
+        // 3. Iterate and "pay" oldest groups first
+        for (const [date, group] of sortedGroups) {
+            if (currentBalance >= group.totalAmount) {
+                // Mark all expenses in this group as 'Payé'
+                group.taskIds.forEach(taskId => {
+                    const taskRef = doc(db, `users/${user.uid}/tasks/${taskId}`);
+                    const taskData = tasks.find(t => t.id === taskId);
+                    if (taskData) {
+                        const updatedExpenses = taskData.expenses?.map(exp => {
+                            if (exp.processedDate?.startsWith(date)) {
+                                return { ...exp, status: 'Payé' as ExpenseStatus };
+                            }
+                            return exp;
+                        });
+                        batch.update(taskRef, { expenses: updatedExpenses });
+                    }
+                });
+                currentBalance -= group.totalAmount;
+                balanceToDeduct += group.totalAmount;
+                balanceChanged = true;
+            } else {
+                // Not enough balance to pay the next group
+                break;
+            }
+        }
+        
+        // 4. Update the client balance in Firestore
+        if (balanceChanged) {
+            const balanceRef = doc(db, `users/${user.uid}/balance/client`);
+            batch.update(balanceRef, { amount: increment(-balanceToDeduct) });
+        }
+        
+        // 5. Commit all changes
+        try {
+            await batch.commit();
+            // 6. Refresh local state
+            await useTaskStore.getState().fetchTasks();
+            await get().fetchClientBalance();
+        } catch (error) {
+            console.error("Error applying balance to expenses:", error);
+        }
+    }
 }));
