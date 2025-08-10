@@ -162,12 +162,6 @@ export default function ViewMissionPage() {
                     Retour
                 </Button>
                 <div className="flex gap-2">
-                    {unprocessedExpenses.length > 0 && (
-                        <Button onClick={() => setIsProcessingDialogOpen(true)}>
-                            <CheckSquare className="mr-2 h-4 w-4" />
-                            Dépense traitée
-                        </Button>
-                    )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">
