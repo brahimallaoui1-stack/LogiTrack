@@ -70,7 +70,7 @@ export default function ViewMissionPage() {
     };
     
     const handleProcessExpenses = async () => {
-        if (task) {
+        if (task && unprocessedExpenses.length > 0) {
             await processMissionExpenses(task.id);
             toast({
                 title: "Dépenses traitées",
@@ -236,8 +236,6 @@ export default function ViewMissionPage() {
                                         <TableRow>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Montant</TableHead>
-                                            <TableHead>Remarque</TableHead>
-                                            <TableHead>Statut</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -245,8 +243,6 @@ export default function ViewMissionPage() {
                                             <TableRow key={expense.id}>
                                                 <TableCell>{expense.typeDepense}</TableCell>
                                                 <TableCell>{formatCurrency(expense.montant)}</TableCell>
-                                                <TableCell className="break-words">{expense.remarque}</TableCell>
-                                                <TableCell>{expense.status}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
