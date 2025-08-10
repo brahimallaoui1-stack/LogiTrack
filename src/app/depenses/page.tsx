@@ -87,7 +87,7 @@ export default function DepensesPage() {
         return Object.values(groupedByTask).sort((a, b) => {
             const dateA = a.displayDate ? new Date(a.displayDate) : new Date(0);
             const dateB = b.displayDate ? new Date(b.displayDate) : new Date(0);
-            return dateB.getTime() - dateA.getTime();
+            return dateA.getTime() - dateB.getTime();
         });
     }, [tasks, filterStatus]);
 
@@ -409,5 +409,7 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
 
     
