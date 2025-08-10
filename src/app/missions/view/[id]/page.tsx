@@ -226,10 +226,10 @@ export default function ViewMissionPage() {
                          </div>
                     )}
                     
-                    {unprocessedExpenses.length > 0 && (
+                    {task.expenses && task.expenses.length > 0 && (
                         <div>
                             <Separator className="my-6"/>
-                            <h4 className="font-semibold text-lg mb-2">Dépenses non-traitées</h4>
+                            <h4 className="font-semibold text-lg mb-2">Dépenses</h4>
                             <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
@@ -237,21 +237,23 @@ export default function ViewMissionPage() {
                                             <TableHead>Type</TableHead>
                                             <TableHead>Montant</TableHead>
                                             <TableHead>Remarque</TableHead>
+                                            <TableHead>Statut</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {unprocessedExpenses.map((expense) => (
+                                        {task.expenses.map((expense) => (
                                             <TableRow key={expense.id}>
                                                 <TableCell>{expense.typeDepense}</TableCell>
                                                 <TableCell>{formatCurrency(expense.montant)}</TableCell>
                                                 <TableCell className="break-words">{expense.remarque}</TableCell>
+                                                <TableCell>{expense.status}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
                             </div>
                                 <div className="text-right font-semibold pr-4 mt-2">
-                                Total des dépenses: {formatCurrency(totalExpenses)}
+                                Total des dépenses: {formatCurrency(task.expenses.reduce((sum, exp) => sum + exp.montant, 0))}
                             </div>
                         </div>
                     )}
