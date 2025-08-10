@@ -5,12 +5,9 @@ export type ExpenseStatus = 'Sans compte' | 'Comptabilisé' | 'Confirmé' | 'Pay
 
 export interface Invoice {
   // Not a separate document anymore, but part of an expense
-  suggestedAmount?: number;
-  advance?: number;
-  accountantFees?: number;
-  receivedAmount?: number;
   paymentDate?: string;
   paymentId?: string; // Unique ID for the payment transaction
+  receivedAmount?: number;
 }
 
 export interface Expense {
@@ -20,6 +17,12 @@ export interface Expense {
   remarque?: string;
   status: ExpenseStatus;
   processedDate?: string;
+  
+  // New accounting fields
+  approvedAmount?: number;
+  advance?: number;
+  accountantFees?: number;
+  
   payment?: Invoice;
 }
 
@@ -79,3 +82,5 @@ export interface User {
 export interface ClientBalance {
     amount: number;
 }
+
+    

@@ -87,7 +87,7 @@ interface TaskState {
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   updateExpenseStatus: (taskId: string, newStatus: ExpenseStatus, processedDate?: string) => Promise<void>;
-  updateExpensesStatusByProcessedDate: (processedDate: string, newStatus: ExpenseStatus, paymentData?: Partial<Invoice>) => Promise<void>;
+  confirmExpenseBatch: (processedDate: string, updatedExpensesData: Expense[]) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -172,51 +172,55 @@ export const useTaskStore = create<TaskState>()(
             }
          }
        },
-        updateExpensesStatusByProcessedDate: async (processedDate, newStatus, paymentData) => {
-            const tasks = get().tasks;
-            const user = useAuthStore.getState().user;
-            if (!user) return;
+       confirmExpenseBatch: async (processedDate, updatedExpensesData) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        
+        const batch = writeBatch(db);
+        const tasks = get().tasks;
+        const tasksToUpdateLocally: Task[] = [];
 
-            const batch = writeBatch(db);
-            const tasksToUpdateLocally: Task[] = [];
+        tasks.forEach(task => {
+            if (!task.expenses) return;
 
-            tasks.forEach((task) => {
-                if (!task.expenses) return;
-
-                let hasChanged = false;
-                const updatedExpenses = task.expenses.map(exp => {
-                    if (exp.processedDate?.startsWith(processedDate)) {
+            let hasChanged = false;
+            const updatedExpenses = task.expenses.map(exp => {
+                if (exp.processedDate?.startsWith(processedDate)) {
+                    const updatedData = updatedExpensesData.find(u => u.id === exp.id);
+                    if (updatedData) {
                         hasChanged = true;
-                        return { 
-                            ...exp, 
-                            status: newStatus,
-                            ...(paymentData && { payment: { ...(exp.payment || {}), ...paymentData } })
+                        return {
+                            ...exp,
+                            status: 'Confirmé' as ExpenseStatus,
+                            approvedAmount: updatedData.approvedAmount,
+                            advance: updatedData.advance,
+                            accountantFees: updatedData.accountantFees,
                         };
                     }
-                    return exp;
-                });
-
-                if (hasChanged) {
-                    const updatedTask = { ...task, expenses: updatedExpenses };
-                    tasksToUpdateLocally.push(updatedTask);
-                    const taskRef = doc(db, `users/${user.uid}/tasks`, task.id);
-                    batch.update(taskRef, { expenses: updatedExpenses });
                 }
+                return exp;
             });
-            
-            try {
-                await batch.commit();
-                set((state) => ({
-                    tasks: state.tasks.map(task => {
-                        const updatedVersion = tasksToUpdateLocally.find(t => t.id === task.id);
-                        return updatedVersion || task;
-                    })
-                }));
-            } catch (error) {
-                console.error("Error updating expenses status by date: ", error);
+
+            if (hasChanged) {
+                tasksToUpdateLocally.push({ ...task, expenses: updatedExpenses });
+                const taskRef = doc(db, `users/${user.uid}/tasks`, task.id);
+                batch.update(taskRef, { expenses: updatedExpenses });
             }
-        },
-    }),
+        });
+
+        try {
+            await batch.commit();
+            set(state => ({
+                tasks: state.tasks.map(task => {
+                    const updatedVersion = tasksToUpdateLocally.find(t => t.id === task.id);
+                    return updatedVersion || task;
+                })
+            }));
+        } catch (error) {
+            console.error("Error confirming expense batch: ", error);
+        }
+    },
+  }),
 );
 
 // Store for Cities
@@ -476,12 +480,12 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         const groupedExpenses: Record<string, { totalAmount: number; taskIds: Set<string> }> = {};
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
-                if (expense.status === 'Comptabilisé' && expense.processedDate) {
+                if (expense.status === 'Confirmé' && expense.processedDate) {
                     const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
                     if (!groupedExpenses[dateKey]) {
                         groupedExpenses[dateKey] = { totalAmount: 0, taskIds: new Set() };
                     }
-                    groupedExpenses[dateKey].totalAmount += expense.montant;
+                    groupedExpenses[dateKey].totalAmount += expense.approvedAmount ?? expense.montant;
                     groupedExpenses[dateKey].taskIds.add(task.id);
                 }
             });
@@ -540,3 +544,5 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         }
     }
 }));
+
+    

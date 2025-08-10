@@ -94,34 +94,45 @@ export default function DepensesPage() {
 
 
     const groupedProcessedExpenses = useMemo(() => {
-        if (filterStatus !== 'Comptabilisé') return [];
+        const relevantStatuses: ExpenseStatus[] = ['Comptabilisé', 'Confirmé'];
+        if (!relevantStatuses.includes(filterStatus as any)) return [];
 
         const grouped: Record<string, GroupedProcessedExpense> = {};
         
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
-                if (expense.status === 'Comptabilisé' && expense.processedDate) {
+                if (expense.processedDate && (expense.status === 'Comptabilisé' || expense.status === 'Confirmé')) {
                     const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
+                    
                     if (!grouped[dateKey]) {
                         grouped[dateKey] = {
                             id: dateKey,
                             processedDate: dateKey,
                             totalAmount: 0,
-                            status: 'Comptabilisé'
+                            status: expense.status // We'll assume a batch has a consistent status
                         };
                     }
-                    grouped[dateKey].totalAmount += expense.montant;
+                    // Aggregate based on the filter
+                    if (expense.status === filterStatus) {
+                        grouped[dateKey].totalAmount += expense.montant;
+                    }
                 }
             });
         });
 
-        return Object.values(grouped).sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime()); // oldest first
+        // Filter out groups with zero amount for the current filter
+        const filteredGroups = Object.values(grouped).filter(g => g.totalAmount > 0);
+
+        return filteredGroups.sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime());
     }, [tasks, filterStatus]);
 
 
     const totalAmount = useMemo(() => {
+        if (filterStatus === 'Confirmé') {
+            return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
+        }
         if (filterStatus === 'Comptabilisé') {
-          return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
+            return groupedProcessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
         }
         return groupedUnprocessedExpenses.reduce((total, expense) => total + expense.totalAmount, 0);
     }, [groupedUnprocessedExpenses, groupedProcessedExpenses, filterStatus]);
@@ -129,7 +140,6 @@ export default function DepensesPage() {
     const oldestExpenseDate = useMemo(() => {
       if (filterStatus === 'Sans compte') {
         if (groupedUnprocessedExpenses.length === 0) return null;
-        // find the oldest date
         return groupedUnprocessedExpenses.reduce((oldest, current) => {
             if (!oldest.displayDate) return current;
             if (!current.displayDate) return oldest;
@@ -137,7 +147,7 @@ export default function DepensesPage() {
         }).displayDate;
       }
       if (groupedProcessedExpenses.length === 0) return null;
-      return groupedProcessedExpenses[0].processedDate; // Now sorted oldest first
+      return groupedProcessedExpenses[0].processedDate;
 
     }, [groupedUnprocessedExpenses, groupedProcessedExpenses, filterStatus]);
     
@@ -152,7 +162,7 @@ export default function DepensesPage() {
             setPaymentDate(new Date());
             toast({
                 title: "Paiement ajouté",
-                description: `Le solde a été mis à jour et appliqué aux dépenses en attente.`,
+                description: `Le solde a été mis à jour et appliqué aux dépenses confirmées.`,
             });
         }
     };
@@ -175,35 +185,43 @@ export default function DepensesPage() {
     
     const pageTitles = {
         'Sans compte': 'Dépenses non traitées',
-        'Comptabilisé': 'Dépenses en attente de paiement',
+        'Comptabilisé': 'Dépenses en attente de confirmation',
+        'Confirmé': 'Dépenses en attente de paiement',
         'Payé': 'Dépenses Payées',
-        'Confirmé': 'Dépenses Confirmées'
     }
 
     const totalCardTitles = {
         'Sans compte': 'Total des dépenses non comptabilisées',
-        'Comptabilisé': 'Total des dépenses en attente',
+        'Comptabilisé': 'Total des dépenses à confirmer',
+        'Confirmé': 'Total des dépenses en attente de paiement',
         'Payé': 'Total des dépenses Payées',
-        'Confirmé': 'Total des dépenses Confirmées'
     }
 
     const totalCardDescriptions = {
         'Sans compte': 'Montant total des dépenses non encore traitées.',
-        'Comptabilisé': 'Montant total des dépenses en attente de paiement.',
+        'Comptabilisé': 'Montant total des dépenses en attente de confirmation.',
+        'Confirmé': 'Montant total des dépenses confirmées et en attente de paiement.',
         'Payé': 'Montant total des dépenses Payées.',
-        'Confirmé': 'Montant total des dépenses Confirmées'
     }
 
     const dateCardTitles = {
         'Sans compte': 'Date de la première dépense non comptabilisée',
-        'Comptabilisé': 'Date du lot le plus ancien',
+        'Comptabilisé': 'Date du lot le plus ancien à confirmer',
+        'Confirmé': 'Date du lot le plus ancien à payer',
         'Payé': 'Date de la première dépense Payée',
-        'Confirmé': 'Date de la première dépense Confirmée'
     }
 
     const dateCardDescription = oldestExpenseDate
-        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : 'traitée'}.`
-        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'comptabilisée'}.`;
+        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : 'en attente'}.`
+        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'en attente'}.`;
+        
+    const statusConfig: Record<ExpenseStatus, { color: string; text: string }> = {
+        'Sans compte': { color: 'bg-gray-100 text-gray-800', text: 'Sans compte' },
+        'Comptabilisé': { color: 'bg-yellow-100 text-yellow-800', text: 'À Confirmer' },
+        'Confirmé': { color: 'bg-orange-100 text-orange-800', text: 'À Payer' },
+        'Payé': { color: 'bg-green-100 text-green-800', text: 'Payé' },
+    };
+
 
     if (!isClient || isLoading) {
         return (
@@ -309,9 +327,9 @@ export default function DepensesPage() {
 
     return (
         <div className="flex flex-col gap-6">
-             {filterStatus === 'Comptabilisé' && renderPaymentSection()}
+             {filterStatus === 'Confirmé' && renderPaymentSection()}
              
-             {filterStatus !== 'Comptabilisé' && (
+             {filterStatus !== 'Confirmé' && (
                 <div className="grid gap-4 md:grid-cols-2">
                     <Card>
                         <CardHeader className="p-6">
@@ -354,7 +372,8 @@ export default function DepensesPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
-                                <SelectItem value="Comptabilisé">Dépenses en attente</SelectItem>
+                                <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
+                                <SelectItem value="Confirmé">En attente de paiement</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -393,22 +412,25 @@ export default function DepensesPage() {
                                     </TableRow>
                                 ))
                              ) : (
-                                groupedProcessedExpenses.map((group) => (
-                                    <TableRow key={group.id}>
-                                      <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate)}</TableCell>
-                                      <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
-                                       <TableCell className="p-2 sm:p-4">
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800`}>
-                                                {group.status}
-                                            </span>
+                                groupedProcessedExpenses.map((group) => {
+                                    const statusInfo = statusConfig[group.status];
+                                    return (
+                                        <TableRow key={group.id}>
+                                        <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate)}</TableCell>
+                                        <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
+                                        <TableCell className="p-2 sm:p-4">
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                                                    {statusInfo.text}
+                                                </span>
+                                            </TableCell>
+                                        <TableCell className="text-right p-2 sm:p-4">
+                                            <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
+                                                Afficher
+                                            </Button>
                                         </TableCell>
-                                      <TableCell className="text-right p-2 sm:p-4">
-                                        <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
-                                            Afficher
-                                        </Button>
-                                      </TableCell>
-                                    </TableRow>
-                                ))
+                                        </TableRow>
+                                    )
+                                })
                              )}
                         </TableBody>
                     </Table>
@@ -417,3 +439,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
