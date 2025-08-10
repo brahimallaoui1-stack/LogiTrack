@@ -109,11 +109,10 @@ export default function DepensesPage() {
                             status: expense.status,
                         };
                     }
-                     // Aggregate total for 'Comptabilisé', but calculate net for 'Confirmé'
+                    
                     if (filterStatus === 'Comptabilisé') {
                         grouped[batchId].totalAmount += expense.montant;
                     } else if (filterStatus === 'Confirmé') {
-                         // For 'Confirmé', we set these values once from the first relevant expense in the batch
                          if (grouped[batchId].approvedAmount === undefined) {
                             grouped[batchId].approvedAmount = expense.approvedAmount;
                             grouped[batchId].advance = expense.advance;
@@ -454,6 +453,8 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
 
     
 
