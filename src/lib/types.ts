@@ -18,7 +18,7 @@ export interface Expense {
   status: ExpenseStatus;
   processedDate?: string;
   
-  // New accounting fields
+  // New accounting fields - applied to the whole batch but stored per expense
   approvedAmount?: number;
   advance?: number;
   accountantFees?: number;
@@ -82,5 +82,3 @@ export interface User {
 export interface ClientBalance {
     amount: number;
 }
-
-    

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useTaskStore, useFacturationStore } from "@/lib/store";
+import { useTaskStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
@@ -24,7 +24,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 type EnrichedExpense = Expense & {
     missionDate?: string;
@@ -38,8 +39,12 @@ export default function ViewProcessedExpensesPage() {
     const { toast } = useToast();
 
     const { tasks, fetchTasks, confirmExpenseBatch } = useTaskStore();
-    const [localExpenses, setLocalExpenses] = useState<EnrichedExpense[]>([]);
     const [isConfirming, setIsConfirming] = useState(false);
+    
+    // Batch-level accounting info
+    const [approvedAmount, setApprovedAmount] = useState<number | ''>('');
+    const [advance, setAdvance] = useState<number | ''>('');
+    const [accountantFees, setAccountantFees] = useState<number | ''>('');
     
     useEffect(() => {
         if (tasks.length === 0) {
@@ -52,11 +57,12 @@ export default function ViewProcessedExpensesPage() {
       return isValid(date);
     }, [id])
 
-    const { processedExpenses, expenseStatus } = useMemo(() => {
-      if (!isDateId) return { processedExpenses: [], expenseStatus: null };
+    const { processedExpenses, expenseStatus, initialTotal } = useMemo(() => {
+      if (!isDateId) return { processedExpenses: [], expenseStatus: null, initialTotal: 0 };
 
       let status: Expense['status'] | null = null;
       const allExpenses: EnrichedExpense[] = [];
+      let total = 0;
       
       tasks.forEach(task => {
         task.expenses
@@ -72,6 +78,7 @@ export default function ViewProcessedExpensesPage() {
                 return isMatch;
             })
             .forEach(expense => {
+                total += expense.montant;
                 const missionDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
                 const ville = task.city === 'Casablanca' ? task.city : (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].city : 'Hors Casablanca');
                 allExpenses.push({
@@ -81,27 +88,37 @@ export default function ViewProcessedExpensesPage() {
                 });
             });
       });
-      return { processedExpenses: allExpenses, expenseStatus: status };
+      return { processedExpenses: allExpenses, expenseStatus: status, initialTotal: total };
 
     }, [tasks, id, isDateId]);
 
     useEffect(() => {
-        if (processedExpenses.length > 0) {
-            setLocalExpenses(processedExpenses);
-        }
+       if (processedExpenses.length > 0) {
+           const firstExpense = processedExpenses[0];
+           // If values are already set, populate them for editing (though it might be read-only)
+           setApprovedAmount(firstExpense.approvedAmount ?? '');
+           setAdvance(firstExpense.advance ?? '');
+           setAccountantFees(firstExpense.accountantFees ?? '');
+       }
     }, [processedExpenses]);
 
-    const handleLocalExpenseChange = (expenseId: string, field: keyof Expense, value: string | number) => {
-        setLocalExpenses(prev => 
-            prev.map(exp => 
-                exp.id === expenseId ? { ...exp, [field]: value } : exp
-            )
-        );
-    };
 
     const handleConfirmBatch = async () => {
+        if (approvedAmount === '' || advance === '' || accountantFees === '') {
+            toast({
+                variant: 'destructive',
+                title: "Champs requis",
+                description: "Veuillez remplir tous les champs comptables."
+            });
+            return;
+        }
+
         const batchDate = id as string;
-        await confirmExpenseBatch(batchDate, localExpenses);
+        await confirmExpenseBatch(batchDate, {
+            approvedAmount: Number(approvedAmount),
+            advance: Number(advance),
+            accountantFees: Number(accountantFees)
+        });
         toast({
             title: "Lot confirmé",
             description: "Les dépenses ont été confirmées et sont prêtes pour le paiement."
@@ -109,11 +126,6 @@ export default function ViewProcessedExpensesPage() {
         router.push('/depenses');
     };
 
-
-     const totalAmount = useMemo(() => {
-        return processedExpenses.reduce((total, expense) => total + (expense.approvedAmount ?? expense.montant), 0);
-    }, [processedExpenses]);
-    
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
           minimumFractionDigits: 0,
@@ -124,6 +136,13 @@ export default function ViewProcessedExpensesPage() {
     const isPaid = expenseStatus === 'Payé';
     const isConfirmed = expenseStatus === 'Confirmé';
     const isReadyForConfirmation = expenseStatus === 'Comptabilisé';
+
+    const netAmount = useMemo(() => {
+        const approved = typeof approvedAmount === 'number' ? approvedAmount : 0;
+        const adv = typeof advance === 'number' ? advance : 0;
+        const fees = typeof accountantFees === 'number' ? accountantFees : 0;
+        return approved - adv - fees;
+    }, [approvedAmount, advance, accountantFees]);
 
 
     if (tasks.length === 0) {
@@ -211,56 +230,68 @@ export default function ViewProcessedExpensesPage() {
                             <TableRow>
                                 <TableHead>Date Mission</TableHead>
                                 <TableHead>Ville</TableHead>
+                                <TableHead>Type Dépense</TableHead>
                                 <TableHead className="text-right">Montant Initial</TableHead>
-                                <TableHead className="text-right w-[150px]">Montant Approuvé</TableHead>
-                                <TableHead className="text-right w-[150px]">Avance</TableHead>
-                                <TableHead className="text-right w-[150px]">Frais Comptable</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {localExpenses.map((expense) => (
+                            {processedExpenses.map((expense) => (
                                 <TableRow key={expense.id}>
                                     <TableCell>{formatDate(expense.missionDate)}</TableCell>
                                     <TableCell>{expense.ville}</TableCell>
+                                    <TableCell>{expense.typeDepense}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(expense.montant)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Input 
-                                            type="number"
-                                            className="text-right"
-                                            placeholder="Vide"
-                                            value={expense.approvedAmount ?? ''}
-                                            onChange={(e) => handleLocalExpenseChange(expense.id, 'approvedAmount', parseFloat(e.target.value) || 0)}
-                                            readOnly={!isReadyForConfirmation}
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Input 
-                                            type="number"
-                                            className="text-right"
-                                            placeholder="Vide"
-                                            value={expense.advance ?? ''}
-                                            onChange={(e) => handleLocalExpenseChange(expense.id, 'advance', parseFloat(e.target.value) || 0)}
-                                            readOnly={!isReadyForConfirmation}
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Input 
-                                            type="number"
-                                            className="text-right"
-                                            placeholder="Vide"
-                                            value={expense.accountantFees ?? ''}
-                                            onChange={(e) => handleLocalExpenseChange(expense.id, 'accountantFees', parseFloat(e.target.value) || 0)}
-                                            readOnly={!isReadyForConfirmation}
-                                        />
-                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                      <div className="text-right font-bold pr-4 mt-4 text-lg">
-                        Total Approuvé: {formatCurrency(totalAmount)}
+                        Total Initial: {formatCurrency(initialTotal)}
                     </div>
                 </CardContent>
+
+                <Separator className="my-4"/>
+
+                <CardFooter className="flex-col items-end gap-4">
+                     <div className="grid grid-cols-2 gap-x-8 gap-y-4 w-full max-w-md self-end">
+                         <Label htmlFor="approvedAmount">Montant Approuvé</Label>
+                         <Input
+                            id="approvedAmount"
+                            type="number"
+                            className="text-right"
+                            placeholder="Vide"
+                            value={approvedAmount}
+                            onChange={(e) => setApprovedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            readOnly={!isReadyForConfirmation}
+                         />
+
+                         <Label htmlFor="advance">Avance (Tasbiq)</Label>
+                         <Input
+                            id="advance"
+                            type="number"
+                            className="text-right"
+                            placeholder="Vide"
+                            value={advance}
+                            onChange={(e) => setAdvance(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            readOnly={!isReadyForConfirmation}
+                         />
+
+                         <Label htmlFor="accountantFees">Frais Comptable (L3omola)</Label>
+                         <Input
+                            id="accountantFees"
+                            type="number"
+                            className="text-right"
+                            placeholder="Vide"
+                            value={accountantFees}
+                            onChange={(e) => setAccountantFees(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            readOnly={!isReadyForConfirmation}
+                         />
+                     </div>
+                     <Separator className="my-2 w-full max-w-md self-end"/>
+                     <div className="text-right font-bold text-xl w-full max-w-md self-end pr-2">
+                        Net à Payer: {formatCurrency(netAmount)}
+                     </div>
+                </CardFooter>
             </Card>
         </div>
         <AlertDialog open={isConfirming} onOpenChange={setIsConfirming}>
@@ -268,7 +299,7 @@ export default function ViewProcessedExpensesPage() {
                 <AlertDialogHeader>
                 <AlertDialogTitle>Confirmer les montants?</AlertDialogTitle>
                 <AlertDialogDescription>
-                    Cette action mettra à jour les dépenses avec les montants que vous avez saisis et marquera le lot comme "Confirmé". Vous ne pourrez plus modifier ces montants.
+                    Cette action mettra à jour le lot avec les montants que vous avez saisis et le marquera comme "Confirmé". Vous ne pourrez plus modifier ces montants.
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -280,5 +311,3 @@ export default function ViewProcessedExpensesPage() {
         </>
     )
 }
-
-    
