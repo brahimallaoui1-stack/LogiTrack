@@ -86,7 +86,7 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  processMissionExpenses: (taskId: string) => Promise<void>;
+  processMissionsExpenses: (taskIds: string[]) => Promise<void>;
   confirmExpenseBatch: (
     batchId: string,
     batchData: { approvedAmount: number; advance: number; accountantFees: number }
@@ -152,12 +152,12 @@ export const useTaskStore = create<TaskState>()(
             console.error("Error deleting task: ", error);
         }
       },
-       processMissionExpenses: async (taskId) => {
+       processMissionsExpenses: async (taskIds: string[]) => {
          const user = useAuthStore.getState().user;
          if (!user) return;
 
-         const taskToUpdate = get().tasks.find(t => t.id === taskId);
-         if (!taskToUpdate || !taskToUpdate.expenses) return;
+         const tasksToUpdate = get().tasks.filter(t => taskIds.includes(t.id));
+         if (tasksToUpdate.length === 0) return;
 
          const activeBatchRef = doc(db, `users/${user.uid}/state/activeBatch`);
          const activeBatchSnap = await getDoc(activeBatchRef);
@@ -172,25 +172,37 @@ export const useTaskStore = create<TaskState>()(
             await setDoc(activeBatchRef, { batchId });
          }
 
-         const updatedExpenses = taskToUpdate.expenses.map(exp => {
-            if (exp.status === 'Sans compte') {
-                return {
-                    ...exp,
-                    status: 'Comptabilisé' as ExpenseStatus,
-                    batchId,
-                    processedDate,
-                }
-            }
-            return exp;
-         });
+         const batch = writeBatch(db);
+         const updatedTasksLocally: Task[] = [];
 
-         const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
+         tasksToUpdate.forEach(task => {
+            const updatedExpenses = task.expenses?.map(exp => {
+                if (exp.status === 'Sans compte') {
+                    return {
+                        ...exp,
+                        status: 'Comptabilisé' as ExpenseStatus,
+                        batchId,
+                        processedDate,
+                    }
+                }
+                return exp;
+            });
+
+            if (updatedExpenses) {
+                const updatedTask = { ...task, expenses: updatedExpenses };
+                const taskRef = doc(db, `users/${user.uid}/tasks`, task.id);
+                batch.update(taskRef, { expenses: updatedExpenses });
+                updatedTasksLocally.push(updatedTask);
+            }
+         });
          
          try {
-             const taskRef = doc(db, `users/${user.uid}/tasks`, taskId);
-             await updateDoc(taskRef, { expenses: updatedExpenses });
+             await batch.commit();
              set(state => ({
-                 tasks: state.tasks.map(t => t.id === taskId ? updatedTask : t)
+                 tasks: state.tasks.map(t => {
+                    const updatedVersion = updatedTasksLocally.find(ut => ut.id === t.id);
+                    return updatedVersion || t;
+                 })
              }));
          } catch (error) {
              console.error("Error processing mission expenses: ", error);
@@ -570,3 +582,5 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         }
     }
 }));
+
+    

@@ -15,9 +15,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, CheckSquare } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 type GroupedExpense = {
@@ -38,12 +39,13 @@ type GroupedProcessedExpense = {
 export default function DepensesPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const { tasks, isLoading, fetchTasks } = useTaskStore();
+    const { tasks, isLoading, fetchTasks, processMissionsExpenses } = useTaskStore();
     const { clientBalance, fetchClientBalance, addPayment, applyBalanceToExpenses } = useFacturationStore();
 
     const [isClient, setIsClient] = useState(false);
     const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
     const [paymentDate, setPaymentDate] = useState<Date | undefined>(new Date());
+    const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
 
     useEffect(() => {
@@ -107,13 +109,18 @@ export default function DepensesPage() {
                             processedDate: expense.processedDate || new Date().toISOString(),
                             totalAmount: 0,
                             status: expense.status,
-                            approvedAmount: expense.approvedAmount,
-                            advance: expense.advance,
-                            accountantFees: expense.accountantFees,
                         };
                     }
+                     // Aggregate total for 'Comptabilisé', but calculate net for 'Confirmé'
                     if (filterStatus === 'Comptabilisé') {
                         grouped[batchId].totalAmount += expense.montant;
+                    } else if (filterStatus === 'Confirmé') {
+                         // For 'Confirmé', we set these values once from the first relevant expense in the batch
+                         if (grouped[batchId].approvedAmount === undefined) {
+                            grouped[batchId].approvedAmount = expense.approvedAmount;
+                            grouped[batchId].advance = expense.advance;
+                            grouped[batchId].accountantFees = expense.accountantFees;
+                         }
                     }
                 }
             });
@@ -189,6 +196,35 @@ export default function DepensesPage() {
         } else {
              router.push(`/depenses/view/${id}`);
         }
+    };
+
+    const handleProcessSelected = async () => {
+        if (selectedTaskIds.size === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Aucune mission sélectionnée',
+                description: 'Veuillez sélectionner au moins une mission à traiter.',
+            });
+            return;
+        }
+        await processMissionsExpenses(Array.from(selectedTaskIds));
+        toast({
+            title: 'Dépenses traitées',
+            description: 'Les dépenses des missions sélectionnées ont été ajoutées au lot actif.',
+        });
+        setSelectedTaskIds(new Set());
+    };
+
+    const handleToggleSelection = (taskId: string) => {
+        setSelectedTaskIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(taskId)) {
+                newSet.delete(taskId);
+            } else {
+                newSet.add(taskId);
+            }
+            return newSet;
+        });
     };
     
     const pageTitles = {
@@ -371,19 +407,27 @@ export default function DepensesPage() {
                         <div>
                             <CardTitle>{pageTitles[filterStatus]}</CardTitle>
                             <CardDescription>
-                                Voici la liste de toutes les dépenses.
+                                {filterStatus === 'Sans compte' ? 'Sélectionnez les missions à regrouper et à traiter.' : 'Voici la liste de toutes les dépenses.'}
                             </CardDescription>
                         </div>
-                        <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
-                            <SelectTrigger className="w-full md:w-[220px]">
-                                <SelectValue placeholder="Filtrer par statut" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
-                                <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
-                                <SelectItem value="Confirmé">En attente de paiement</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                            {filterStatus === 'Sans compte' && (
+                                <Button onClick={handleProcessSelected} disabled={selectedTaskIds.size === 0} className="w-full md:w-auto">
+                                    <CheckSquare className="mr-2 h-4 w-4" />
+                                    Traiter la sélection ({selectedTaskIds.size})
+                                </Button>
+                            )}
+                            <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
+                                <SelectTrigger className="w-full md:w-[220px]">
+                                    <SelectValue placeholder="Filtrer par statut" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
+                                    <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
+                                    <SelectItem value="Confirmé">En attente de paiement</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
@@ -391,6 +435,17 @@ export default function DepensesPage() {
                         <TableHeader>
                            {filterStatus === 'Sans compte' ? (
                                 <TableRow>
+                                    <TableHead className="px-1 sm:px-2 w-10 text-center"><Checkbox 
+                                        onCheckedChange={(checked) => {
+                                            if (checked) {
+                                                setSelectedTaskIds(new Set(groupedUnprocessedExpenses.map(g => g.id)));
+                                            } else {
+                                                setSelectedTaskIds(new Set());
+                                            }
+                                        }}
+                                        checked={selectedTaskIds.size > 0 && selectedTaskIds.size === groupedUnprocessedExpenses.length}
+                                        aria-label="Sélectionner tout"
+                                    /></TableHead>
                                     <TableHead className="px-2 sm:px-4">Date de mission</TableHead>
                                     <TableHead className="px-2 sm:px-4">Ville</TableHead>
                                     <TableHead className="px-2 sm:px-4">Montant</TableHead>
@@ -408,7 +463,14 @@ export default function DepensesPage() {
                         <TableBody>
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
-                                    <TableRow key={group.id}>
+                                    <TableRow key={group.id} data-state={selectedTaskIds.has(group.id) ? "selected" : ""}>
+                                        <TableCell className="px-1 sm:px-2 text-center">
+                                            <Checkbox
+                                                checked={selectedTaskIds.has(group.id)}
+                                                onCheckedChange={() => handleToggleSelection(group.id)}
+                                                aria-label={`Sélectionner la mission ${group.id}`}
+                                            />
+                                        </TableCell>
                                         <TableCell className="p-2 sm:p-4">{formatDate(group.displayDate, "dd-MM-yyyy")}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{group.ville}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
@@ -447,3 +509,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    

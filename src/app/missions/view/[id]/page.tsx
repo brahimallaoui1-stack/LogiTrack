@@ -32,7 +32,7 @@ export default function ViewMissionPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const { id } = params;
-    const { tasks, isLoading, fetchTasks, deleteTask, processMissionExpenses } = useTaskStore();
+    const { tasks, isLoading, fetchTasks, deleteTask } = useTaskStore();
     
     useEffect(() => {
         if(tasks.length === 0) {
@@ -44,7 +44,6 @@ export default function ViewMissionPage() {
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [isProcessingDialogOpen, setIsProcessingDialogOpen] = useState(false);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -68,18 +67,6 @@ export default function ViewMissionPage() {
             router.push('/missions');
         }
     };
-    
-    const handleProcessExpenses = async () => {
-        if (task && unprocessedExpenses.length > 0) {
-            await processMissionExpenses(task.id);
-            toast({
-                title: "Dépenses traitées",
-                description: "Les dépenses de cette mission ont été ajoutées au lot actif.",
-            });
-            setIsProcessingDialogOpen(false);
-        }
-    }
-
 
     if (isLoading) {
         return (
@@ -270,20 +257,8 @@ export default function ViewMissionPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-         <AlertDialog open={isProcessingDialogOpen} onOpenChange={setIsProcessingDialogOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Traiter les dépenses ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Cette action ajoutera toutes les dépenses non traitées de cette mission au lot de confirmation actif.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleProcessExpenses}>Confirmer</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
         </>
     );
 }
+
+    
