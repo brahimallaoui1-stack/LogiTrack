@@ -94,7 +94,7 @@ export default function DepensesPage() {
         const relevantStatuses: ExpenseStatus[] = ['Comptabilisé', 'Confirmé'];
         if (!relevantStatuses.includes(filterStatus as any)) return [];
 
-        const grouped: Record<string, GroupedProcessedExpense> = {};
+        const grouped: Record<string, GroupedProcessedExpense & { approvedAmount?: number, advance?: number, accountantFees?: number }> = {};
         
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
@@ -106,15 +106,30 @@ export default function DepensesPage() {
                             id: batchId,
                             processedDate: expense.processedDate || new Date().toISOString(),
                             totalAmount: 0,
-                            status: expense.status
+                            status: expense.status,
+                            approvedAmount: expense.approvedAmount,
+                            advance: expense.advance,
+                            accountantFees: expense.accountantFees,
                         };
                     }
-                    grouped[batchId].totalAmount += expense.montant;
+                    if (filterStatus === 'Comptabilisé') {
+                        grouped[batchId].totalAmount += expense.montant;
+                    }
                 }
             });
         });
+        
+        const finalGroups = Object.values(grouped).map(group => {
+            if (filterStatus === 'Confirmé') {
+                const approved = group.approvedAmount ?? 0;
+                const advance = group.advance ?? 0;
+                const fees = group.accountantFees ?? 0;
+                group.totalAmount = approved - advance - fees;
+            }
+            return group;
+        });
 
-        const filteredGroups = Object.values(grouped).filter(g => g.totalAmount > 0);
+        const filteredGroups = finalGroups.filter(g => filterStatus === 'Comptabilisé' ? g.totalAmount > 0 : g.approvedAmount !== undefined);
 
         return filteredGroups.sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime());
     }, [tasks, filterStatus]);
@@ -186,14 +201,14 @@ export default function DepensesPage() {
     const totalCardTitles = {
         'Sans compte': 'Total des dépenses non comptabilisées',
         'Comptabilisé': 'Total des dépenses à confirmer',
-        'Confirmé': 'Total des dépenses en attente de paiement',
+        'Confirmé': 'Total Net à payer',
         'Payé': 'Total des dépenses Payées',
     }
 
     const totalCardDescriptions = {
         'Sans compte': 'Montant total des dépenses non encore traitées.',
         'Comptabilisé': 'Montant total des dépenses en attente de confirmation.',
-        'Confirmé': 'Montant total des dépenses confirmées et en attente de paiement.',
+        'Confirmé': 'Montant total net à payer pour les lots confirmés.',
         'Payé': 'Montant total des dépenses Payées.',
     }
 
@@ -261,7 +276,7 @@ export default function DepensesPage() {
         <div className="grid gap-6 md:grid-cols-3 mb-6">
              <Card>
                 <CardHeader>
-                    <CardTitle className="text-base">Total en attente</CardTitle>
+                    <CardTitle className="text-base">Total Net à Payer</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
@@ -384,7 +399,7 @@ export default function DepensesPage() {
                            ) : (
                                 <TableRow>
                                     <TableHead className="px-2 sm:px-4">Date de traitement</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Montant Total</TableHead>
+                                    <TableHead className="px-2 sm:px-4">{filterStatus === 'Confirmé' ? 'Net à Payer' : 'Montant Total'}</TableHead>
                                     <TableHead className="px-2 sm:px-4">Statut</TableHead>
                                     <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
                                 </TableRow>
