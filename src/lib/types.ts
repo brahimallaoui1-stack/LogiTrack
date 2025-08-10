@@ -10,6 +10,7 @@ export interface Invoice {
   accountantFees?: number;
   receivedAmount?: number;
   paymentDate?: string;
+  paymentId?: string; // Unique ID for the payment transaction
 }
 
 export interface Expense {
@@ -78,5 +79,3 @@ export interface User {
 export interface ClientBalance {
     amount: number;
 }
-
-    

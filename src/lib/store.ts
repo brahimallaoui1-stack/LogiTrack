@@ -492,6 +492,7 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         const batch = writeBatch(db);
         let balanceChanged = false;
         let balanceToDeduct = 0;
+        const paymentId = `payment-${Date.now()}`;
 
         for (const [date, group] of sortedGroups) {
             if (currentBalance >= group.totalAmount) {
@@ -507,7 +508,8 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
                                     payment: { 
                                         ...(exp.payment || {}),
                                         paymentDate: paymentInfo.paymentDate,
-                                        receivedAmount: paymentInfo.receivedAmount // This might be the total payment, not for this batch.
+                                        receivedAmount: paymentInfo.receivedAmount,
+                                        paymentId: paymentId
                                     } 
                                 };
                             }
@@ -538,5 +540,3 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         }
     }
 }));
-
-    

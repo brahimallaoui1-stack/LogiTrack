@@ -14,7 +14,8 @@ import type { Expense } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
 type GroupedExpense = {
-  id: string; // The date 'yyyy-MM-dd'
+  id: string; // The paymentId
+  processedDate: string; // The original processedDate
   totalAmount: number;
   status: 'Payé';
   paymentDate?: string;
@@ -31,28 +32,32 @@ export default function FacturationPage() {
   }, [fetchTasks, tasks.length]);
   
   const paidExpenses = useMemo(() => {
-    const grouped: Record<string, GroupedExpense> = {};
+    const groupedByPayment: Record<string, GroupedExpense> = {};
 
     tasks.forEach(task => {
       task.expenses?.forEach(expense => {
-        if (expense.status === 'Payé' && expense.processedDate) {
-          const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
-          if (!grouped[dateKey]) {
-            grouped[dateKey] = { 
-                id: dateKey, 
+        if (expense.status === 'Payé' && expense.payment?.paymentId && expense.processedDate) {
+          const paymentId = expense.payment.paymentId;
+          
+          if (!groupedByPayment[paymentId]) {
+            groupedByPayment[paymentId] = { 
+                id: paymentId,
+                processedDate: format(new Date(expense.processedDate), 'yyyy-MM-dd'),
                 totalAmount: 0, 
                 status: 'Payé',
+                paymentDate: expense.payment.paymentDate,
             };
           }
-          grouped[dateKey].totalAmount += expense.montant;
-          if (expense.payment?.paymentDate) {
-             grouped[dateKey].paymentDate = expense.payment.paymentDate;
-          }
+          groupedByPayment[paymentId].totalAmount += expense.montant;
         }
       });
     });
 
-    return Object.values(grouped).sort((a,b) => new Date(b.id).getTime() - new Date(a.id).getTime());
+    return Object.values(groupedByPayment).sort((a,b) => {
+        const dateA = a.paymentDate ? new Date(a.paymentDate) : new Date(0);
+        const dateB = b.paymentDate ? new Date(b.paymentDate) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
+    });
   }, [tasks]);
   
  const totalPaid = useMemo(() => {
@@ -67,8 +72,8 @@ export default function FacturationPage() {
     }).format(amount) + ' MAD';
   };
   
-  const handleView = (id: string) => {
-    router.push(`/depenses/view/${id}`);
+  const handleView = (processedDate: string) => {
+    router.push(`/depenses/view/${processedDate}`);
   };
 
   if (!isClient || isLoadingTasks) {
@@ -131,8 +136,8 @@ export default function FacturationPage() {
               {paidExpenses.map((group) => {
                 return (
                   <TableRow key={group.id}>
-                    <TableCell className="hidden md:table-cell">{formatDate(group.id)}</TableCell>
-                    <TableCell className="md:hidden">{formatDate(group.id, "dd/MM")}</TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDate(group.processedDate)}</TableCell>
+                    <TableCell className="md:hidden">{formatDate(group.processedDate, "dd/MM/yy")}</TableCell>
                     <TableCell>{formatDate(group.paymentDate)}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>
@@ -141,7 +146,7 @@ export default function FacturationPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                        <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                        <Button variant="outline" size="icon" onClick={() => handleView(group.processedDate)} className="h-8 w-8">
                             <Eye className="h-4 w-4" />
                         </Button>
                     </TableCell>
@@ -155,5 +160,3 @@ export default function FacturationPage() {
     </div>
   );
 }
-
-    
