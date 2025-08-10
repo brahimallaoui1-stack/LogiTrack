@@ -286,7 +286,7 @@ export default function DepensesPage() {
                             )}
                             >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {paymentDate ? format(paymentDate, "PPP") : <span>Choisir une date</span>}
+                            {paymentDate ? format(paymentDate, "dd-MM-yyyy") : <span>Choisir une date</span>}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
