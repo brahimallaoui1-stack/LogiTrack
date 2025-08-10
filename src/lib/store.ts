@@ -514,16 +514,24 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
 
         const tasks = useTaskStore.getState().tasks;
 
-        const groupedExpenses: Record<string, { totalApprovedAmount: number; taskIds: Set<string>; processedDate: string }> = {};
+        const groupedExpenses: Record<string, { netToPay: number; taskIds: Set<string>; processedDate: string }> = {};
+        
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
                 if (expense.status === 'Confirmé' && expense.batchId && expense.processedDate) {
                     const batchId = expense.batchId;
                     if (!groupedExpenses[batchId]) {
-                        groupedExpenses[batchId] = { totalApprovedAmount: 0, taskIds: new Set(), processedDate: expense.processedDate };
+                        const approved = expense.approvedAmount ?? 0;
+                        const advance = expense.advance ?? 0;
+                        const fees = expense.accountantFees ?? 0;
+                        const netToPay = approved - advance - fees;
+
+                        groupedExpenses[batchId] = {
+                            netToPay: netToPay,
+                            taskIds: new Set(),
+                            processedDate: expense.processedDate
+                        };
                     }
-                     // Since approvedAmount is the same for all expenses in the batch, we can just take the first one.
-                    groupedExpenses[batchId].totalApprovedAmount = expense.approvedAmount ?? 0;
                     groupedExpenses[batchId].taskIds.add(task.id);
                 }
             });
@@ -537,7 +545,7 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         const paymentId = `payment-${Date.now()}`;
 
         for (const [batchId, group] of sortedGroups) {
-            if (currentBalance >= group.totalApprovedAmount) {
+            if (currentBalance >= group.netToPay) {
                 group.taskIds.forEach(taskId => {
                     const taskRef = doc(db, `users/${user.uid}/tasks/${taskId}`);
                     const taskData = tasks.find(t => t.id === taskId);
@@ -560,8 +568,8 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
                         batch.update(taskRef, { expenses: updatedExpenses });
                     }
                 });
-                currentBalance -= group.totalApprovedAmount;
-                balanceToDeduct += group.totalApprovedAmount;
+                currentBalance -= group.netToPay;
+                balanceToDeduct += group.netToPay;
                 balanceChanged = true;
             } else {
                 break;
@@ -582,5 +590,3 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         }
     }
 }));
-
-    
