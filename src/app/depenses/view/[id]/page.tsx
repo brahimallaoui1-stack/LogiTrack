@@ -27,10 +27,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-type EnrichedExpense = Expense & {
+
+type GroupedMissionExpense = {
+    missionId: string;
     missionDate?: string;
     ville?: string;
+    totalAmount: number;
 };
+
 
 export default function ViewProcessedExpensesPage() {
     const router = useRouter();
@@ -57,50 +61,63 @@ export default function ViewProcessedExpensesPage() {
       return isValid(date);
     }, [id])
 
-    const { processedExpenses, expenseStatus, initialTotal } = useMemo(() => {
-      if (!isDateId) return { processedExpenses: [], expenseStatus: null, initialTotal: 0 };
+    const { groupedMissionExpenses, expenseStatus, initialTotal } = useMemo(() => {
+        if (!isDateId) return { groupedMissionExpenses: [], expenseStatus: null, initialTotal: 0 };
+    
+        let status: Expense['status'] | null = null;
+        let total = 0;
+        const missionsInBatch: Record<string, GroupedMissionExpense> = {};
 
-      let status: Expense['status'] | null = null;
-      const allExpenses: EnrichedExpense[] = [];
-      let total = 0;
-      
-      tasks.forEach(task => {
-        task.expenses
-            ?.filter(exp => {
-                 const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé' || exp.status === 'Payé') &&
+        tasks.forEach(task => {
+            const expensesInBatch = task.expenses?.filter(exp => {
+                const isMatch = (exp.status === 'Comptabilisé' || exp.status === 'Confirmé' || exp.status === 'Payé') &&
                                 exp.processedDate && 
                                 format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
-                if(isMatch) {
+                if (isMatch) {
                     if (!status || exp.status === 'Payé' || exp.status === 'Confirmé') {
                        status = exp.status;
                     }
                 }
                 return isMatch;
-            })
-            .forEach(expense => {
-                total += expense.montant;
-                const missionDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
-                const ville = task.city === 'Casablanca' ? task.city : (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].city : 'Hors Casablanca');
-                allExpenses.push({
-                    ...expense,
-                    missionDate: missionDate,
-                    ville: ville,
-                });
             });
-      });
-      return { processedExpenses: allExpenses, expenseStatus: status, initialTotal: total };
+
+            if (expensesInBatch && expensesInBatch.length > 0) {
+                if (!missionsInBatch[task.id]) {
+                    const missionDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
+                    let ville = task.city;
+                    if(ville !== 'Casablanca') {
+                        const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
+                        const uniqueCities = [...new Set(allCities)];
+                        ville = uniqueCities.join(' / ') || 'Hors Casablanca';
+                    }
+                    missionsInBatch[task.id] = {
+                        missionId: task.id,
+                        missionDate: missionDate,
+                        ville: ville,
+                        totalAmount: 0,
+                    };
+                }
+                const missionTotal = expensesInBatch.reduce((sum, exp) => sum + exp.montant, 0);
+                missionsInBatch[task.id].totalAmount += missionTotal;
+                total += missionTotal;
+            }
+        });
+
+        const allExpenses = tasks.flatMap(t => t.expenses || []);
+        const firstExpenseOfBatch = allExpenses.find(exp => exp.processedDate?.startsWith(id as string));
+        if (firstExpenseOfBatch) {
+            setApprovedAmount(firstExpenseOfBatch.approvedAmount ?? '');
+            setAdvance(firstExpenseOfBatch.advance ?? '');
+            setAccountantFees(firstExpenseOfBatch.accountantFees ?? '');
+        }
+
+        return { 
+            groupedMissionExpenses: Object.values(missionsInBatch), 
+            expenseStatus: status, 
+            initialTotal: total 
+        };
 
     }, [tasks, id, isDateId]);
-
-    useEffect(() => {
-       if (processedExpenses.length > 0) {
-           const firstExpense = processedExpenses[0];
-           // If values are already set, populate them for editing (though it might be read-only)
-           setApprovedAmount(firstExpense.approvedAmount ?? '');
-           setAdvance(firstExpense.advance ?? '');
-           setAccountantFees(firstExpense.accountantFees ?? '');
-       }
-    }, [processedExpenses]);
 
 
     const handleConfirmBatch = async () => {
@@ -161,7 +178,7 @@ export default function ViewProcessedExpensesPage() {
         )
     }
 
-    if (!isDateId || processedExpenses.length === 0) {
+    if (!isDateId || groupedMissionExpenses.length === 0) {
         return (
              <div className="flex flex-col items-center justify-center h-full text-center p-4">
                  <Card>
@@ -234,11 +251,11 @@ export default function ViewProcessedExpensesPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {processedExpenses.map((expense) => (
-                                <TableRow key={expense.id}>
-                                    <TableCell>{formatDate(expense.missionDate)}</TableCell>
-                                    <TableCell>{expense.ville}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(expense.montant)}</TableCell>
+                            {groupedMissionExpenses.map((mission) => (
+                                <TableRow key={mission.missionId}>
+                                    <TableCell>{formatDate(mission.missionDate)}</TableCell>
+                                    <TableCell>{mission.ville}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(mission.totalAmount)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
