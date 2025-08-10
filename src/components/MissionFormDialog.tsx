@@ -130,9 +130,9 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   const addTask = useTaskStore((state) => state.addTask);
   const updateTask = useTaskStore((state) => state.updateTask);
   
-  const { cities } = useCityStore();
-  const { managers } = useManagerStore();
-  const { missionTypes } = useMissionTypeStore();
+  const { cities, fetchCities } = useCityStore();
+  const { managers, fetchManagers } = useManagerStore();
+  const { missionTypes, fetchMissionTypes } = useMissionTypeStore();
 
   const [formState, setFormState] = useState(initialFormState);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
@@ -155,6 +155,12 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
        return uniqueMissionTypes.join(' / ');
     }
   }, [isCasablancaMission, formState.typeMission, formState.subMissions]);
+
+  useEffect(() => {
+    fetchCities();
+    fetchManagers();
+    fetchMissionTypes();
+  }, [fetchCities, fetchManagers, fetchMissionTypes]);
 
   useEffect(() => {
     if (isOpen) {
