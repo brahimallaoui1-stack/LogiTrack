@@ -32,7 +32,7 @@ export default function ViewMissionPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const { id } = params;
-    const { tasks, isLoading, fetchTasks, deleteTask } = useTaskStore();
+    const { tasks, isLoading, fetchTasks, deleteTask, processMissionExpenses } = useTaskStore();
     
     useEffect(() => {
         if(tasks.length === 0) {
@@ -65,6 +65,24 @@ export default function ViewMissionPage() {
             await deleteTask(task.id);
             setIsDeleteDialogOpen(false);
             router.push('/missions');
+        }
+    };
+    
+    const handleProcessExpenses = async () => {
+        if (task && unprocessedExpenses.length > 0) {
+            await processMissionExpenses([task.id]);
+            toast({
+                title: "Dépenses traitées",
+                description: "Les dépenses de cette mission ont été ajoutées au lot actif.",
+            });
+            // Optionally, navigate away or show a success state
+            router.push('/depenses');
+        } else {
+            toast({
+                variant: 'destructive',
+                title: "Aucune dépense à traiter",
+                description: "Cette mission n'a aucune dépense non traitée.",
+            });
         }
     };
 
@@ -149,6 +167,12 @@ export default function ViewMissionPage() {
                     Retour
                 </Button>
                 <div className="flex gap-2">
+                    {unprocessedExpenses.length > 0 && searchParams.get('from') === 'depenses' && (
+                        <Button onClick={handleProcessExpenses}>
+                            <CheckSquare className="mr-2 h-4 w-4" />
+                            Dépense traitée
+                        </Button>
+                    )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">
@@ -260,5 +284,7 @@ export default function ViewMissionPage() {
         </>
     );
 }
+
+    
 
     
