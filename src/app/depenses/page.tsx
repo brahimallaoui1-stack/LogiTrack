@@ -15,17 +15,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, PlusCircle } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
+
 
 type GroupedExpense = {
   id: string;
   displayDate?: string;
   ville?: string;
   totalAmount: number;
-  taskId: string;
 };
 
 
@@ -39,13 +38,12 @@ type GroupedProcessedExpense = {
 export default function DepensesPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const { tasks, isLoading, fetchTasks, createExpenseBatch } = useTaskStore();
+    const { tasks, isLoading, fetchTasks } = useTaskStore();
     const { clientBalance, fetchClientBalance, addPayment, applyBalanceToExpenses } = useFacturationStore();
 
     const [isClient, setIsClient] = useState(false);
     const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
     const [paymentDate, setPaymentDate] = useState<Date | undefined>(new Date());
-    const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
 
     useEffect(() => {
@@ -59,35 +57,32 @@ export default function DepensesPage() {
     const groupedUnprocessedExpenses = useMemo(() => {
         if (filterStatus !== 'Sans compte') return [];
     
-        const groupedByTask: Record<string, GroupedExpense> = {};
+        const grouped: GroupedExpense[] = [];
     
         tasks.forEach(task => {
             const unprocessedExpenses = task.expenses?.filter(exp => exp.status === 'Sans compte');
     
             if (unprocessedExpenses && unprocessedExpenses.length > 0) {
-                if (!groupedByTask[task.id]) {
-                    const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
-                    
-                    const displayDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
-                    let ville = task.city;
-                    if(ville !== 'Casablanca') {
-                        const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
-                        const uniqueCities = [...new Set(allCities)];
-                        ville = uniqueCities.join(' / ') || 'Hors Casablanca';
-                    }
-
-                    groupedByTask[task.id] = {
-                        id: task.id,
-                        displayDate,
-                        ville,
-                        totalAmount,
-                        taskId: task.id
-                    };
+                const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
+                
+                const displayDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
+                let ville = task.city;
+                if(ville !== 'Casablanca') {
+                    const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
+                    const uniqueCities = [...new Set(allCities)];
+                    ville = uniqueCities.join(' / ') || 'Hors Casablanca';
                 }
+
+                grouped.push({
+                    id: task.id,
+                    displayDate,
+                    ville,
+                    totalAmount
+                });
             }
         });
     
-        return Object.values(groupedByTask).sort((a, b) => {
+        return grouped.sort((a, b) => {
             const dateA = a.displayDate ? new Date(a.displayDate) : new Date(0);
             const dateB = b.displayDate ? new Date(b.displayDate) : new Date(0);
             return dateA.getTime() - dateB.getTime();
@@ -165,34 +160,6 @@ export default function DepensesPage() {
         }
     };
     
-    const handleCreateBatch = async () => {
-        if(selectedTaskIds.size === 0) {
-            toast({
-                variant: 'destructive',
-                title: 'Aucune mission sélectionnée',
-                description: 'Veuillez sélectionner au moins une mission à traiter.'
-            });
-            return;
-        }
-        await createExpenseBatch(Array.from(selectedTaskIds));
-        toast({
-            title: 'Lot créé',
-            description: 'Les dépenses sélectionnées ont été regroupées et sont en attente de confirmation.'
-        });
-        setSelectedTaskIds(new Set());
-    };
-
-    const handleSelectTask = (taskId: string) => {
-        setSelectedTaskIds(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(taskId)) {
-                newSet.delete(taskId);
-            } else {
-                newSet.add(taskId);
-            }
-            return newSet;
-        });
-    };
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -389,14 +356,10 @@ export default function DepensesPage() {
                         <div>
                             <CardTitle>{pageTitles[filterStatus]}</CardTitle>
                             <CardDescription>
-                                {filterStatus === 'Sans compte' 
-                                    ? 'Cochez les missions à regrouper, puis créez un lot.'
-                                    : 'Voici la liste de toutes les dépenses.'
-                                }
+                                Voici la liste de toutes les dépenses.
                             </CardDescription>
                         </div>
-                        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2">
-                         <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
+                        <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
                             <SelectTrigger className="w-full md:w-[220px]">
                                 <SelectValue placeholder="Filtrer par statut" />
                             </SelectTrigger>
@@ -406,13 +369,6 @@ export default function DepensesPage() {
                                 <SelectItem value="Confirmé">En attente de paiement</SelectItem>
                             </SelectContent>
                         </Select>
-                        {filterStatus === 'Sans compte' && (
-                            <Button onClick={handleCreateBatch} className="w-full md:w-auto" disabled={selectedTaskIds.size === 0}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Créer un lot
-                            </Button>
-                        )}
-                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
@@ -420,7 +376,6 @@ export default function DepensesPage() {
                         <TableHeader>
                            {filterStatus === 'Sans compte' ? (
                                 <TableRow>
-                                    <TableHead className="w-[50px] px-2 sm:px-4"></TableHead>
                                     <TableHead className="px-2 sm:px-4">Date de mission</TableHead>
                                     <TableHead className="px-2 sm:px-4">Ville</TableHead>
                                     <TableHead className="px-2 sm:px-4">Montant</TableHead>
@@ -438,19 +393,12 @@ export default function DepensesPage() {
                         <TableBody>
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
-                                    <TableRow key={group.taskId} data-state={selectedTaskIds.has(group.taskId) ? "selected" : ""}>
-                                        <TableCell className="p-2 sm:p-4">
-                                           <Checkbox
-                                                checked={selectedTaskIds.has(group.taskId)}
-                                                onCheckedChange={() => handleSelectTask(group.taskId)}
-                                                aria-label={`Sélectionner la mission ${group.taskId}`}
-                                            />
-                                        </TableCell>
+                                    <TableRow key={group.id}>
                                         <TableCell className="p-2 sm:p-4">{formatDate(group.displayDate, "dd-MM-yyyy")}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{group.ville}</TableCell>
                                         <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
                                         <TableCell className="text-right p-2 sm:p-4">
-                                            <Button variant="outline" size="sm" onClick={() => handleView(group.taskId)}>
+                                            <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
                                                 Afficher
                                             </Button>
                                         </TableCell>
@@ -484,5 +432,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
