@@ -101,7 +101,7 @@ export default function DepensesPage() {
         
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
-                if (expense.processedDate && (expense.status === 'Comptabilisé' || expense.status === 'Confirmé')) {
+                if (expense.status === filterStatus && expense.processedDate) {
                     const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
                     
                     if (!grouped[dateKey]) {
@@ -109,18 +109,14 @@ export default function DepensesPage() {
                             id: dateKey,
                             processedDate: dateKey,
                             totalAmount: 0,
-                            status: expense.status // We'll assume a batch has a consistent status
+                            status: expense.status
                         };
                     }
-                    // Aggregate based on the filter
-                    if (expense.status === filterStatus) {
-                        grouped[dateKey].totalAmount += expense.montant;
-                    }
+                    grouped[dateKey].totalAmount += expense.montant;
                 }
             });
         });
 
-        // Filter out groups with zero amount for the current filter
         const filteredGroups = Object.values(grouped).filter(g => g.totalAmount > 0);
 
         return filteredGroups.sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime());
@@ -439,5 +435,7 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
 
     

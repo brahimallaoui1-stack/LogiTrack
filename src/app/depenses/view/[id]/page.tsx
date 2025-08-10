@@ -74,7 +74,10 @@ export default function ViewProcessedExpensesPage() {
                                 exp.processedDate && 
                                 format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
                 if (isMatch) {
-                    if (!status || exp.status === 'Payé' || exp.status === 'Confirmé') {
+                    // The status of the batch is determined by the status of its expenses.
+                    // If any expense is 'Comptabilisé', the whole batch is considered so.
+                    // Otherwise, it can be 'Confirmé' or 'Payé'.
+                    if (!status || status === 'Payé' || status === 'Confirmé') {
                        status = exp.status;
                     }
                 }
@@ -110,6 +113,13 @@ export default function ViewProcessedExpensesPage() {
             setAdvance(firstExpenseOfBatch.advance ?? '');
             setAccountantFees(firstExpenseOfBatch.accountantFees ?? '');
         }
+        
+        // Correctly determine batch status
+        const expensesForStatus = tasks.flatMap(t => t.expenses || []).filter(exp => exp.processedDate?.startsWith(id as string));
+        if (expensesForStatus.every(e => e.status === 'Payé')) status = 'Payé';
+        else if (expensesForStatus.every(e => e.status === 'Confirmé' || e.status === 'Payé')) status = 'Confirmé';
+        else if (expensesForStatus.some(e => e.status === 'Comptabilisé')) status = 'Comptabilisé';
+
 
         return { 
             groupedMissionExpenses: Object.values(missionsInBatch), 
@@ -326,3 +336,5 @@ export default function ViewProcessedExpensesPage() {
         </>
     )
 }
+
+    
