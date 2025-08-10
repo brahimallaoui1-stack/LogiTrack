@@ -86,7 +86,7 @@ interface TaskState {
   addTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  processMissionsExpenses: (taskIds: string[]) => Promise<void>;
+  processMissionExpenses: (taskIds: string[]) => Promise<void>;
   confirmExpenseBatch: (
     batchId: string,
     batchData: { approvedAmount: number; advance: number; accountantFees: number }
@@ -152,7 +152,7 @@ export const useTaskStore = create<TaskState>()(
             console.error("Error deleting task: ", error);
         }
       },
-       processMissionsExpenses: async (taskIds: string[]) => {
+       processMissionExpenses: async (taskIds: string[]) => {
          const user = useAuthStore.getState().user;
          if (!user) return;
 
