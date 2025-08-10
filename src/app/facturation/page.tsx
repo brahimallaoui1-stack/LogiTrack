@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
-import { DollarSign, Banknote } from "lucide-react";
+import { DollarSign, Banknote, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Expense } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 type GroupedExpense = {
   id: string; // The date 'yyyy-MM-dd'
@@ -21,6 +22,7 @@ type GroupedExpense = {
 };
 
 export default function FacturationPage() {
+  const router = useRouter();
   const { tasks, isLoading: isLoadingTasks, fetchTasks } = useTaskStore();
   const { updatePaymentInfo, markAsPaid } = useFacturationStore();
   const [isClient, setIsClient] = useState(false);
@@ -101,6 +103,10 @@ export default function FacturationPage() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount) + ' MAD';
+  };
+  
+  const handleView = (id: string) => {
+    router.push(`/depenses/view/${id}`);
   };
 
   if (!isClient || isLoadingTasks) {
@@ -188,7 +194,7 @@ export default function FacturationPage() {
                 return (
                   <TableRow key={group.id}>
                     <TableCell className="hidden md:table-cell">{formatDate(group.id)}</TableCell>
-                    <TableCell className="md:hidden">{formatDate(group.id)}</TableCell>
+                    <TableCell className="md:hidden">{formatDate(group.id, "dd/MM")}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>{formatCurrency(receivedAmount)}</TableCell>
                     <TableCell className={balance <= 0 ? 'text-green-600' : 'text-destructive'}>{formatCurrency(balance)}</TableCell>
@@ -198,20 +204,25 @@ export default function FacturationPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {group.status === 'Confirmé' && (
-                        <div className="flex flex-col sm:flex-row gap-2 justify-end">
-                          <Input
-                            type="number"
-                            placeholder="Montant"
-                            className="w-full sm:w-32"
-                            value={receivedAmounts[group.id] ?? ''}
-                            onChange={(e) => handleAmountChange(group.id, e.target.value)}
-                          />
-                          <Button onClick={() => handleSaveReceivedAmount(group)} className="w-full sm:w-auto">
-                            Enregistrer
+                       <div className="flex flex-col sm:flex-row gap-2 justify-end items-center">
+                          <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                            <Eye className="h-4 w-4" />
                           </Button>
+                          {group.status === 'Confirmé' && (
+                            <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                              <Input
+                                type="number"
+                                placeholder="Montant"
+                                className="w-full sm:w-24 h-8"
+                                value={receivedAmounts[group.id] ?? ''}
+                                onChange={(e) => handleAmountChange(group.id, e.target.value)}
+                              />
+                              <Button onClick={() => handleSaveReceivedAmount(group)} className="w-full sm:w-auto h-8">
+                                Enregistrer
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                      )}
                     </TableCell>
                   </TableRow>
                 );
