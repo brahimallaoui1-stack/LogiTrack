@@ -22,8 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={`${ptSans.className} antialiased`}>
-        <AppLayout>{children}</AppLayout>
+      <body className="antialiased">
+        <div className={ptSans.className}>
+         <AppLayout>{children}</AppLayout>
+        </div>
       </body>
     </html>
   );
