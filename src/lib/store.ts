@@ -158,7 +158,13 @@ export const useTaskStore = create<TaskState>()(
          if (taskToUpdate && taskToUpdate.expenses) {
             const batchId = `batch-${Date.now()}`;
             const processedDate = new Date().toISOString();
-            const updatedExpenses = taskToUpdate.expenses.map(exp => ({ ...exp, status: newStatus, processedDate, batchId }));
+            
+            const updatedExpenses = taskToUpdate.expenses.map(exp => {
+                if(exp.status === 'Sans compte') {
+                   return { ...exp, status: newStatus, processedDate, batchId };
+                }
+                return exp;
+            });
             const updatedTask = { ...taskToUpdate, expenses: updatedExpenses };
             
             const user = useAuthStore.getState().user;
