@@ -17,7 +17,7 @@ type GroupedExpense = {
   id: string; // The date 'yyyy-MM-dd'
   totalAmount: number;
   status: 'Payé';
-  payment?: Expense['payment'];
+  paymentDate?: string;
 };
 
 export default function FacturationPage() {
@@ -41,13 +41,12 @@ export default function FacturationPage() {
             grouped[dateKey] = { 
                 id: dateKey, 
                 totalAmount: 0, 
-                status: 'Payé', 
-                payment: {} 
+                status: 'Payé',
             };
           }
           grouped[dateKey].totalAmount += expense.montant;
-          if (expense.payment) {
-             grouped[dateKey].payment = {...grouped[dateKey].payment, ...expense.payment};
+          if (expense.payment?.paymentDate) {
+             grouped[dateKey].paymentDate = expense.payment.paymentDate;
           }
         }
       });
@@ -121,7 +120,8 @@ export default function FacturationPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
+                <TableHead>Date du lot</TableHead>
+                <TableHead>Date de paiement</TableHead>
                 <TableHead>Montant</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -133,6 +133,7 @@ export default function FacturationPage() {
                   <TableRow key={group.id}>
                     <TableCell className="hidden md:table-cell">{formatDate(group.id)}</TableCell>
                     <TableCell className="md:hidden">{formatDate(group.id, "dd/MM")}</TableCell>
+                    <TableCell>{formatDate(group.paymentDate)}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 text-xs rounded-full bg-green-100 text-green-800`}>
@@ -154,3 +155,5 @@ export default function FacturationPage() {
     </div>
   );
 }
+
+    

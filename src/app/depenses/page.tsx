@@ -13,8 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 type GroupedExpense = {
   id: string;
@@ -39,6 +42,8 @@ export default function DepensesPage() {
 
     const [isClient, setIsClient] = useState(false);
     const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
+    const [paymentDate, setPaymentDate] = useState<Date | undefined>(new Date());
+
 
     useEffect(() => {
         setIsClient(true);
@@ -135,10 +140,14 @@ export default function DepensesPage() {
     }, [groupedUnprocessedExpenses, groupedProcessedExpenses, filterStatus]);
     
      const handleAddPayment = async () => {
-        if (typeof receivedAmount === 'number' && receivedAmount > 0) {
+        if (typeof receivedAmount === 'number' && receivedAmount > 0 && paymentDate) {
             await addPayment(receivedAmount);
-            await applyBalanceToExpenses();
+            await applyBalanceToExpenses({
+                paymentDate: format(paymentDate, 'yyyy-MM-dd'),
+                receivedAmount: receivedAmount
+            });
             setReceivedAmount('');
+            setPaymentDate(new Date());
             toast({
                 title: "Paiement ajouté",
                 description: `Le solde a été mis à jour et appliqué aux dépenses en attente.`,
@@ -258,7 +267,7 @@ export default function DepensesPage() {
                     <CardTitle className="text-base">Ajouter un paiement reçu</CardTitle>
                 </CardHeader>
                 <CardContent>
-                   <div className="flex flex-col sm:flex-row items-center gap-2">
+                   <div className="flex flex-col gap-2">
                       <Input 
                         id="receivedAmount" 
                         type="number" 
@@ -267,7 +276,29 @@ export default function DepensesPage() {
                         placeholder="Montant reçu"
                         className="flex-grow"
                       />
-                      <Button onClick={handleAddPayment} disabled={!receivedAmount} className="w-full sm:w-auto">Ajouter</Button>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !paymentDate && "text-muted-foreground"
+                            )}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {paymentDate ? format(paymentDate, "PPP") : <span>Choisir une date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                            mode="single"
+                            selected={paymentDate}
+                            onSelect={setPaymentDate}
+                            initialFocus
+                            />
+                        </PopoverContent>
+                      </Popover>
+                      <Button onClick={handleAddPayment} disabled={!receivedAmount || !paymentDate} className="w-full">Ajouter</Button>
                    </div>
                 </CardContent>
             </Card>

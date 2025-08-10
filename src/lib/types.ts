@@ -9,6 +9,7 @@ export interface Invoice {
   advance?: number;
   accountantFees?: number;
   receivedAmount?: number;
+  paymentDate?: string;
 }
 
 export interface Expense {
@@ -77,3 +78,5 @@ export interface User {
 export interface ClientBalance {
     amount: number;
 }
+
+    

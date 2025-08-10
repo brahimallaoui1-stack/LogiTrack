@@ -437,7 +437,7 @@ interface FacturationState {
     clientBalance: number;
     fetchClientBalance: () => Promise<void>;
     addPayment: (amount: number) => Promise<void>;
-    applyBalanceToExpenses: () => Promise<void>;
+    applyBalanceToExpenses: (paymentInfo: { paymentDate: string; receivedAmount: number }) => Promise<void>;
 }
 
 export const useFacturationStore = create<FacturationState>((set, get) => ({
@@ -464,7 +464,7 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
             console.error("Error adding payment:", error);
         }
     },
-    applyBalanceToExpenses: async () => {
+    applyBalanceToExpenses: async (paymentInfo) => {
         const user = useAuthStore.getState().user;
         if (!user) return;
 
@@ -473,7 +473,6 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
 
         const tasks = useTaskStore.getState().tasks;
 
-        // 1. Group all 'Comptabilisé' expenses by processedDate
         const groupedExpenses: Record<string, { totalAmount: number; taskIds: Set<string> }> = {};
         tasks.forEach(task => {
             task.expenses?.forEach(expense => {
@@ -488,24 +487,29 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
             });
         });
 
-        // 2. Sort groups by date (oldest first)
         const sortedGroups = Object.entries(groupedExpenses).sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime());
 
         const batch = writeBatch(db);
         let balanceChanged = false;
         let balanceToDeduct = 0;
 
-        // 3. Iterate and "pay" oldest groups first
         for (const [date, group] of sortedGroups) {
             if (currentBalance >= group.totalAmount) {
-                // Mark all expenses in this group as 'Payé'
                 group.taskIds.forEach(taskId => {
                     const taskRef = doc(db, `users/${user.uid}/tasks/${taskId}`);
                     const taskData = tasks.find(t => t.id === taskId);
                     if (taskData) {
                         const updatedExpenses = taskData.expenses?.map(exp => {
                             if (exp.processedDate?.startsWith(date)) {
-                                return { ...exp, status: 'Payé' as ExpenseStatus };
+                                return { 
+                                    ...exp, 
+                                    status: 'Payé' as ExpenseStatus,
+                                    payment: { 
+                                        ...(exp.payment || {}),
+                                        paymentDate: paymentInfo.paymentDate,
+                                        receivedAmount: paymentInfo.receivedAmount // This might be the total payment, not for this batch.
+                                    } 
+                                };
                             }
                             return exp;
                         });
@@ -516,21 +520,17 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
                 balanceToDeduct += group.totalAmount;
                 balanceChanged = true;
             } else {
-                // Not enough balance to pay the next group
                 break;
             }
         }
         
-        // 4. Update the client balance in Firestore
         if (balanceChanged) {
             const balanceRef = doc(db, `users/${user.uid}/balance/client`);
             batch.update(balanceRef, { amount: increment(-balanceToDeduct) });
         }
         
-        // 5. Commit all changes
         try {
             await batch.commit();
-            // 6. Refresh local state
             await useTaskStore.getState().fetchTasks();
             await get().fetchClientBalance();
         } catch (error) {
@@ -538,3 +538,5 @@ export const useFacturationStore = create<FacturationState>((set, get) => ({
         }
     }
 }));
+
+    
