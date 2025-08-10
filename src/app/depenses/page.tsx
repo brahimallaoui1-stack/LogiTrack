@@ -26,10 +26,9 @@ type GroupedExpense = {
 
 
 type GroupedProcessedExpense = {
-  id: string;
+  id: string; // The date 'yyyy-MM-dd'
   processedDate: string;
   totalAmount: number;
-  taskId: string;
 };
 
 export default function DepensesPage() {
@@ -91,26 +90,25 @@ export default function DepensesPage() {
     const groupedProcessedExpenses = useMemo(() => {
         if (filterStatus !== 'Comptabilisé') return [];
 
-        const processedTasks: GroupedProcessedExpense[] = [];
+        const grouped: Record<string, GroupedProcessedExpense> = {};
         
         tasks.forEach(task => {
-            const processedExpenses = task.expenses?.filter(exp => exp.status === 'Comptabilisé');
-            if (processedExpenses && processedExpenses.length > 0) {
-                const totalAmount = processedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
-                const processedDate = processedExpenses[0].processedDate; // Assuming all expenses in a task are processed at the same time
-                
-                if (processedDate) {
-                     processedTasks.push({
-                        id: task.id,
-                        processedDate: processedDate,
-                        totalAmount: totalAmount,
-                        taskId: task.id
-                    });
+            task.expenses?.forEach(expense => {
+                if (expense.status === 'Comptabilisé' && expense.processedDate) {
+                    const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
+                    if (!grouped[dateKey]) {
+                        grouped[dateKey] = {
+                            id: dateKey,
+                            processedDate: dateKey,
+                            totalAmount: 0,
+                        };
+                    }
+                    grouped[dateKey].totalAmount += expense.montant;
                 }
-            }
+            });
         });
 
-        return processedTasks.sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime()); // oldest first
+        return Object.values(grouped).sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime()); // oldest first
     }, [tasks, filterStatus]);
 
 
@@ -160,8 +158,7 @@ export default function DepensesPage() {
         if (filterStatus === 'Sans compte') {
             router.push(`/missions/view/${id}?from=depenses`);
         } else {
-             // For processed expenses, we now view the mission they belong to
-             router.push(`/missions/view/${id}?from=depenses`);
+             router.push(`/depenses/view/${id}`);
         }
     };
     
@@ -284,20 +281,20 @@ export default function DepensesPage() {
              {filterStatus !== 'Comptabilisé' && (
                 <div className="grid gap-4 md:grid-cols-2">
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="p-6">
                             <CardTitle>{totalCardTitles[filterStatus]}</CardTitle>
                             <CardDescription>{totalCardDescriptions[filterStatus]}</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-6 pt-0">
                             <div className="text-3xl font-bold">{formatCurrency(totalAmount)}</div>
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="p-6">
                             <CardTitle>{dateCardTitles[filterStatus]}</CardTitle>
                             <CardDescription>{dateCardDescription}</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-6 pt-0">
                             <div className="text-3xl font-bold">
                                 {oldestExpenseDate
                                     ? formatDate(oldestExpenseDate)
@@ -310,7 +307,7 @@ export default function DepensesPage() {
              )}
 
             <Card>
-                <CardHeader>
+                <CardHeader className="p-6">
                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <CardTitle>{pageTitles[filterStatus]}</CardTitle>
@@ -329,21 +326,21 @@ export default function DepensesPage() {
                         </Select>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6 pt-0">
                     <Table>
                         <TableHeader>
                            {filterStatus === 'Sans compte' ? (
                                 <TableRow>
-                                    <TableHead>Date de mission</TableHead>
-                                    <TableHead>Ville</TableHead>
-                                    <TableHead>Montant</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Date de mission</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Ville</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Montant</TableHead>
+                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
                                 </TableRow>
                            ) : (
                                 <TableRow>
-                                    <TableHead>Date de traitement</TableHead>
-                                    <TableHead>Montant Total</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Date de traitement</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Montant Total</TableHead>
+                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
                                 </TableRow>
                            )}
                         </TableHeader>
@@ -351,10 +348,10 @@ export default function DepensesPage() {
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
                                     <TableRow key={group.taskId}>
-                                        <TableCell>{formatDate(group.displayDate)}</TableCell>
-                                        <TableCell>{group.ville}</TableCell>
-                                        <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="p-2 sm:p-4">{formatDate(group.displayDate)}</TableCell>
+                                        <TableCell className="p-2 sm:p-4">{group.ville}</TableCell>
+                                        <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
+                                        <TableCell className="text-right p-2 sm:p-4">
                                             <Button variant="outline" size="sm" onClick={() => handleView(group.taskId)}>
                                                 Afficher
                                             </Button>
@@ -364,10 +361,10 @@ export default function DepensesPage() {
                              ) : (
                                 groupedProcessedExpenses.map((group) => (
                                     <TableRow key={group.id}>
-                                      <TableCell>{formatDate(group.processedDate)}</TableCell>
-                                      <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
-                                      <TableCell className="text-right">
-                                        <Button variant="outline" size="sm" onClick={() => handleView(group.taskId)}>
+                                      <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate)}</TableCell>
+                                      <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
+                                      <TableCell className="text-right p-2 sm:p-4">
+                                        <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
                                             Afficher
                                         </Button>
                                       </TableCell>
@@ -381,3 +378,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
