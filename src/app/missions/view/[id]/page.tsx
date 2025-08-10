@@ -53,8 +53,6 @@ export default function ViewMissionPage() {
     };
     
     const unprocessedExpenses = task?.expenses?.filter(e => e.status === 'Sans compte') ?? [];
-    const totalExpenses = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0) ?? 0;
-    const isCasablancaMission = task?.city === 'Casablanca';
     
     const handleEdit = () => {
         setIsEditDialogOpen(true);
@@ -75,7 +73,6 @@ export default function ViewMissionPage() {
                 title: "Dépenses traitées",
                 description: "Les dépenses de cette mission ont été ajoutées au lot actif.",
             });
-            // Optionally, navigate away or show a success state
             router.push('/depenses');
         } else {
             toast({
@@ -167,7 +164,7 @@ export default function ViewMissionPage() {
                     Retour
                 </Button>
                 <div className="flex gap-2">
-                    {unprocessedExpenses.length > 0 && searchParams.get('from') === 'depenses' && (
+                    {unprocessedExpenses.length > 0 && (
                         <Button onClick={handleProcessExpenses}>
                             <CheckSquare className="mr-2 h-4 w-4" />
                             Dépense traitée
@@ -284,7 +281,3 @@ export default function ViewMissionPage() {
         </>
     );
 }
-
-    
-
-    
