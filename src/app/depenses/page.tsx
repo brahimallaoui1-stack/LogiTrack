@@ -32,6 +32,7 @@ type GroupedProcessedExpense = {
   id: string; // The date 'yyyy-MM-dd'
   processedDate: string;
   totalAmount: number;
+  status: ExpenseStatus;
 };
 
 export default function DepensesPage() {
@@ -106,6 +107,7 @@ export default function DepensesPage() {
                             id: dateKey,
                             processedDate: dateKey,
                             totalAmount: 0,
+                            status: 'Comptabilisé'
                         };
                     }
                     grouped[dateKey].totalAmount += expense.montant;
@@ -371,6 +373,7 @@ export default function DepensesPage() {
                                 <TableRow>
                                     <TableHead className="px-2 sm:px-4">Date de traitement</TableHead>
                                     <TableHead className="px-2 sm:px-4">Montant Total</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Statut</TableHead>
                                     <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
                                 </TableRow>
                            )}
@@ -394,6 +397,11 @@ export default function DepensesPage() {
                                     <TableRow key={group.id}>
                                       <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate)}</TableCell>
                                       <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
+                                       <TableCell className="p-2 sm:p-4">
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800`}>
+                                                {group.status}
+                                            </span>
+                                        </TableCell>
                                       <TableCell className="text-right p-2 sm:p-4">
                                         <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
                                             Afficher
@@ -409,7 +417,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
-
-    
