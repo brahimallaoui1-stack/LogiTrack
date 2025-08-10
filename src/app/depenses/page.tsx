@@ -277,14 +277,23 @@ export default function DepensesPage() {
     }
     
     const renderPaymentSection = () => (
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
+        <div className="grid gap-6 md:grid-cols-3 mb-6">
              <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Total Net à Payer</CardTitle>
-                    <CardDescription>Solde client actuel: {formatCurrency(clientBalance)}</CardDescription>
+                    <CardDescription>Montant total des lots confirmés.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Solde AYVENS</CardTitle>
+                    <CardDescription>Solde client actuel.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{formatCurrency(clientBalance)}</div>
                 </CardContent>
             </Card>
             <Card>
@@ -447,11 +456,5 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
-
-    
-
-    
 
     
