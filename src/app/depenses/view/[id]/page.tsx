@@ -31,6 +31,13 @@ export default function ViewProcessedExpensesPage() {
         }
     }, [tasks, fetchTasks]);
 
+    // The ID from the URL is now always a Task ID for processed expenses,
+    // so we don't need to check if it's a date anymore.
+    // The component will just render mission details instead.
+    // This component might not even be needed if we always redirect to mission view.
+    // However, for viewing PAID expenses (from Facturation), the group ID is a date.
+    // So we need to handle both cases.
+
     const isDateId = useMemo(() => {
       const date = parse(id as string, 'yyyy-MM-dd', new Date());
       return isValid(date);
@@ -49,6 +56,8 @@ export default function ViewProcessedExpensesPage() {
                                 exp.processedDate && 
                                 format(new Date(exp.processedDate), 'yyyy-MM-dd') === id;
                 if(isMatch) {
+                    // This logic might need adjustment. If a batch contains mixed statuses, what do we show?
+                    // Let's assume for now a batch is either all 'Payé' or all 'Comptabilisé'.
                     if (!status || exp.status === 'Payé') {
                        status = exp.status;
                     }
@@ -99,12 +108,14 @@ export default function ViewProcessedExpensesPage() {
     }
 
     if (!isDateId || processedExpenses.length === 0) {
+        // This case should ideally not happen if navigation is correct
+        // but it's a good fallback.
         return (
              <div className="flex flex-col items-center justify-center h-full text-center p-4">
                  <Card>
                     <CardHeader>
                         <CardTitle>Aucune dépense trouvée</CardTitle>
-                        <CardDescription>Aucune dépense traitée n'a été trouvée pour cette date.</CardDescription>
+                        <CardDescription>Aucune dépense traitée n'a été trouvée pour ce lot.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Button onClick={() => router.push('/depenses')}>

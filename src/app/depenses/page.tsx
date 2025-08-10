@@ -29,6 +29,7 @@ type GroupedProcessedExpense = {
   id: string;
   processedDate: string;
   totalAmount: number;
+  taskId: string;
 };
 
 export default function DepensesPage() {
@@ -90,35 +91,26 @@ export default function DepensesPage() {
     const groupedProcessedExpenses = useMemo(() => {
         if (filterStatus !== 'Comptabilisé') return [];
 
-        const expensesWithDate: (Expense & { taskId: string })[] = [];
-        tasks.forEach(task => {
-            task.expenses?.forEach(expense => {
-                if (expense.status === 'Comptabilisé' && expense.processedDate) {
-                    expensesWithDate.push({ ...expense, taskId: task.id });
-                }
-            });
-        });
+        const processedTasks: GroupedProcessedExpense[] = [];
         
-        const groupedByDate: Record<string, { totalAmount: number, taskIds: string[] }> = {};
-
-        expensesWithDate.forEach(expense => {
-            if (expense.processedDate) {
-                const dateKey = format(new Date(expense.processedDate), 'yyyy-MM-dd');
-                if (!groupedByDate[dateKey]) {
-                    groupedByDate[dateKey] = { totalAmount: 0, taskIds: [] };
-                }
-                groupedByDate[dateKey].totalAmount += expense.montant;
-                if (!groupedByDate[dateKey].taskIds.includes(expense.taskId)) {
-                    groupedByDate[dateKey].taskIds.push(expense.taskId);
+        tasks.forEach(task => {
+            const processedExpenses = task.expenses?.filter(exp => exp.status === 'Comptabilisé');
+            if (processedExpenses && processedExpenses.length > 0) {
+                const totalAmount = processedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
+                const processedDate = processedExpenses[0].processedDate; // Assuming all expenses in a task are processed at the same time
+                
+                if (processedDate) {
+                     processedTasks.push({
+                        id: task.id,
+                        processedDate: processedDate,
+                        totalAmount: totalAmount,
+                        taskId: task.id
+                    });
                 }
             }
         });
 
-        return Object.entries(groupedByDate).map(([date, group]) => ({
-            id: date,
-            processedDate: date,
-            totalAmount: group.totalAmount
-        })).sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime()); // oldest first
+        return processedTasks.sort((a, b) => new Date(a.processedDate).getTime() - new Date(b.processedDate).getTime()); // oldest first
     }, [tasks, filterStatus]);
 
 
@@ -168,7 +160,8 @@ export default function DepensesPage() {
         if (filterStatus === 'Sans compte') {
             router.push(`/missions/view/${id}?from=depenses`);
         } else {
-             router.push(`/depenses/view/${id}`);
+             // For processed expenses, we now view the mission they belong to
+             router.push(`/missions/view/${id}?from=depenses`);
         }
     };
     
@@ -268,15 +261,16 @@ export default function DepensesPage() {
                     <CardTitle className="text-base">Ajouter un paiement reçu</CardTitle>
                 </CardHeader>
                 <CardContent>
-                   <div className="flex items-center gap-2">
+                   <div className="flex flex-col sm:flex-row items-center gap-2">
                       <Input 
                         id="receivedAmount" 
                         type="number" 
                         value={receivedAmount} 
                         onChange={(e) => setReceivedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         placeholder="Montant reçu"
+                        className="flex-grow"
                       />
-                      <Button onClick={handleAddPayment} disabled={!receivedAmount}>Ajouter</Button>
+                      <Button onClick={handleAddPayment} disabled={!receivedAmount} className="w-full sm:w-auto">Ajouter</Button>
                    </div>
                 </CardContent>
             </Card>
@@ -373,7 +367,7 @@ export default function DepensesPage() {
                                       <TableCell>{formatDate(group.processedDate)}</TableCell>
                                       <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                                       <TableCell className="text-right">
-                                        <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
+                                        <Button variant="outline" size="sm" onClick={() => handleView(group.taskId)}>
                                             Afficher
                                         </Button>
                                       </TableCell>
