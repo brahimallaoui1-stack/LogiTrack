@@ -127,8 +127,11 @@ export default function MissionsPage() {
                 const displayData = getTaskDisplayData(task);
                 return (
                     <Card key={task.id}>
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="text-base break-words">{formatDate(displayData.date, "dd-MM-yyyy")}</CardTitle>
+                             <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">
+                                <Eye className="h-4 w-4" />
+                            </Button>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
@@ -140,11 +143,6 @@ export default function MissionsPage() {
                                 <span>{displayData.typeMission || 'N/A'}</span>
                             </div>
                         </CardContent>
-                         <div className="p-4 pt-0 text-right">
-                             <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                        </div>
                     </Card>
                 )
             })}
