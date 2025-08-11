@@ -123,12 +123,12 @@ export default function FacturationPage() {
           <CardTitle>Historique de Facturation</CardTitle>
           <CardDescription>Liste des lots de dépenses qui ont été entièrement payés.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date du lot</TableHead>
-                <TableHead>Date de paiement</TableHead>
+                <TableHead>Paiement</TableHead>
                 <TableHead>Montant</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -138,12 +138,11 @@ export default function FacturationPage() {
               {paidExpenses.map((group) => {
                 return (
                   <TableRow key={group.id}>
-                    <TableCell className="hidden md:table-cell">{formatDate(group.processedDate, "dd-MM-yyyy")}</TableCell>
-                    <TableCell className="md:hidden">{formatDate(group.processedDate, "dd/MM/yy")}</TableCell>
-                    <TableCell>{formatDate(group.paymentDate, "dd-MM-yyyy")}</TableCell>
+                    <TableCell>{formatDate(group.processedDate, "dd/MM/yy")}</TableCell>
+                    <TableCell>{formatDate(group.paymentDate, "dd/MM/yy")}</TableCell>
                     <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 text-xs rounded-full bg-green-100 text-green-800`}>
+                      <span className={`px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`}>
                         {group.status}
                       </span>
                     </TableCell>

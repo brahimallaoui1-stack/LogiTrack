@@ -301,7 +301,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                 </Button>
             </div>
         }
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor={`date-${index}`}>Date</Label>
                 <Input id="date" type="date" value={subMission.date} onChange={(e) => handleInputChange(e, index)} />
@@ -378,7 +378,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   return (
      <>
      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-       <DialogContent className="sm:max-w-4xl">
+       <DialogContent className="sm:max-w-2xl md:max-w-4xl">
          <DialogHeader>
            <DialogTitle>{editingTask ? "Modifier la mission" : "Ajouter une mission"}</DialogTitle>
            <DialogDescription>
@@ -395,7 +395,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
           {isCasablancaMission ? (
              <div className="grid gap-6 py-4">
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="date">Date</Label>
                     <Input id="date" type="date" value={formState.date} onChange={handleInputChange} />

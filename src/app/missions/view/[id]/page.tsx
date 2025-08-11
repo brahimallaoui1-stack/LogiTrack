@@ -135,20 +135,22 @@ export default function ViewMissionPage() {
 
     const renderSubMissionDetails = (subMission: SubMission, index: number) => (
         <div key={subMission.id} className="p-4 border rounded-lg space-y-4">
-             <h3 className="font-bold text-xl">Étape {index + 1}</h3>
-             <div className="grid md:grid-cols-3 gap-4">
+             <h3 className="font-bold text-lg md:text-xl">Étape {index + 1}</h3>
+             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                 <div><span className="font-semibold">Date:</span> {formatDate(subMission.date, "dd-MM-yyyy")}</div>
                 <div><span className="font-semibold">Réservation:</span> {subMission.reservation || 'N/A'}</div>
-                <div><span className="font-semibold">Type de Mission:</span> {subMission.typeMission || 'N/A'}</div>
+                <div><span className="font-semibold">Type:</span> {subMission.typeMission || 'N/A'}</div>
                 <div><span className="font-semibold">Ville:</span> {subMission.city || 'N/A'}</div>
                 <div><span className="font-semibold">Client:</span> {subMission.entreprise || 'N/A'}</div>
                 <div><span className="font-semibold">Gestionnaire:</span> {subMission.gestionnaire || 'N/A'}</div>
             </div>
             <Separator/>
-             <div className="space-y-2">
-                 <h4 className="font-semibold text-lg">Informations sur le véhicule</h4>
-                <div><span className="font-semibold">Marque de véhicule:</span> {subMission.marqueVehicule || 'N/A'}</div>
-                <div><span className="font-semibold">Immatriculation:</span> {subMission.immatriculation || 'N/A'}</div>
+             <div className="space-y-2 text-sm md:text-base">
+                 <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
+                <div className="grid md:grid-cols-2 gap-x-4 gap-y-2">
+                    <div><span className="font-semibold">Marque:</span> {subMission.marqueVehicule || 'N/A'}</div>
+                    <div><span className="font-semibold">Immat.:</span> {subMission.immatriculation || 'N/A'}</div>
+                </div>
                  <div>
                     <h5 className="font-semibold mb-1">Remarque</h5>
                     <p className="text-sm text-muted-foreground break-words">{subMission.remarque || 'Aucune remarque'}</p>
@@ -193,16 +195,16 @@ export default function ViewMissionPage() {
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Détails de la mission : {task.label}</CardTitle>
+                    <CardTitle className="text-lg md:text-2xl">Détails: {task.label}</CardTitle>
                     <CardDescription>Informations complètes sur la mission.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isCasablancaMission ? (
                         <div className="grid gap-6">
-                            <div className="grid md:grid-cols-3 gap-4">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                                 <div><span className="font-semibold">Date:</span> {formatDate(task.date, "dd-MM-yyyy")}</div>
                                 <div><span className="font-semibold">Réservation:</span> {task.reservation || 'N/A'}</div>
-                                <div><span className="font-semibold">Type de Mission:</span> {task.typeMission || 'N/A'}</div>
+                                <div><span className="font-semibold">Type:</span> {task.typeMission || 'N/A'}</div>
                                 <div><span className="font-semibold">Ville:</span> {task.city || 'N/A'}</div>
                                 <div><span className="font-semibold">Client:</span> {task.entreprise || 'N/A'}</div>
                                 <div><span className="font-semibold">Gestionnaire:</span> {task.gestionnaire || 'N/A'}</div>
@@ -210,16 +212,16 @@ export default function ViewMissionPage() {
 
                             <Separator/>
 
-                            <div className="space-y-4">
+                            <div className="space-y-4 text-sm md:text-base">
                                 <div>
-                                    <h4 className="font-semibold text-lg mb-4">Informations sur le véhicule</h4>
-                                    <div className="space-y-2">
-                                        <div><span className="font-semibold">Marque de véhicule:</span> {task.marqueVehicule || 'N/A'}</div>
-                                        <div><span className="font-semibold">Immatriculation:</span> {task.immatriculation || 'N/A'}</div>
-                                        <div>
-                                            <h5 className="font-semibold mb-1">Remarque</h5>
-                                            <p className="text-sm text-muted-foreground break-words">{task.remarque || 'Aucune remarque'}</p>
-                                        </div>
+                                    <h4 className="font-semibold text-base md:text-lg mb-4">Informations sur le véhicule</h4>
+                                    <div className="grid md:grid-cols-2 gap-x-4 gap-y-2">
+                                        <div><span className="font-semibold">Marque:</span> {task.marqueVehicule || 'N/A'}</div>
+                                        <div><span className="font-semibold">Immat.:</span> {task.immatriculation || 'N/A'}</div>
+                                    </div>
+                                     <div>
+                                        <h5 className="font-semibold mb-1 mt-4">Remarque</h5>
+                                        <p className="text-sm text-muted-foreground break-words">{task.remarque || 'Aucune remarque'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -233,7 +235,7 @@ export default function ViewMissionPage() {
                     {task.expenses && task.expenses.length > 0 && (
                         <div>
                             <Separator className="my-6"/>
-                            <h4 className="font-semibold text-lg mb-2">Dépenses</h4>
+                            <h4 className="font-semibold text-base md:text-lg mb-2">Dépenses</h4>
                             <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
@@ -253,7 +255,7 @@ export default function ViewMissionPage() {
                                 </Table>
                             </div>
                                 <div className="text-right font-semibold pr-4 mt-2">
-                                Total des dépenses: {formatCurrency(task.expenses.reduce((sum, exp) => sum + exp.montant, 0))}
+                                Total: {formatCurrency(task.expenses.reduce((sum, exp) => sum + exp.montant, 0))}
                             </div>
                         </div>
                     )}

@@ -228,10 +228,10 @@ export default function DepensesPage() {
         : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'en attente'}.`;
         
     const statusConfig: Record<ExpenseStatus, { color: string; text: string }> = {
-        'Sans compte': { color: 'bg-gray-100 text-gray-800', text: 'Sans compte' },
-        'Comptabilisé': { color: 'bg-yellow-100 text-yellow-800', text: 'À Confirmer' },
-        'Confirmé': { color: 'bg-orange-100 text-orange-800', text: 'À Payer' },
-        'Payé': { color: 'bg-green-100 text-green-800', text: 'Payé' },
+        'Sans compte': { color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200', text: 'Sans compte' },
+        'Comptabilisé': { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', text: 'À Confirmer' },
+        'Confirmé': { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', text: 'À Payer' },
+        'Payé': { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', text: 'Payé' },
     };
 
 
@@ -277,7 +277,7 @@ export default function DepensesPage() {
     }
     
     const renderPaymentSection = () => (
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
              <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Total Net à Payer</CardTitle>
@@ -296,7 +296,7 @@ export default function DepensesPage() {
                     <div className="text-2xl font-bold">{formatCurrency(clientBalance)}</div>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className="md:col-span-2 lg:col-span-1">
                 <CardHeader>
                     <CardTitle className="text-base">Ajouter un paiement reçu</CardTitle>
                      <CardDescription>Mettre à jour le solde client.</CardDescription>
@@ -395,22 +395,22 @@ export default function DepensesPage() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0">
+                <CardContent className="p-0 sm:p-6 sm:pt-0">
                     <Table>
                         <TableHeader>
                            {filterStatus === 'Sans compte' ? (
                                 <TableRow>
-                                    <TableHead className="px-2 sm:px-4">Date de mission</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Ville</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Montant</TableHead>
-                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Ville</TableHead>
+                                    <TableHead>Montant</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                            ) : (
                                 <TableRow>
-                                    <TableHead className="px-2 sm:px-4">Date de traitement</TableHead>
-                                    <TableHead className="px-2 sm:px-4">{filterStatus === 'Confirmé' ? 'Net à Payer' : 'Montant Total'}</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Statut</TableHead>
-                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>{filterStatus === 'Confirmé' ? 'Net à Payer' : 'Montant'}</TableHead>
+                                    <TableHead>Statut</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                            )}
                         </TableHeader>
@@ -418,10 +418,10 @@ export default function DepensesPage() {
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
                                     <TableRow key={group.id}>
-                                        <TableCell className="p-2 sm:p-4">{formatDate(group.displayDate, "dd-MM-yyyy")}</TableCell>
-                                        <TableCell className="p-2 sm:p-4">{group.ville}</TableCell>
-                                        <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell className="text-right p-2 sm:p-4">
+                                        <TableCell>{formatDate(group.displayDate, "dd-MM-yy")}</TableCell>
+                                        <TableCell>{group.ville}</TableCell>
+                                        <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
+                                        <TableCell className="text-right">
                                             <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
                                                 Afficher
                                             </Button>
@@ -433,14 +433,14 @@ export default function DepensesPage() {
                                     const statusInfo = statusConfig[group.status];
                                     return (
                                         <TableRow key={group.id}>
-                                        <TableCell className="p-2 sm:p-4">{formatDate(group.processedDate, "dd-MM-yyyy")}</TableCell>
-                                        <TableCell className="p-2 sm:p-4">{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell className="p-2 sm:p-4">
+                                        <TableCell>{formatDate(group.processedDate, "dd-MM-yy")}</TableCell>
+                                        <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
+                                        <TableCell>
                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
                                                     {statusInfo.text}
                                                 </span>
                                             </TableCell>
-                                        <TableCell className="text-right p-2 sm:p-4">
+                                        <TableCell className="text-right">
                                             <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
                                                 Afficher
                                             </Button>
@@ -456,5 +456,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
