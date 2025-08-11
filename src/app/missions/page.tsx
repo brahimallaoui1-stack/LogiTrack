@@ -19,6 +19,7 @@ import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Eye } from "lucide-react";
 
 
 export default function MissionsPage() {
@@ -121,20 +122,20 @@ export default function MissionsPage() {
          <Button onClick={handleAddNew}>Ajouter une mission</Button>
       </div>
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <CardTitle>Liste des Missions</CardTitle>
           <CardDescription>
             Voici la liste complète de toutes les missions enregistrées.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Ville</TableHead>
-                <TableHead>Type de mission</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="px-2 sm:px-4">Date</TableHead>
+                <TableHead className="px-2 sm:px-4">Ville</TableHead>
+                <TableHead className="px-2 sm:px-4">Type de mission</TableHead>
+                <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -142,12 +143,12 @@ export default function MissionsPage() {
                 const displayData = getTaskDisplayData(task);
                 return (
                   <TableRow key={task.id}>
-                    <TableCell>{formatDate(displayData.date, "dd-MM-yyyy")}</TableCell>
-                    <TableCell>{displayData.ville || 'N/A'}</TableCell>
-                    <TableCell>{displayData.typeMission || 'N/A'}</TableCell>
-                    <TableCell className="text-right">
-                        <Button variant="outline" size="sm" onClick={() => handleView(task.id)}>
-                            Afficher
+                    <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatDate(displayData.date, "dd-MM-yyyy")}</TableCell>
+                    <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{displayData.ville || 'N/A'}</TableCell>
+                    <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{displayData.typeMission || 'N/A'}</TableCell>
+                    <TableCell className="text-right px-2 sm:px-4">
+                        <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">
+                            <Eye className="h-4 w-4" />
                         </Button>
                     </TableCell>
                   </TableRow>

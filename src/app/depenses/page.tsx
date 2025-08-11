@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckSquare } from "lucide-react";
+import { CalendarIcon, CheckSquare, Eye } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
@@ -347,21 +347,21 @@ export default function DepensesPage() {
              {filterStatus !== 'Confirmé' && (
                 <div className="grid gap-4 md:grid-cols-2">
                     <Card>
-                        <CardHeader className="p-6">
+                        <CardHeader className="p-4 sm:p-6">
                             <CardTitle>{totalCardTitles[filterStatus]}</CardTitle>
                             <CardDescription>{totalCardDescriptions[filterStatus]}</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-6 pt-0">
-                            <div className="text-3xl font-bold">{formatCurrency(totalAmount)}</div>
+                        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+                            <div className="text-2xl sm:text-3xl font-bold">{formatCurrency(totalAmount)}</div>
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="p-6">
+                        <CardHeader className="p-4 sm:p-6">
                             <CardTitle>{dateCardTitles[filterStatus]}</CardTitle>
                             <CardDescription>{dateCardDescription}</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-6 pt-0">
-                            <div className="text-3xl font-bold">
+                        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+                            <div className="text-2xl sm:text-3xl font-bold">
                                 {oldestExpenseDate
                                     ? formatDate(oldestExpenseDate, "dd-MM-yyyy")
                                     : 'N/A'
@@ -373,7 +373,7 @@ export default function DepensesPage() {
              )}
 
             <Card>
-                <CardHeader className="p-6">
+                <CardHeader className="p-4 sm:p-6">
                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <CardTitle>{pageTitles[filterStatus]}</CardTitle>
@@ -395,22 +395,22 @@ export default function DepensesPage() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0 sm:p-6 sm:pt-0">
+                <CardContent className="p-0">
                     <Table>
                         <TableHeader>
                            {filterStatus === 'Sans compte' ? (
                                 <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Ville</TableHead>
-                                    <TableHead>Montant</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Date</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Ville</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Montant</TableHead>
+                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
                                 </TableRow>
                            ) : (
                                 <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>{filterStatus === 'Confirmé' ? 'Net à Payer' : 'Montant'}</TableHead>
-                                    <TableHead>Statut</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Date</TableHead>
+                                    <TableHead className="px-2 sm:px-4">{filterStatus === 'Confirmé' ? 'Net à Payer' : 'Montant'}</TableHead>
+                                    <TableHead className="px-2 sm:px-4">Statut</TableHead>
+                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
                                 </TableRow>
                            )}
                         </TableHeader>
@@ -418,12 +418,12 @@ export default function DepensesPage() {
                              {filterStatus === 'Sans compte' ? (
                                 groupedUnprocessedExpenses.map((group) => (
                                     <TableRow key={group.id}>
-                                        <TableCell>{formatDate(group.displayDate, "dd-MM-yy")}</TableCell>
-                                        <TableCell>{group.ville}</TableCell>
-                                        <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
-                                                Afficher
+                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatDate(group.displayDate, "dd-MM-yy")}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{group.ville}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatCurrency(group.totalAmount)}</TableCell>
+                                        <TableCell className="text-right px-2 sm:px-4">
+                                            <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                                                <Eye className="h-4 w-4" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -433,16 +433,16 @@ export default function DepensesPage() {
                                     const statusInfo = statusConfig[group.status];
                                     return (
                                         <TableRow key={group.id}>
-                                        <TableCell>{formatDate(group.processedDate, "dd-MM-yy")}</TableCell>
-                                        <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatDate(group.processedDate, "dd-MM-yy")}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatCurrency(group.totalAmount)}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">
                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
                                                     {statusInfo.text}
                                                 </span>
                                             </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="outline" size="sm" onClick={() => handleView(group.id)}>
-                                                Afficher
+                                        <TableCell className="text-right px-2 sm:px-4">
+                                            <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                                                <Eye className="h-4 w-4" />
                                             </Button>
                                         </TableCell>
                                         </TableRow>
