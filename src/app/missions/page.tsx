@@ -19,15 +19,15 @@ import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, Briefcase, Calendar, MapPin } from "lucide-react";
+import { useIsClient } from "@/hooks/useIsClient";
 
 
 export default function MissionsPage() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
   const router = useRouter();
+  const isClient = useIsClient();
 
-  const [isClient, setIsClient] = useState(false);
   useEffect(() => {
-    setIsClient(true);
     fetchTasks();
   }, [fetchTasks]);
   

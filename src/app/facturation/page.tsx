@@ -12,6 +12,7 @@ import { DollarSign, Banknote, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Expense } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import { useIsClient } from "@/hooks/useIsClient";
 
 type GroupedExpense = {
   id: string; // The batchId
@@ -25,10 +26,9 @@ type GroupedExpense = {
 export default function FacturationPage() {
   const router = useRouter();
   const { tasks, isLoading: isLoadingTasks, fetchTasks } = useTaskStore();
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useIsClient();
 
   useEffect(() => {
-    setIsClient(true);
     if(tasks.length === 0) fetchTasks();
   }, [fetchTasks, tasks.length]);
   

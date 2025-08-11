@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, CheckSquare, Eye } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useIsClient } from "@/hooks/useIsClient";
 
 
 type GroupedExpense = {
@@ -41,13 +42,12 @@ export default function DepensesPage() {
     const { tasks, isLoading, fetchTasks } = useTaskStore();
     const { clientBalance, fetchClientBalance, addPayment, applyBalanceToExpenses } = useFacturationStore();
 
-    const [isClient, setIsClient] = useState(false);
+    const isClient = useIsClient();
     const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
     const [paymentDate, setPaymentDate] = useState<Date | undefined>(new Date());
 
 
     useEffect(() => {
-        setIsClient(true);
         fetchTasks();
         fetchClientBalance();
     }, [fetchTasks, fetchClientBalance]);

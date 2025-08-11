@@ -19,15 +19,15 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { MonthPicker } from "@/components/MonthPicker";
 import { YearPicker } from "@/components/YearPicker";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsClient } from "@/hooks/useIsClient";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
 export default function Home() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useIsClient();
 
   useEffect(() => {
-    setIsClient(true);
     fetchTasks();
   }, [fetchTasks]);
 
