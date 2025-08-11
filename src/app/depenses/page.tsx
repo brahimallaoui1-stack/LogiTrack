@@ -375,94 +375,87 @@ export default function DepensesPage() {
                 </div>
              )}
 
-            <Card>
-                <CardHeader className="p-4 sm:p-6">
-                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <CardTitle>{pageTitles[filterStatus]}</CardTitle>
-                            <CardDescription>
-                                {filterStatus === 'Sans compte' ? 'Liste des missions avec des dépenses non traitées.' : 'Liste des lots de dépenses.'}
-                            </CardDescription>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                            <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
-                                <SelectTrigger className="w-full md:w-[220px]">
-                                    <SelectValue placeholder="Filtrer par statut" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
-                                    <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
-                                    <SelectItem value="Confirmé">En attente de paiement</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0">
-                    {noData ? (
-                        <div className="text-center py-16">
-                            <h3 className="text-lg font-semibold">Aucune dépense à afficher</h3>
-                            <p className="text-muted-foreground mt-2">Aucune dépense ne correspond au filtre sélectionné.</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {filterStatus === 'Sans compte' ? (
-                            groupedUnprocessedExpenses.map((group) => (
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex-1">
+                    <h2 className="text-2xl font-bold tracking-tight">{pageTitles[filterStatus]}</h2>
+                    <p className="text-muted-foreground">
+                        {filterStatus === 'Sans compte' ? 'Liste des missions avec des dépenses non traitées.' : 'Liste des lots de dépenses.'}
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
+                        <SelectTrigger className="w-full md:w-[220px]">
+                            <SelectValue placeholder="Filtrer par statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
+                            <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
+                            <SelectItem value="Confirmé">En attente de paiement</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            {noData ? (
+                <div className="text-center py-16">
+                    <h3 className="text-lg font-semibold">Aucune dépense à afficher</h3>
+                    <p className="text-muted-foreground mt-2">Aucune dépense ne correspond au filtre sélectionné.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filterStatus === 'Sans compte' ? (
+                    groupedUnprocessedExpenses.map((group) => (
+                        <Card key={group.id}>
+                            <CardHeader className="flex flex-row items-center justify-between p-4">
+                                <CardTitle className="text-base break-words">{formatDate(group.displayDate, "dd-MM-yyyy")}</CardTitle>
+                                <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-4 w-4" />
+                                    <span>{group.ville || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-2 font-semibold text-foreground">
+                                    <Banknote className="h-4 w-4 text-muted-foreground" />
+                                    <span>{formatCurrency(group.totalAmount)}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    groupedProcessedExpenses.map((group) => {
+                        const statusInfo = statusConfig[group.status];
+                        return (
                                 <Card key={group.id}>
-                                    <CardHeader className="flex flex-row items-center justify-between p-4">
-                                        <CardTitle className="text-base break-words">{formatDate(group.displayDate, "dd-MM-yyyy")}</CardTitle>
-                                        <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
-                                            <Eye className="h-4 w-4" />
-                                        </Button>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-4 w-4" />
-                                            <span>{group.ville || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 font-semibold text-foreground">
-                                            <Banknote className="h-4 w-4 text-muted-foreground" />
-                                            <span>{formatCurrency(group.totalAmount)}</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        ) : (
-                            groupedProcessedExpenses.map((group) => {
-                                const statusInfo = statusConfig[group.status];
-                                return (
-                                     <Card key={group.id}>
-                                        <CardHeader className="flex flex-row items-center justify-between p-4">
-                                            <CardTitle className="text-base break-words">{formatDate(group.processedDate, "dd-MM-yyyy")}</CardTitle>
-                                            <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                        </CardHeader>
-                                        <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
-                                            <div className="flex items-center gap-2">
-                                                <Tag className="h-4 w-4" />
-                                                 <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}>
-                                                    {statusInfo.text}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2 font-semibold text-foreground">
-                                                <Banknote className="h-4 w-4 text-muted-foreground" />
-                                                <span>
-                                                    {formatCurrency(group.totalAmount)}
-                                                    {filterStatus === 'Confirmé' && <span className="text-xs text-muted-foreground ml-1">(Net)</span>}
-                                                </span>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )
-                            })
-                        )}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                                <CardHeader className="flex flex-row items-center justify-between p-4">
+                                    <CardTitle className="text-base break-words">{formatDate(group.processedDate, "dd-MM-yyyy")}</CardTitle>
+                                    <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
+                                    <div className="flex items-center gap-2">
+                                        <Tag className="h-4 w-4" />
+                                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                                            {statusInfo.text}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 font-semibold text-foreground">
+                                        <Banknote className="h-4 w-4 text-muted-foreground" />
+                                        <span>
+                                            {formatCurrency(group.totalAmount)}
+                                            {filterStatus === 'Confirmé' && <span className="text-xs text-muted-foreground ml-1">(Net)</span>}
+                                        </span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })
+                )}
+                </div>
+            )}
         </div>
     );
 }
-
-    
