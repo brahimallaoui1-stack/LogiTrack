@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { format } from "date-fns";
-import { DollarSign, Banknote, Eye } from "lucide-react";
+import { DollarSign, Banknote, Eye, Calendar, Tag } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Expense } from "@/lib/types";
 import { useRouter } from "next/navigation";
@@ -117,47 +117,49 @@ export default function FacturationPage() {
             <p className="text-xs text-muted-foreground">Montant total des lots de dépenses soldés.</p>
           </CardContent>
         </Card>
+        
+      <div className="space-y-1">
+        <h2 className="text-2xl font-bold tracking-tight">Historique de Facturation</h2>
+        <p className="text-muted-foreground">
+            Liste des lots de dépenses qui ont été entièrement payés.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Historique de Facturation</CardTitle>
-          <CardDescription>Liste des lots de dépenses qui ont été entièrement payés.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6 sm:pt-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date du lot</TableHead>
-                <TableHead>Paiement</TableHead>
-                <TableHead>Montant</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paidExpenses.map((group) => {
-                return (
-                  <TableRow key={group.id}>
-                    <TableCell>{formatDate(group.processedDate, "dd/MM/yy")}</TableCell>
-                    <TableCell>{formatDate(group.paymentDate, "dd/MM/yy")}</TableCell>
-                    <TableCell>{formatCurrency(group.totalAmount)}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`}>
-                        {group.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
+       {paidExpenses.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {paidExpenses.map((group) => (
+                <Card key={group.id}>
+                    <CardHeader className="flex flex-row items-center justify-between p-4">
+                        <CardTitle className="text-base break-words">{formatDate(group.processedDate, "dd-MM-yyyy")}</CardTitle>
                         <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
                             <Eye className="h-4 w-4" />
                         </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>Payé le: {formatDate(group.paymentDate, "dd/MM/yy")}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <Tag className="h-4 w-4" />
+                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`}>
+                                {group.status}
+                             </span>
+                        </div>
+                        <div className="flex items-center gap-2 font-semibold text-foreground">
+                            <Banknote className="h-4 w-4 text-muted-foreground" />
+                            <span>{formatCurrency(group.totalAmount)}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+      ) : (
+        <div className="text-center py-16">
+            <h3 className="text-lg font-semibold">Aucune facture trouvée</h3>
+            <p className="text-muted-foreground mt-2">Il n'y a aucune dépense payée à afficher pour le moment.</p>
+        </div>
+      )}
     </div>
   );
 }
