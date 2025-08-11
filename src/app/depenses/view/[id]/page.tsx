@@ -229,11 +229,6 @@ export default function ViewProcessedExpensesPage() {
                             <CardTitle>{pageTitle}</CardTitle>
                             <CardDescription>{pageDescription}</CardDescription>
                         </div>
-                        {expenseStatus && (
-                             <span className={`px-3 py-1.5 text-sm font-semibold rounded-full ${statusConfig[expenseStatus].color}`}>
-                                {statusConfig[expenseStatus].text}
-                            </span>
-                        )}
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -298,8 +293,15 @@ export default function ViewProcessedExpensesPage() {
                          />
                      </div>
                      <Separator className="my-2 w-full max-w-md self-end"/>
-                     <div className="text-right font-bold text-xl w-full max-w-md self-end pr-2">
-                        Net à Payer: {formatCurrency(netAmount)}
+                     <div className="flex justify-between items-center w-full max-w-md self-end">
+                        <div className="text-right font-bold text-xl w-full pr-2">
+                           Net à Payer: {formatCurrency(netAmount)}
+                        </div>
+                         {expenseStatus && (
+                             <span className={`px-3 py-1.5 text-sm font-semibold rounded-full whitespace-nowrap ${statusConfig[expenseStatus].color}`}>
+                                {statusConfig[expenseStatus].text}
+                            </span>
+                        )}
                      </div>
                 </CardFooter>
             </Card>
@@ -321,5 +323,3 @@ export default function ViewProcessedExpensesPage() {
         </>
     )
 }
-
-    
