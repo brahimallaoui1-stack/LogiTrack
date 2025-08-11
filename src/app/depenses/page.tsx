@@ -436,17 +436,16 @@ export default function DepensesPage() {
                                     </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
-                                    <div className="flex items-center gap-2">
-                                        <Tag className="h-4 w-4" />
-                                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                                    <div className="flex justify-between items-center w-full">
+                                        <div className="flex items-center gap-2 font-semibold text-foreground">
+                                            <Banknote className="h-4 w-4 text-muted-foreground" />
+                                            <span>
+                                                {formatCurrency(group.totalAmount)}
+                                                {filterStatus === 'Confirmé' && <span className="text-xs text-muted-foreground ml-1">(Net)</span>}
+                                            </span>
+                                        </div>
+                                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}>
                                             {statusInfo.text}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 font-semibold text-foreground">
-                                        <Banknote className="h-4 w-4 text-muted-foreground" />
-                                        <span>
-                                            {formatCurrency(group.totalAmount)}
-                                            {filterStatus === 'Confirmé' && <span className="text-xs text-muted-foreground ml-1">(Net)</span>}
                                         </span>
                                     </div>
                                 </CardContent>

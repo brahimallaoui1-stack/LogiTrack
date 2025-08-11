@@ -140,15 +140,14 @@ export default function FacturationPage() {
                             <Calendar className="h-4 w-4" />
                             <span>Payé le: {formatDate(group.paymentDate, "dd/MM/yy")}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                             <Tag className="h-4 w-4" />
-                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`}>
+                        <div className="flex justify-between items-center w-full">
+                            <div className="flex items-center gap-2 font-semibold text-foreground">
+                                <Banknote className="h-4 w-4 text-muted-foreground" />
+                                <span>{formatCurrency(group.totalAmount)}</span>
+                            </div>
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`}>
                                 {group.status}
                              </span>
-                        </div>
-                        <div className="flex items-center gap-2 font-semibold text-foreground">
-                            <Banknote className="h-4 w-4 text-muted-foreground" />
-                            <span>{formatCurrency(group.totalAmount)}</span>
                         </div>
                     </CardContent>
                 </Card>
