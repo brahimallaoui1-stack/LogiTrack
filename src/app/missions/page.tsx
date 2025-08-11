@@ -4,7 +4,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -19,7 +18,7 @@ import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye } from "lucide-react";
+import { Eye, Briefcase, Calendar, MapPin } from "lucide-react";
 
 
 export default function MissionsPage() {
@@ -88,76 +87,75 @@ export default function MissionsPage() {
 
   if (!isClient || isLoading) {
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex justify-end">
-                <Skeleton className="h-10 w-40" />
+        <div className="flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+                 <Skeleton className="h-8 w-48" />
+                 <Skeleton className="h-10 w-40" />
             </div>
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-48 mb-2" />
-                    <Skeleton className="h-4 w-80" />
-                </CardHeader>
-                <CardContent>
-                   <div className="space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="flex justify-between items-center">
-                                <div className="space-y-2">
-                                    <Skeleton className="h-4 w-24" />
-                                    <Skeleton className="h-4 w-40" />
-                                </div>
-                                <Skeleton className="h-9 w-20" />
-                            </div>
-                        ))}
-                   </div>
-                </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                   <Card key={i}>
+                       <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+                       <CardContent className="space-y-3">
+                           <Skeleton className="h-4 w-full" />
+                           <Skeleton className="h-4 w-full" />
+                           <Skeleton className="h-4 w-2/3" />
+                       </CardContent>
+                   </Card>
+                ))}
+            </div>
         </div>
     );
   }
 
   return (
     <>
-    <div className="flex flex-col gap-4">
-       <div className="flex justify-end">
+    <div className="flex flex-col gap-6">
+       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+         <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">Missions</h1>
+            <p className="text-muted-foreground">
+                Voici la liste complète de toutes les missions enregistrées.
+            </p>
+         </div>
          <Button onClick={handleAddNew}>Ajouter une mission</Button>
       </div>
-      <Card>
-        <CardHeader className="p-4 sm:p-6">
-          <CardTitle>Liste des Missions</CardTitle>
-          <CardDescription>
-            Voici la liste complète de toutes les missions enregistrées.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="px-2 sm:px-4">Date</TableHead>
-                <TableHead className="px-2 sm:px-4">Ville</TableHead>
-                <TableHead className="px-2 sm:px-4">Type de mission</TableHead>
-                <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedTasks.map((task) => {
+      
+      {sortedTasks.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {sortedTasks.map((task) => {
                 const displayData = getTaskDisplayData(task);
                 return (
-                  <TableRow key={task.id}>
-                    <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatDate(displayData.date, "dd-MM-yyyy")}</TableCell>
-                    <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{displayData.ville || 'N/A'}</TableCell>
-                    <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{displayData.typeMission || 'N/A'}</TableCell>
-                    <TableCell className="text-right px-2 sm:px-4">
-                        <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">
-                            <Eye className="h-4 w-4" />
-                        </Button>
-                    </TableCell>
-                  </TableRow>
+                    <Card key={task.id} className="flex flex-col">
+                        <CardHeader>
+                            <CardTitle className="text-base break-words">{displayData.typeMission || 'N/A'}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-grow space-y-3 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <span>{formatDate(displayData.date, "dd-MM-yyyy")}</span>
+                            </div>
+                             <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{displayData.ville || 'N/A'}</span>
+                            </div>
+                        </CardContent>
+                         <div className="p-4 pt-0 text-right">
+                             <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">
+                                <Eye className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </Card>
                 )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            })}
+        </div>
+      ) : (
+        <div className="text-center py-16">
+            <h3 className="text-lg font-semibold">Aucune mission trouvée</h3>
+            <p className="text-muted-foreground mt-2">Commencez par ajouter une nouvelle mission.</p>
+        </div>
+      )}
+
     </div>
 
     <MissionFormDialog 
