@@ -144,53 +144,55 @@ export default function Home() {
   
   const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
-        {isLoading ? (
-          <div className="grid md:grid-cols-2 gap-6">
-              <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-              <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-              <CardHeader>
-                  <CardTitle>{title}</CardTitle>
-                  <CardDescription>{description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
-              </CardContent>
-              </Card>
-              <Card>
-              <CardHeader>
-                  <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
-                  <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <Table>
-                  <TableHeader>
-                      <TableRow>
-                      <TableHead>{tableHead}</TableHead>
-                      <TableHead className="text-right">Missions</TableHead>
-                      <TableHead className="text-right">Pourcentage</TableHead>
-                      </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {data.map(({ name, count }) => {
-                        const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
-                        return (
-                          <TableRow key={name}>
-                              <TableCell className="font-medium">{name}</TableCell>
-                              <TableCell className="text-right">{count}</TableCell>
-                              <TableCell className="text-right">{percentage}%</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                  </Table>
-              </CardContent>
-              </Card>
-          </div>
-        )}
+        <div className="grid md:grid-cols-2 gap-6">
+            {isLoading ? (
+                <>
+                    <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                    <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                </>
+            ) : (
+                <>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{title}</CardTitle>
+                            <CardDescription>{description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
+                            <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>{tableHead}</TableHead>
+                                        <TableHead className="text-right">Missions</TableHead>
+                                        <TableHead className="text-right">Pourcentage</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {data.map(({ name, count }) => {
+                                        const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
+                                        return (
+                                            <TableRow key={name}>
+                                                <TableCell className="font-medium">{name}</TableCell>
+                                                <TableCell className="text-right">{count}</TableCell>
+                                                <TableCell className="text-right">{percentage}%</TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </>
+            )}
+        </div>
      </TabsContent>
   );
 
