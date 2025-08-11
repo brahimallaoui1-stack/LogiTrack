@@ -96,7 +96,7 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
                              onClick={handleLinkClick}
                         >
                             <Link href="/">
-                            <Image src="/icons/dashboard-icon.png" alt="Tableau de bord" width={16} height={16} className="h-4 w-4" />
+                            <LayoutDashboard />
                             <span>Tableau de bord</span>
                             </Link>
                         </SidebarMenuButton>
@@ -171,7 +171,7 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
         <SidebarInset>
             <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6 md:hidden">
             <SidebarTrigger>
-                <PanelLeft />
+                <Image src="/icons/dashboard-icon.png" alt="Menu" width={24} height={24} />
             </SidebarTrigger>
             </header>
             <main className="flex-1 p-4 sm:p-6">
