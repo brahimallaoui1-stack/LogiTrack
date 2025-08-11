@@ -253,9 +253,9 @@ export default function Home() {
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
             <TabsTrigger value="typeMission">Missions</TabsTrigger>
         </TabsList>
-         {renderReport('city', 'Rapport sur les missions par ville', 'Répartition des missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
-         {renderReport('gestionnaire', 'Rapport sur les missions par gestionnaire', 'Répartition des missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeMission', 'Rapport sur les missions par type', 'Répartition des missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+         {renderReport('city', 'Rapport de missions par ville', 'Répartition des missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Répartition des missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeMission', 'Rapport de missions par type', 'Répartition des missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
