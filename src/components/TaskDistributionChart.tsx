@@ -95,19 +95,8 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
               dominantBaseline="middle"
               className="text-3xl font-bold"
               fill="hsl(var(--primary))"
-              dy={-10}
             >
               {totalMissions}
-            </text>
-            <text
-              x="50%"
-              y="50%"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              className="text-sm text-muted-foreground"
-              dy={20}
-            >
-              Missions
             </text>
         </PieChart>
       </ChartContainer>
