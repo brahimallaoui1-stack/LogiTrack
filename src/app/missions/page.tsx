@@ -126,11 +126,11 @@ export default function MissionsPage() {
             {sortedTasks.map((task) => {
                 const displayData = getTaskDisplayData(task);
                 return (
-                    <Card key={task.id} className="flex flex-col">
+                    <Card key={task.id}>
                         <CardHeader>
                             <CardTitle className="text-base break-words">{formatDate(displayData.date, "dd-MM-yyyy")}</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-grow space-y-3 text-sm text-muted-foreground">
+                        <CardContent className="space-y-3 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4" />
                                 <span>{displayData.ville || 'N/A'}</span>
