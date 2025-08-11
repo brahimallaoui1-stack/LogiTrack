@@ -161,33 +161,24 @@ export default function Home() {
                             <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
                         </CardContent>
                     </Card>
-                    <Card>
+                     <Card>
                         <CardHeader>
                             <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
                             <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>{tableHead}</TableHead>
-                                        <TableHead className="text-right">Missions</TableHead>
-                                        <TableHead className="text-right">Pourcentage</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {data.map(({ name, count }) => {
-                                        const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
-                                        return (
-                                            <TableRow key={name}>
-                                                <TableCell className="font-medium">{name}</TableCell>
-                                                <TableCell className="text-right">{count}</TableCell>
-                                                <TableCell className="text-right">{percentage}%</TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                        <CardContent className="space-y-2">
+                             {data.map(({ name, count }) => {
+                                const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
+                                return (
+                                    <div key={name} className="flex justify-between items-center p-2 rounded-md border">
+                                        <span className="font-medium">{name}</span>
+                                        <div className="text-right">
+                                            <div className="font-bold">{count}</div>
+                                            <div className="text-xs text-muted-foreground">{percentage}%</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </CardContent>
                     </Card>
                 </>
@@ -292,3 +283,5 @@ export default function Home() {
     </>
   );
 }
+
+    
