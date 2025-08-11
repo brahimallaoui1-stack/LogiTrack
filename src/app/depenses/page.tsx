@@ -15,8 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckSquare, Eye } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, CheckSquare, Eye, MapPin, Tag, Banknote, Calendar } from "lucide-react";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useIsClient } from "@/hooks/useIsClient";
 
@@ -325,7 +325,7 @@ export default function DepensesPage() {
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
-                            <Calendar
+                            <CalendarComponent
                             mode="single"
                             selected={paymentDate}
                             onSelect={setPaymentDate}
@@ -339,6 +339,9 @@ export default function DepensesPage() {
             </Card>
         </div>
     );
+
+    const dataToShow = filterStatus === 'Sans compte' ? groupedUnprocessedExpenses : groupedProcessedExpenses;
+    const noData = dataToShow.length === 0;
 
     return (
         <div className="flex flex-col gap-6">
@@ -378,7 +381,7 @@ export default function DepensesPage() {
                         <div>
                             <CardTitle>{pageTitles[filterStatus]}</CardTitle>
                             <CardDescription>
-                                {filterStatus === 'Sans compte' ? 'Sélectionnez les missions à regrouper et à traiter.' : 'Voici la liste de toutes les dépenses.'}
+                                {filterStatus === 'Sans compte' ? 'Liste des missions avec des dépenses non traitées.' : 'Liste des lots de dépenses.'}
                             </CardDescription>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -395,64 +398,71 @@ export default function DepensesPage() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                           {filterStatus === 'Sans compte' ? (
-                                <TableRow>
-                                    <TableHead className="px-2 sm:px-4">Date</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Ville</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Montant</TableHead>
-                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
-                                </TableRow>
-                           ) : (
-                                <TableRow>
-                                    <TableHead className="px-2 sm:px-4">Date</TableHead>
-                                    <TableHead className="px-2 sm:px-4">{filterStatus === 'Confirmé' ? 'Net à Payer' : 'Montant'}</TableHead>
-                                    <TableHead className="px-2 sm:px-4">Statut</TableHead>
-                                    <TableHead className="text-right px-2 sm:px-4">Actions</TableHead>
-                                </TableRow>
-                           )}
-                        </TableHeader>
-                        <TableBody>
-                             {filterStatus === 'Sans compte' ? (
-                                groupedUnprocessedExpenses.map((group) => (
-                                    <TableRow key={group.id}>
-                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatDate(group.displayDate, "dd-MM-yy")}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{group.ville}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell className="text-right px-2 sm:px-4">
+                <CardContent className="p-4 sm:p-6 pt-0">
+                    {noData ? (
+                        <div className="text-center py-16">
+                            <h3 className="text-lg font-semibold">Aucune dépense à afficher</h3>
+                            <p className="text-muted-foreground mt-2">Aucune dépense ne correspond au filtre sélectionné.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {filterStatus === 'Sans compte' ? (
+                            groupedUnprocessedExpenses.map((group) => (
+                                <Card key={group.id}>
+                                    <CardHeader className="flex flex-row items-center justify-between p-4">
+                                        <CardTitle className="text-base break-words">{formatDate(group.displayDate, "dd-MM-yyyy")}</CardTitle>
+                                        <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="h-4 w-4" />
+                                            <span>{group.ville || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 font-semibold text-foreground">
+                                            <Banknote className="h-4 w-4 text-muted-foreground" />
+                                            <span>{formatCurrency(group.totalAmount)}</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            groupedProcessedExpenses.map((group) => {
+                                const statusInfo = statusConfig[group.status];
+                                return (
+                                     <Card key={group.id}>
+                                        <CardHeader className="flex flex-row items-center justify-between p-4">
+                                            <CardTitle className="text-base break-words">{formatDate(group.processedDate, "dd-MM-yyyy")}</CardTitle>
                                             <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
                                                 <Eye className="h-4 w-4" />
                                             </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                             ) : (
-                                groupedProcessedExpenses.map((group) => {
-                                    const statusInfo = statusConfig[group.status];
-                                    return (
-                                        <TableRow key={group.id}>
-                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatDate(group.processedDate, "dd-MM-yy")}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">{formatCurrency(group.totalAmount)}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">
-                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
+                                            <div className="flex items-center gap-2">
+                                                <Tag className="h-4 w-4" />
+                                                 <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}>
                                                     {statusInfo.text}
                                                 </span>
-                                            </TableCell>
-                                        <TableCell className="text-right px-2 sm:px-4">
-                                            <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                        </TableRow>
-                                    )
-                                })
-                             )}
-                        </TableBody>
-                    </Table>
+                                            </div>
+                                            <div className="flex items-center gap-2 font-semibold text-foreground">
+                                                <Banknote className="h-4 w-4 text-muted-foreground" />
+                                                <span>
+                                                    {formatCurrency(group.totalAmount)}
+                                                    {filterStatus === 'Confirmé' && <span className="text-xs text-muted-foreground ml-1">(Net)</span>}
+                                                </span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )
+                            })
+                        )}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
     );
 }
+
+    
