@@ -93,7 +93,7 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
               y="50%"
               textAnchor="middle"
               dominantBaseline="middle"
-              className="text-3xl font-bold"
+              className="text-5xl font-bold"
               fill="hsl(var(--primary))"
             >
               {totalMissions}
