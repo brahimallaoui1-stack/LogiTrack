@@ -96,7 +96,7 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
                              onClick={handleLinkClick}
                         >
                             <Link href="/">
-                            <LayoutDashboard />
+                            <Image src="/icons/dashboard-icon.png" alt="Tableau de bord" width={16} height={16} className="h-4 w-4" />
                             <span>Tableau de bord</span>
                             </Link>
                         </SidebarMenuButton>
