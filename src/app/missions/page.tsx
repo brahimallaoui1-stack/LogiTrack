@@ -128,16 +128,16 @@ export default function MissionsPage() {
                 return (
                     <Card key={task.id} className="flex flex-col">
                         <CardHeader>
-                            <CardTitle className="text-base break-words">{displayData.typeMission || 'N/A'}</CardTitle>
+                            <CardTitle className="text-base break-words">{formatDate(displayData.date, "dd-MM-yyyy")}</CardTitle>
                         </CardHeader>
                         <CardContent className="flex-grow space-y-3 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                <span>{formatDate(displayData.date, "dd-MM-yyyy")}</span>
-                            </div>
-                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4" />
                                 <span>{displayData.ville || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Briefcase className="h-4 w-4" />
+                                <span>{displayData.typeMission || 'N/A'}</span>
                             </div>
                         </CardContent>
                          <div className="p-4 pt-0 text-right">
