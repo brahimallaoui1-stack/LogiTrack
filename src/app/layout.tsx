@@ -13,7 +13,6 @@ const ptSans = PT_Sans({
 export const metadata: Metadata = {
   title: 'Logi Track',
   description: 'Une application construite avec Firebase Studio',
-  manifest: '/manifest.json'
 };
 
 export default function RootLayout({
@@ -23,10 +22,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-       <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#223B55" />
-      </head>
       <body className="antialiased">
         <div className={ptSans.className}>
          <AppLayout>{children}</AppLayout>
