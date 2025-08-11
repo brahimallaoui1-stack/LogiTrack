@@ -301,7 +301,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                 </Button>
             </div>
         }
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor={`date-${index}`}>Date</Label>
                 <Input id="date" type="date" value={subMission.date} onChange={(e) => handleInputChange(e, index)} />
@@ -358,7 +358,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
         <Separator className="my-4"/>
         
         <h4 className="font-semibold text-lg">Informations sur le véhicule</h4>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor={`marqueVehicule-${index}`}>Marque de véhicule</Label>
                 <Input id="marqueVehicule" value={subMission.marqueVehicule} onChange={(e) => handleInputChange(e, index)} />
@@ -395,7 +395,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
           {isCasablancaMission ? (
              <div className="grid gap-6 py-4">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="date">Date</Label>
                     <Input id="date" type="date" value={formState.date} onChange={handleInputChange} />
@@ -444,7 +444,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
             
             <div className="grid gap-4">
                 <h3 className="font-semibold text-lg">Informations sur le véhicule</h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
                         <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
@@ -483,7 +483,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
                     {formState.expenses.length > 0 && (
                         <>
-                        <div className="rounded-md border mt-4">
+                        <div className="rounded-md border mt-4 overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow>

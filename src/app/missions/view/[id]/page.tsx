@@ -136,7 +136,7 @@ export default function ViewMissionPage() {
     const renderSubMissionDetails = (subMission: SubMission, index: number) => (
         <div key={subMission.id} className="p-4 border rounded-lg space-y-4">
              <h3 className="font-bold text-lg md:text-xl">Étape {index + 1}</h3>
-             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
+             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                 <div><span className="font-semibold">Date:</span> {formatDate(subMission.date, "dd-MM-yyyy")}</div>
                 <div><span className="font-semibold">Réservation:</span> {subMission.reservation || 'N/A'}</div>
                 <div><span className="font-semibold">Type:</span> {subMission.typeMission || 'N/A'}</div>
@@ -147,7 +147,7 @@ export default function ViewMissionPage() {
             <Separator/>
              <div className="space-y-2 text-sm md:text-base">
                  <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
-                <div className="grid md:grid-cols-2 gap-x-4 gap-y-2">
+                <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
                     <div><span className="font-semibold">Marque:</span> {subMission.marqueVehicule || 'N/A'}</div>
                     <div><span className="font-semibold">Immat.:</span> {subMission.immatriculation || 'N/A'}</div>
                 </div>
@@ -201,7 +201,7 @@ export default function ViewMissionPage() {
                 <CardContent>
                     {isCasablancaMission ? (
                         <div className="grid gap-6">
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                                 <div><span className="font-semibold">Date:</span> {formatDate(task.date, "dd-MM-yyyy")}</div>
                                 <div><span className="font-semibold">Réservation:</span> {task.reservation || 'N/A'}</div>
                                 <div><span className="font-semibold">Type:</span> {task.typeMission || 'N/A'}</div>
@@ -215,7 +215,7 @@ export default function ViewMissionPage() {
                             <div className="space-y-4 text-sm md:text-base">
                                 <div>
                                     <h4 className="font-semibold text-base md:text-lg mb-4">Informations sur le véhicule</h4>
-                                    <div className="grid md:grid-cols-2 gap-x-4 gap-y-2">
+                                    <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
                                         <div><span className="font-semibold">Marque:</span> {task.marqueVehicule || 'N/A'}</div>
                                         <div><span className="font-semibold">Immat.:</span> {task.immatriculation || 'N/A'}</div>
                                     </div>
@@ -236,7 +236,7 @@ export default function ViewMissionPage() {
                         <div>
                             <Separator className="my-6"/>
                             <h4 className="font-semibold text-base md:text-lg mb-2">Dépenses</h4>
-                            <div className="rounded-md border">
+                            <div className="rounded-md border overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>

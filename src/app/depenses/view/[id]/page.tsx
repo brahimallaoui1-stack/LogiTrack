@@ -232,24 +232,26 @@ export default function ViewProcessedExpensesPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date Mission</TableHead>
-                                <TableHead>Ville</TableHead>
-                                <TableHead className="text-right">Montant</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {groupedMissionExpenses.map((mission) => (
-                                <TableRow key={mission.missionId}>
-                                    <TableCell>{formatDate(mission.missionDate, "dd-MM-yyyy")}</TableCell>
-                                    <TableCell>{mission.ville}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(mission.totalAmount)}</TableCell>
+                     <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date Mission</TableHead>
+                                    <TableHead>Ville</TableHead>
+                                    <TableHead className="text-right">Montant</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {groupedMissionExpenses.map((mission) => (
+                                    <TableRow key={mission.missionId}>
+                                        <TableCell>{formatDate(mission.missionDate, "dd-MM-yyyy")}</TableCell>
+                                        <TableCell>{mission.ville}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(mission.totalAmount)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                     </div>
                      <div className="text-right font-bold pr-4 mt-4 text-lg">
                         Total Initial: {formatCurrency(initialTotal)}
                     </div>
@@ -258,8 +260,8 @@ export default function ViewProcessedExpensesPage() {
                 <Separator className="my-4"/>
 
                 <CardFooter className="flex-col items-end gap-4">
-                     <div className="grid grid-cols-2 gap-x-8 gap-y-4 w-full max-w-md self-end">
-                         <Label htmlFor="approvedAmount">Montant Approuvé</Label>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 w-full max-w-md self-end">
+                         <Label htmlFor="approvedAmount" className="sm:text-right sm:self-center">Montant Approuvé</Label>
                          <Input
                             id="approvedAmount"
                             type="number"
@@ -270,7 +272,7 @@ export default function ViewProcessedExpensesPage() {
                             readOnly={!isReadyForConfirmation}
                          />
 
-                         <Label htmlFor="advance">Avance (Tasbiq)</Label>
+                         <Label htmlFor="advance" className="sm:text-right sm:self-center">Avance (Tasbiq)</Label>
                          <Input
                             id="advance"
                             type="number"
@@ -281,7 +283,7 @@ export default function ViewProcessedExpensesPage() {
                             readOnly={!isReadyForConfirmation}
                          />
 
-                         <Label htmlFor="accountantFees">Frais Comptable (L3omola)</Label>
+                         <Label htmlFor="accountantFees" className="sm:text-right sm:self-center">Frais Comptable (L3omola)</Label>
                          <Input
                             id="accountantFees"
                             type="number"
