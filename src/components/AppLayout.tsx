@@ -176,7 +176,6 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
             </header>
             <main className="flex-1 p-4 sm:p-6">
             {children}
-            <Toaster />
             </main>
         </SidebarInset>
     </>
@@ -191,7 +190,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <AuthGuard>
             <main className="flex-1">
                 {children}
-                <Toaster />
             </main>
         </AuthGuard>
     )
