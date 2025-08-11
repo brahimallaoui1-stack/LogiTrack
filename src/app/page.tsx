@@ -170,12 +170,10 @@ export default function Home() {
                              {data.map(({ name, count }) => {
                                 const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
                                 return (
-                                    <div key={name} className="flex justify-between items-center p-2 rounded-md border">
-                                        <span className="font-medium">{name}</span>
-                                        <div className="text-right">
-                                            <div className="font-bold">{count}</div>
-                                            <div className="text-xs text-muted-foreground">{percentage}%</div>
-                                        </div>
+                                    <div key={name} className="grid grid-cols-3 items-center p-2 rounded-md border">
+                                        <span className="font-medium truncate">{name}</span>
+                                        <span className="font-bold text-center">{count}</span>
+                                        <span className="text-xs text-muted-foreground text-right">{percentage}%</span>
                                     </div>
                                 );
                             })}
@@ -283,5 +281,7 @@ export default function Home() {
     </>
   );
 }
+
+    
 
     
