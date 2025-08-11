@@ -105,7 +105,7 @@ export default function Home() {
             let key: string | undefined;
 
             if (category === 'city') {
-                key = task.city === 'Hors Casablanca' ? 'Hors Casablanca' : task.city;
+                key = task.city;
             } else {
                 key = task[category];
             }

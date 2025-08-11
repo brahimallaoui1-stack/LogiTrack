@@ -31,7 +31,6 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
             let key: string | undefined;
 
             if (category === 'city') {
-                // For city category, use the subMission city if available
                 key = task.city;
             } else {
                 key = task[category] as string | undefined;
