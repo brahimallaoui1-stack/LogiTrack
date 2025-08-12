@@ -44,7 +44,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <div className="flex flex-col items-center gap-4">
-                    <Image src="/icons/icon-192x192.png" alt="Logi Track Logo" width={48} height={48} className="animate-pulse" />
+                    <Image src="/icons/icon-192x192.png?v=2" alt="Logi Track Logo" width={48} height={48} className="animate-pulse" />
                     <p className="text-muted-foreground">Chargement de Logi Track...</p>
                 </div>
             </div>
@@ -81,7 +81,7 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
             <SidebarHeader className="p-4">
                 <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-3">
-                    <Image src="/icons/icon-192x192.png" alt="Logi Track Logo" width={32} height={32} />
+                    <Image src="/icons/icon-192x192.png?v=2" alt="Logi Track Logo" width={32} height={32} />
                     <h1 className="text-xl font-semibold font-headline">
                         <span className="font-bold">Logi</span>
                         <span>Track</span>
