@@ -10,19 +10,13 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Task } from "@/lib/types"
+import { getCityColor } from "@/lib/utils"
 
 interface TaskDistributionChartProps {
   tasks: (Task & { subMissionIndex?: number })[]; // Accept flattened tasks
   category: keyof Task;
   label: string;
 }
-
-const COLORS = [
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-];
 
 export function TaskDistributionChart({ tasks, category, label }: TaskDistributionChartProps) {
     const data = React.useMemo(() => {
@@ -44,7 +38,7 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
         return Object.keys(counts).map((name) => ({
             name: name,
             value: counts[name],
-            fill: COLORS[Object.keys(counts).indexOf(name) % COLORS.length]
+            fill: getCityColor(name),
         }))
     }, [tasks, category])
     

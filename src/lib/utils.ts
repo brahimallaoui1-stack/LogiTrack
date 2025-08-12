@@ -21,3 +21,21 @@ export function formatDate(dateString: string | undefined | null, dateFormat: st
         }
     }
 }
+
+const cityColorMap: Record<string, string> = {};
+const chartColors = [
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+  "hsl(var(--chart-1))",
+];
+let colorIndex = 0;
+
+export function getCityColor(city: string): string {
+  if (!cityColorMap[city]) {
+    cityColorMap[city] = chartColors[colorIndex % chartColors.length];
+    colorIndex++;
+  }
+  return cityColorMap[city];
+}
