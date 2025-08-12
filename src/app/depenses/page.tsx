@@ -345,6 +345,27 @@ export default function DepensesPage() {
 
     return (
         <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex-1">
+                    <h2 className="text-2xl font-bold tracking-tight">{pageTitles[filterStatus]}</h2>
+                    <p className="text-muted-foreground">
+                        {filterStatus === 'Sans compte' ? 'Liste des missions avec des dépenses non traitées.' : 'Liste des lots de dépenses.'}
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
+                        <SelectTrigger className="w-full md:w-[220px]">
+                            <SelectValue placeholder="Filtrer par statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
+                            <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
+                            <SelectItem value="Confirmé">En attente de paiement</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
              {filterStatus === 'Confirmé' && renderPaymentSection()}
              
              {filterStatus !== 'Confirmé' && (
@@ -374,27 +395,6 @@ export default function DepensesPage() {
                     </Card>
                 </div>
              )}
-
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex-1">
-                    <h2 className="text-2xl font-bold tracking-tight">{pageTitles[filterStatus]}</h2>
-                    <p className="text-muted-foreground">
-                        {filterStatus === 'Sans compte' ? 'Liste des missions avec des dépenses non traitées.' : 'Liste des lots de dépenses.'}
-                    </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as ExpenseStatus)}>
-                        <SelectTrigger className="w-full md:w-[220px]">
-                            <SelectValue placeholder="Filtrer par statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Sans compte">Dépenses non traitées</SelectItem>
-                            <SelectItem value="Comptabilisé">En attente de confirmation</SelectItem>
-                            <SelectItem value="Confirmé">En attente de paiement</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
 
             {noData ? (
                 <div className="text-center py-16">
