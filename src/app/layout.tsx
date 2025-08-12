@@ -2,10 +2,10 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { AppLayout } from '@/components/AppLayout';
-import { PT_Sans } from 'next/font/google';
+import { Libre_Baskerville } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 
-const ptSans = PT_Sans({
+const libreBaskerville = Libre_Baskerville({
   subsets: ['latin'],
   weight: ['400', '700'],
 });
@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className="antialiased">
-        <div className={ptSans.className}>
+        <div className={libreBaskerville.className}>
          <AppLayout>{children}</AppLayout>
         </div>
         <Toaster />
