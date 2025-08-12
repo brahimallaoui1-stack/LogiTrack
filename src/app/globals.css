@@ -27,11 +27,21 @@ body {
     --border: 213 47% 24%;
     --input: 213 47% 28%;
     --ring: 168 100% 70%;
-    --chart-1: 168 100% 70%;
-    --chart-2: 207 67% 50%;
-    --chart-3: 23 71% 49%;
-    --chart-4: 42 65% 52%;
-    --chart-5: 0 0% 88%;
+    --chart-1: 19 95% 62%; /* Orange */
+    --chart-2: 211 92% 59%; /* Blue */
+    --chart-3: 342 95% 62%; /* Pink */
+    --chart-4: 159 86% 59%; /* Teal */
+    --chart-5: 262 87% 67%; /* Purple */
+    --chart-6: 51 95% 62%; /* Yellow */
+    --chart-7: 0 84% 67%; /* Red */
+    --chart-8: 91 79% 58%; /* Lime Green */
+    --chart-9: 300 95% 62%; /* Magenta */
+    --chart-10: 199 87% 63%; /* Sky Blue */
+    --chart-11: 30 95% 62%; /* Tangerine */
+    --chart-12: 231 82% 70%; /* Indigo */
+    --chart-13: 120 73% 70%; /* Green */
+    --chart-14: 60 95% 62%; /* Gold */
+    --chart-15: 350 95% 70%; /* Coral */
     --radius: 0.5rem;
     --sidebar-background: 212 70% 12%;
     --sidebar-foreground: 0 0% 88%;
@@ -62,11 +72,21 @@ body {
     --border: 213 47% 24%;
     --input: 213 47% 28%;
     --ring: 168 100% 70%;
-    --chart-1: 168 100% 70%;
-    --chart-2: 207 67% 50%;
-    --chart-3: 23 71% 49%;
-    --chart-4: 42 65% 52%;
-    --chart-5: 0 0% 98%;
+    --chart-1: 19 95% 62%; /* Orange */
+    --chart-2: 211 92% 59%; /* Blue */
+    --chart-3: 342 95% 62%; /* Pink */
+    --chart-4: 159 86% 59%; /* Teal */
+    --chart-5: 262 87% 67%; /* Purple */
+    --chart-6: 51 95% 62%; /* Yellow */
+    --chart-7: 0 84% 67%; /* Red */
+    --chart-8: 91 79% 58%; /* Lime Green */
+    --chart-9: 300 95% 62%; /* Magenta */
+    --chart-10: 199 87% 63%; /* Sky Blue */
+    --chart-11: 30 95% 62%; /* Tangerine */
+    --chart-12: 231 82% 70%; /* Indigo */
+    --chart-13: 120 73% 70%; /* Green */
+    --chart-14: 60 95% 62%; /* Gold */
+    --chart-15: 350 95% 70%; /* Coral */
     --sidebar-background: 212 70% 12%;
     --sidebar-foreground: 0 0% 88%;
     --sidebar-primary: 168 100% 70%;

@@ -35,10 +35,10 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
             return acc
         }, {} as Record<string, number>)
 
-        return Object.keys(counts).map((name) => ({
+        return Object.keys(counts).map((name, index) => ({
             name: name,
             value: counts[name],
-            fill: getCityColor(name),
+            fill: getCityColor(index),
         }))
     }, [tasks, category])
     

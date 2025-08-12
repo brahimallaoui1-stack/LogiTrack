@@ -28,24 +28,18 @@ const chartColors = [
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-5))",
+  "hsl(var(--chart-6))",
+  "hsl(var(--chart-7))",
+  "hsl(var(--chart-8))",
+  "hsl(var(--chart-9))",
+  "hsl(var(--chart-10))",
+  "hsl(var(--chart-11))",
+  "hsl(var(--chart-12))",
+  "hsl(var(--chart-13))",
+  "hsl(var(--chart-14))",
+  "hsl(var(--chart-15))",
 ];
 
-// Simple hash function to get a consistent index for a city name
-const simpleHash = (str: string) => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
-};
-
-
-export function getCityColor(city: string): string {
-  if (!city) {
-    return chartColors[0];
-  }
-  const index = simpleHash(city) % chartColors.length;
-  return chartColors[index];
+export function getCityColor(index: number): string {
+  return chartColors[index % chartColors.length];
 }
