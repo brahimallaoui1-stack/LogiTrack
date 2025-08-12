@@ -153,7 +153,7 @@ export default function Home() {
                 <>
                     <Card>
                         <CardHeader>
-                            <CardTitle>{title}</CardTitle>
+                            <CardTitle>Rapport de missions par {tableHead.toLowerCase()}</CardTitle>
                             <CardDescription>{description}</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -280,3 +280,5 @@ export default function Home() {
     </>
   );
 }
+
+    
