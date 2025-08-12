@@ -134,29 +134,33 @@ export default function ViewMissionPage() {
     const isCasablancaMission = task.city === 'Casablanca';
 
     const renderSubMissionDetails = (subMission: SubMission, index: number) => (
-        <div key={subMission.id} className="p-4 border rounded-lg space-y-4">
-             <h3 className="font-bold text-lg md:text-xl">Étape {index + 1}</h3>
-             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
-                <div><span className="font-semibold">Date:</span> {formatDate(subMission.date, "dd-MM-yyyy")}</div>
-                <div><span className="font-semibold">Réservation:</span> {subMission.reservation || 'N/A'}</div>
-                <div><span className="font-semibold">Type:</span> {subMission.typeMission || 'N/A'}</div>
-                <div><span className="font-semibold">Ville:</span> {subMission.city || 'N/A'}</div>
-                <div><span className="font-semibold">Client:</span> {subMission.entreprise || 'N/A'}</div>
-                <div><span className="font-semibold">Gestionnaire:</span> {subMission.gestionnaire || 'N/A'}</div>
-            </div>
-            <Separator/>
-             <div className="space-y-2 text-sm md:text-base">
-                 <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
-                <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
-                    <div><span className="font-semibold">Marque:</span> {subMission.marqueVehicule || 'N/A'}</div>
-                    <div><span className="font-semibold">Immat.:</span> {subMission.immatriculation || 'N/A'}</div>
+        <Card key={subMission.id}>
+            <CardHeader>
+                <CardTitle>Étape {index + 1}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
+                    <div><span className="font-semibold text-muted-foreground">Date:</span> {formatDate(subMission.date, "dd-MM-yyyy")}</div>
+                    <div><span className="font-semibold text-muted-foreground">Réservation:</span> {subMission.reservation || 'N/A'}</div>
+                    <div><span className="font-semibold text-muted-foreground">Type:</span> {subMission.typeMission || 'N/A'}</div>
+                    <div><span className="font-semibold text-muted-foreground">Ville:</span> {subMission.city || 'N/A'}</div>
+                    <div><span className="font-semibold text-muted-foreground">Client:</span> {subMission.entreprise || 'N/A'}</div>
+                    <div><span className="font-semibold text-muted-foreground">Gestionnaire:</span> {subMission.gestionnaire || 'N/A'}</div>
                 </div>
-                 <div>
-                    <h5 className="font-semibold mb-1">Remarque</h5>
+                <Separator/>
+                <div className="space-y-4">
+                    <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
+                    <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm md:text-base">
+                        <div><span className="font-semibold text-muted-foreground">Marque:</span> {subMission.marqueVehicule || 'N/A'}</div>
+                        <div><span className="font-semibold text-muted-foreground">Immat.:</span> {subMission.immatriculation || 'N/A'}</div>
+                    </div>
+                </div>
+                <div>
+                    <h5 className="font-semibold mb-1 text-base md:text-lg">Remarque</h5>
                     <p className="text-sm text-muted-foreground break-words">{subMission.remarque || 'Aucune remarque'}</p>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
     
     return (
@@ -198,32 +202,30 @@ export default function ViewMissionPage() {
                     <CardTitle className="text-lg md:text-2xl">Détails: {task.label}</CardTitle>
                     <CardDescription>Informations complètes sur la mission.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
                     {isCasablancaMission ? (
-                        <div className="grid gap-6">
+                        <div className="space-y-6">
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
-                                <div><span className="font-semibold">Date:</span> {formatDate(task.date, "dd-MM-yyyy")}</div>
-                                <div><span className="font-semibold">Réservation:</span> {task.reservation || 'N/A'}</div>
-                                <div><span className="font-semibold">Type:</span> {task.typeMission || 'N/A'}</div>
-                                <div><span className="font-semibold">Ville:</span> {task.city || 'N/A'}</div>
-                                <div><span className="font-semibold">Client:</span> {task.entreprise || 'N/A'}</div>
-                                <div><span className="font-semibold">Gestionnaire:</span> {task.gestionnaire || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Date:</span> {formatDate(task.date, "dd-MM-yyyy")}</div>
+                                <div><span className="font-semibold text-muted-foreground">Réservation:</span> {task.reservation || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Type:</span> {task.typeMission || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Ville:</span> {task.city || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Client:</span> {task.entreprise || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Gestionnaire:</span> {task.gestionnaire || 'N/A'}</div>
                             </div>
 
                             <Separator/>
 
-                            <div className="space-y-4 text-sm md:text-base">
-                                <div>
-                                    <h4 className="font-semibold text-base md:text-lg mb-4">Informations sur le véhicule</h4>
-                                    <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
-                                        <div><span className="font-semibold">Marque:</span> {task.marqueVehicule || 'N/A'}</div>
-                                        <div><span className="font-semibold">Immat.:</span> {task.immatriculation || 'N/A'}</div>
-                                    </div>
-                                     <div>
-                                        <h5 className="font-semibold mb-1 mt-4">Remarque</h5>
-                                        <p className="text-sm text-muted-foreground break-words">{task.remarque || 'Aucune remarque'}</p>
-                                    </div>
+                            <div className="space-y-4">
+                                <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
+                                <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm md:text-base">
+                                    <div><span className="font-semibold text-muted-foreground">Marque:</span> {task.marqueVehicule || 'N/A'}</div>
+                                    <div><span className="font-semibold text-muted-foreground">Immat.:</span> {task.immatriculation || 'N/A'}</div>
                                 </div>
+                             </div>
+                             <div>
+                                <h5 className="font-semibold mb-1 text-base md:text-lg">Remarque</h5>
+                                <p className="text-sm text-muted-foreground break-words">{task.remarque || 'Aucune remarque'}</p>
                             </div>
                         </div>
                     ) : (
@@ -235,7 +237,7 @@ export default function ViewMissionPage() {
                     {task.expenses && task.expenses.length > 0 && (
                         <div>
                             <Separator className="my-6"/>
-                            <h4 className="font-semibold text-base md:text-lg mb-2">Dépenses</h4>
+                            <h4 className="font-semibold text-base md:text-lg mb-4">Dépenses</h4>
                             <div className="rounded-md border overflow-x-auto">
                                 <Table>
                                     <TableHeader>
@@ -285,3 +287,5 @@ export default function ViewMissionPage() {
         </>
     );
 }
+
+    
