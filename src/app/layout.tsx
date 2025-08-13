@@ -8,7 +8,6 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'Logi Track',
   description: 'Une application construite avec Firebase Studio',
-  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({
