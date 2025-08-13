@@ -82,7 +82,7 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-3">
                     <Image src="/icons/icon-192x192.png?v=2" alt="Logi Track Logo" width={32} height={32} />
-                    <h1 className="text-xl font-semibold font-headline">
+                    <h1 className="text-xl font-headline">
                         <span className="font-bold">Logi</span>
                         <span>Track</span>
                     </h1>

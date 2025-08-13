@@ -11,8 +11,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Libre Baskerville"', 'sans-serif'],
-        headline: ['"Libre Baskerville"', 'sans-serif'],
+        sans: ['Helvetica', 'Arial', 'sans-serif'],
+        headline: ['Helvetica', 'Arial', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
