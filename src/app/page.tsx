@@ -154,7 +154,6 @@ export default function Home() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Rapport de missions par {tableHead.toLowerCase()}</CardTitle>
-                            <CardDescription>{description}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
@@ -279,5 +278,3 @@ export default function Home() {
     </>
   );
 }
-
-    
