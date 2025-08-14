@@ -17,7 +17,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 type GroupedExpense = {
   id: string; // The batchId
   processedDate: string; // The original processedDate
-  totalAmount: number;
+  approvedAmount: number; // Changed from totalAmount
   status: 'Payé';
   paymentDate?: string;
   paymentId: string;
@@ -44,13 +44,12 @@ export default function FacturationPage() {
             groupedByPayment[batchId] = { 
                 id: batchId,
                 processedDate: expense.processedDate,
-                totalAmount: 0, 
+                approvedAmount: expense.approvedAmount ?? 0, 
                 status: 'Payé',
                 paymentDate: expense.payment.paymentDate,
                 paymentId: expense.payment.paymentId,
             };
           }
-          groupedByPayment[batchId].totalAmount += expense.montant;
         }
       });
     });
@@ -63,7 +62,7 @@ export default function FacturationPage() {
   }, [tasks]);
   
  const totalPaid = useMemo(() => {
-    return paidExpenses.reduce((sum, group) => sum + group.totalAmount, 0);
+    return paidExpenses.reduce((sum, group) => sum + group.approvedAmount, 0);
   }, [paidExpenses]);
 
   
@@ -109,12 +108,12 @@ export default function FacturationPage() {
     <div className="flex flex-col gap-6">
       <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Payé</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Payé (Approuvé)</CardTitle>
             <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalPaid)}</div>
-            <p className="text-xs text-muted-foreground">Montant total des lots de dépenses soldés.</p>
+            <p className="text-xs text-muted-foreground">Montant total approuvé des lots de dépenses soldés.</p>
           </CardContent>
         </Card>
         
@@ -143,7 +142,7 @@ export default function FacturationPage() {
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-2 font-semibold text-foreground">
                                 <Banknote className="h-4 w-4 text-muted-foreground" />
-                                <span>{formatCurrency(group.totalAmount)}</span>
+                                <span>{formatCurrency(group.approvedAmount)}</span>
                             </div>
                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`}>
                                 {group.status}
