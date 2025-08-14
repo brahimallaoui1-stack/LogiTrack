@@ -163,7 +163,6 @@ export default function Home() {
                      <Card>
                         <CardHeader>
                             <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
-                            <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
                              {data.map(({ name, count }) => {
