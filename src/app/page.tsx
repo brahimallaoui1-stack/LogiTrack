@@ -162,7 +162,7 @@ export default function Home() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
+                            <CardTitle>Nombre total de missions effectuées par {tableHead.toLowerCase()}.</CardTitle>
                             <CardDescription>Nombre total de missions effectuées, réparties par {tableHead.toLowerCase()}.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
