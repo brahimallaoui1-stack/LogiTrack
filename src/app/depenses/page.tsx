@@ -266,26 +266,26 @@ export default function DepensesPage() {
     }
     
     const renderPaymentSection = () => (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Total Net à Payer</CardTitle>
-                    <CardDescription>Montant total des lots confirmés.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Solde AYVENS</CardTitle>
-                    <CardDescription>Solde client actuel.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(clientBalance)}</div>
-                </CardContent>
-            </Card>
-            <Card className="md:col-span-2 lg:col-span-1">
+        <div className="grid gap-6 md:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 md:col-span-2">
+                <Card>
+                    <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Net à Payer</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                        <div className="text-xl font-bold">{formatCurrency(totalAmount)}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-medium">Solde AYVENS</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                        <div className="text-xl font-bold">{formatCurrency(clientBalance)}</div>
+                    </CardContent>
+                </Card>
+            </div>
+            <Card className="md:col-span-3 lg:col-span-1">
                 <CardHeader>
                     <CardTitle className="text-base">Ajouter un paiement reçu</CardTitle>
                      <CardDescription>Mettre à jour le solde client.</CardDescription>
