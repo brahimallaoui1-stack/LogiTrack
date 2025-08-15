@@ -203,29 +203,18 @@ export default function DepensesPage() {
     }
 
     const totalCardTitles = {
-        'Sans compte': 'Total des dépenses non comptabilisées',
-        'Comptabilisé': 'Total des dépenses à confirmer',
+        'Sans compte': 'Total non comptabilisé',
+        'Comptabilisé': 'Total à confirmer',
         'Confirmé': 'Total Net à payer',
-        'Payé': 'Total des dépenses Payées',
-    }
-
-    const totalCardDescriptions = {
-        'Sans compte': 'Montant total des dépenses non encore traitées.',
-        'Comptabilisé': 'Montant total des dépenses en attente de confirmation.',
-        'Confirmé': 'Montant total net à payer pour les lots confirmés.',
-        'Payé': 'Montant total des dépenses Payées.',
+        'Payé': 'Total Payé',
     }
 
     const dateCardTitles = {
-        'Sans compte': 'Date de la première dépense non comptabilisée',
-        'Comptabilisé': 'Date du lot le plus ancien à confirmer',
-        'Confirmé': 'Date du lot le plus ancien à payer',
-        'Payé': 'Date de la première dépense Payée',
+        'Sans compte': 'Depuis le',
+        'Comptabilisé': 'Depuis le',
+        'Confirmé': 'Depuis le',
+        'Payé': 'Depuis le',
     }
-
-    const dateCardDescription = oldestExpenseDate
-        ? `La plus ancienne dépense ${filterStatus === 'Sans compte' ? 'non traitée' : 'en attente'}.`
-        : `Aucune dépense ${filterStatus === 'Sans compte' ? 'non comptabilisée' : 'en attente'}.`;
         
     const statusConfig: Record<ExpenseStatus, { color: string; text: string }> = {
         'Sans compte': { color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200', text: 'Sans compte' },
@@ -369,25 +358,23 @@ export default function DepensesPage() {
              {filterStatus === 'Confirmé' && renderPaymentSection()}
              
              {filterStatus !== 'Confirmé' && (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-2 gap-4">
                     <Card>
-                        <CardHeader className="p-4 sm:p-6">
-                            <CardTitle>{totalCardTitles[filterStatus]}</CardTitle>
-                            <CardDescription>{totalCardDescriptions[filterStatus]}</CardDescription>
+                        <CardHeader className="p-4 pb-2">
+                            <CardTitle className="text-sm font-medium">{totalCardTitles[filterStatus]}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                            <div className="text-2xl sm:text-3xl font-bold">{formatCurrency(totalAmount)}</div>
+                        <CardContent className="p-4 pt-0">
+                            <div className="text-xl font-bold">{formatCurrency(totalAmount)}</div>
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="p-4 sm:p-6">
-                            <CardTitle>{dateCardTitles[filterStatus]}</CardTitle>
-                            <CardDescription>{dateCardDescription}</CardDescription>
+                        <CardHeader className="p-4 pb-2">
+                            <CardTitle className="text-sm font-medium">{dateCardTitles[filterStatus]}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                            <div className="text-2xl sm:text-3xl font-bold">
+                        <CardContent className="p-4 pt-0">
+                            <div className="text-xl font-bold">
                                 {oldestExpenseDate
-                                    ? formatDate(oldestExpenseDate, "dd-MM-yyyy")
+                                    ? formatDate(oldestExpenseDate, "dd-MM-yy")
                                     : 'N/A'
                                 }
                             </div>
@@ -458,3 +445,5 @@ export default function DepensesPage() {
         </div>
     );
 }
+
+    
