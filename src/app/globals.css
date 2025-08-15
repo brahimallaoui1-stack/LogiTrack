@@ -100,6 +100,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE 10+ and Edge */
+    user-select: none; /* Standard syntax */
   }
 }
 
