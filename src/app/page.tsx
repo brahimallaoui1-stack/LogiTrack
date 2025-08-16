@@ -146,6 +146,10 @@ export default function Home() {
   const handleReportItemClick = (category: ReportCategory, value: string) => {
     const params = new URLSearchParams();
     params.set(category, value);
+    if (selectedDate) {
+      params.set('timeRange', timeRange);
+      params.set('date', selectedDate.toISOString());
+    }
     router.push(`/missions?${params.toString()}`);
   }
 
@@ -172,7 +176,7 @@ export default function Home() {
                             <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                             {data.map(({ name, count }) => {
+                             {data.length > 0 ? data.map(({ name, count }) => {
                                 const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
                                 return (
                                     <div key={name} className="grid grid-cols-3 items-center p-2 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
@@ -181,7 +185,9 @@ export default function Home() {
                                         <span className="text-xs text-muted-foreground text-right">{percentage}%</span>
                                     </div>
                                 );
-                            })}
+                            }) : (
+                                <p className="text-muted-foreground text-center py-4">Aucune mission à afficher pour cette période.</p>
+                            )}
                         </CardContent>
                     </Card>
                 </>

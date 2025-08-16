@@ -20,6 +20,8 @@ import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, Briefcase, Calendar, MapPin, XCircle } from "lucide-react";
 import { useIsClient } from "@/hooks/useIsClient";
+import { getYear, getMonth, parseISO, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 function MissionsPageComponent() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
@@ -27,9 +29,14 @@ function MissionsPageComponent() {
   const searchParams = useSearchParams();
   const isClient = useIsClient();
 
+  // Category filters
   const cityFilter = searchParams.get('city');
   const managerFilter = searchParams.get('gestionnaire');
   const typeFilter = searchParams.get('typeMission');
+  
+  // Date filters
+  const timeRangeFilter = searchParams.get('timeRange');
+  const dateFilter = searchParams.get('date');
   
   useEffect(() => {
     fetchTasks();
@@ -43,20 +50,19 @@ function MissionsPageComponent() {
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
 
+    // Apply category filters
     if (cityFilter) {
         filtered = filtered.filter(task => {
             if(task.city === 'Casablanca') return task.city === cityFilter;
             return task.subMissions?.some(sub => sub.city === cityFilter);
         });
     }
-
     if (managerFilter) {
         filtered = filtered.filter(task => {
             if(task.city === 'Casablanca') return task.gestionnaire === managerFilter;
             return task.subMissions?.some(sub => sub.gestionnaire === managerFilter);
         });
     }
-
     if (typeFilter) {
         filtered = filtered.filter(task => {
             if(task.city === 'Casablanca') return task.typeMission === typeFilter;
@@ -64,9 +70,46 @@ function MissionsPageComponent() {
         });
     }
 
+    // Apply date filter
+    if (timeRangeFilter && dateFilter) {
+        try {
+            const filterDate = parseISO(dateFilter);
+            const selectedYear = getYear(filterDate);
+            const selectedMonth = getMonth(filterDate);
+
+            filtered = filtered.filter(task => {
+                const checkDate = (dateStr?: string) => {
+                    if (!dateStr) return false;
+                    try {
+                        const taskDate = parseISO(dateStr);
+                        const taskYear = getYear(taskDate);
+                        
+                        if (timeRangeFilter === 'year') {
+                            return taskYear === selectedYear;
+                        }
+                        if (timeRangeFilter === 'month') {
+                            const taskMonth = getMonth(taskDate);
+                            return taskYear === selectedYear && taskMonth === selectedMonth;
+                        }
+                        return false;
+                    } catch (e) { return false; }
+                };
+
+                if (task.city === 'Casablanca') {
+                    return checkDate(task.date);
+                } else {
+                    return task.subMissions?.some(sub => checkDate(sub.date));
+                }
+            });
+        } catch (e) {
+            console.error("Invalid date filter format:", dateFilter);
+        }
+    }
+
+
     return filtered;
 
-  }, [tasks, cityFilter, managerFilter, typeFilter]);
+  }, [tasks, cityFilter, managerFilter, typeFilter, timeRangeFilter, dateFilter]);
 
   const sortedTasks = useMemo(() => {
     return filteredTasks.sort((a, b) => {
@@ -120,8 +163,20 @@ function MissionsPageComponent() {
       };
     }
   };
+  
+  const getDateFilterDisplay = () => {
+      if (!timeRangeFilter || !dateFilter) return null;
+      try {
+          const date = parseISO(dateFilter);
+          if (timeRangeFilter === 'year') return `Année: ${getYear(date)}`;
+          if (timeRangeFilter === 'month') return `Mois: ${format(date, 'LLLL yyyy', { locale: fr })}`;
+      } catch {
+          return null;
+      }
+      return null;
+  }
 
-  const hasFilters = cityFilter || managerFilter || typeFilter;
+  const hasFilters = cityFilter || managerFilter || typeFilter || (timeRangeFilter && dateFilter);
 
   if (!isClient || isLoading) {
     return (
@@ -174,6 +229,7 @@ function MissionsPageComponent() {
                 {cityFilter && <span className="px-2 py-1 bg-muted rounded-full">Ville: {cityFilter}</span>}
                 {managerFilter && <span className="px-2 py-1 bg-muted rounded-full">Gestionnaire: {managerFilter}</span>}
                 {typeFilter && <span className="px-2 py-1 bg-muted rounded-full">Type: {typeFilter}</span>}
+                {getDateFilterDisplay() && <span className="px-2 py-1 bg-muted rounded-full">{getDateFilterDisplay()}</span>}
             </CardContent>
         </Card>
       )}
