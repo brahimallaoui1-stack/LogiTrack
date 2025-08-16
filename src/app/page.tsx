@@ -19,12 +19,14 @@ import { MonthPicker } from "@/components/MonthPicker";
 import { YearPicker } from "@/components/YearPicker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsClient } from "@/hooks/useIsClient";
+import { useRouter } from "next/navigation";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
 export default function Home() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
   const isClient = useIsClient();
+  const router = useRouter();
 
   useEffect(() => {
     fetchTasks();
@@ -141,7 +143,13 @@ export default function Home() {
     setIsMissionDialogOpen(true);
   }
   
-  const renderReport = (category: ReportCategory, title: string, description: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
+  const handleReportItemClick = (category: ReportCategory, value: string) => {
+    const params = new URLSearchParams();
+    params.set(category, value);
+    router.push(`/missions?${params.toString()}`);
+  }
+
+  const renderReport = (category: ReportCategory, title: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
         <div className="grid md:grid-cols-2 gap-6">
             {isLoading ? (
@@ -167,7 +175,7 @@ export default function Home() {
                              {data.map(({ name, count }) => {
                                 const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
                                 return (
-                                    <div key={name} className="grid grid-cols-3 items-center p-2 rounded-md border">
+                                    <div key={name} className="grid grid-cols-3 items-center p-2 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
                                         <span className="font-medium truncate">{name}</span>
                                         <span className="font-bold text-center">{count}</span>
                                         <span className="text-xs text-muted-foreground text-right">{percentage}%</span>
@@ -251,9 +259,9 @@ export default function Home() {
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
             <TabsTrigger value="typeMission">Missions</TabsTrigger>
         </TabsList>
-         {renderReport('city', 'Rapport de missions par ville', 'Répartition des missions par ville.', cityTaskCounts, 'Villes', 'Ville')}
-         {renderReport('gestionnaire', 'Rapport de missions par gestionnaire', 'Répartition des missions par gestionnaire.', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeMission', 'Rapport de missions par type', 'Répartition des missions par type.', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+         {renderReport('city', 'Nombre de missions par ville', cityTaskCounts, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Nombre de missions par gestionnaire', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeMission', 'Nombre de missions par type', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog

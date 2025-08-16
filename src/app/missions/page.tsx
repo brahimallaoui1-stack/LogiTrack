@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,15 +18,19 @@ import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, Briefcase, Calendar, MapPin } from "lucide-react";
+import { Eye, Briefcase, Calendar, MapPin, XCircle } from "lucide-react";
 import { useIsClient } from "@/hooks/useIsClient";
 
-
-export default function MissionsPage() {
+function MissionsPageComponent() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isClient = useIsClient();
 
+  const cityFilter = searchParams.get('city');
+  const managerFilter = searchParams.get('gestionnaire');
+  const typeFilter = searchParams.get('typeMission');
+  
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
@@ -36,8 +40,36 @@ export default function MissionsPage() {
   const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
   const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
+  const filteredTasks = useMemo(() => {
+    let filtered = [...tasks];
+
+    if (cityFilter) {
+        filtered = filtered.filter(task => {
+            if(task.city === 'Casablanca') return task.city === cityFilter;
+            return task.subMissions?.some(sub => sub.city === cityFilter);
+        });
+    }
+
+    if (managerFilter) {
+        filtered = filtered.filter(task => {
+            if(task.city === 'Casablanca') return task.gestionnaire === managerFilter;
+            return task.subMissions?.some(sub => sub.gestionnaire === managerFilter);
+        });
+    }
+
+    if (typeFilter) {
+        filtered = filtered.filter(task => {
+            if(task.city === 'Casablanca') return task.typeMission === typeFilter;
+            return task.subMissions?.some(sub => sub.typeMission === typeFilter);
+        });
+    }
+
+    return filtered;
+
+  }, [tasks, cityFilter, managerFilter, typeFilter]);
+
   const sortedTasks = useMemo(() => {
-    return [...tasks].sort((a, b) => {
+    return filteredTasks.sort((a, b) => {
       const getDate = (task: Task) => {
         const primaryDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : '1970-01-01');
         return new Date(primaryDate || '1970-01-01');
@@ -48,7 +80,7 @@ export default function MissionsPage() {
 
       return dateB.getTime() - dateA.getTime();
     });
-  }, [tasks]);
+  }, [filteredTasks]);
   
   const handleView = (taskId: string) => {
     router.push(`/missions/view/${taskId}`);
@@ -64,6 +96,10 @@ export default function MissionsPage() {
     setIsCityChoiceDialogOpen(false);
     setIsDialogOpen(true);
   }
+
+  const handleClearFilters = () => {
+    router.push('/missions');
+  };
 
   const getTaskDisplayData = (task: Task) => {
     if (task.city === 'Casablanca') {
@@ -84,6 +120,8 @@ export default function MissionsPage() {
       };
     }
   };
+
+  const hasFilters = cityFilter || managerFilter || typeFilter;
 
   if (!isClient || isLoading) {
     return (
@@ -120,6 +158,25 @@ export default function MissionsPage() {
          </div>
          <Button onClick={handleAddNew}>Ajouter une mission</Button>
       </div>
+
+      {hasFilters && (
+        <Card>
+            <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base flex justify-between items-center">
+                    <span>Filtres Actifs</span>
+                     <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Effacer
+                    </Button>
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 flex flex-wrap gap-2 text-sm">
+                {cityFilter && <span className="px-2 py-1 bg-muted rounded-full">Ville: {cityFilter}</span>}
+                {managerFilter && <span className="px-2 py-1 bg-muted rounded-full">Gestionnaire: {managerFilter}</span>}
+                {typeFilter && <span className="px-2 py-1 bg-muted rounded-full">Type: {typeFilter}</span>}
+            </CardContent>
+        </Card>
+      )}
       
       {sortedTasks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -150,7 +207,9 @@ export default function MissionsPage() {
       ) : (
         <div className="text-center py-16">
             <h3 className="text-lg font-semibold">Aucune mission trouvée</h3>
-            <p className="text-muted-foreground mt-2">Commencez par ajouter une nouvelle mission.</p>
+            <p className="text-muted-foreground mt-2">
+                {hasFilters ? "Aucune mission ne correspond aux filtres actuels." : "Commencez par ajouter une nouvelle mission."}
+            </p>
         </div>
       )}
 
@@ -179,4 +238,13 @@ export default function MissionsPage() {
     </AlertDialog>
     </>
   );
+}
+
+
+export default function MissionsPage() {
+    return (
+        <Suspense fallback={<div>Chargement des filtres...</div>}>
+            <MissionsPageComponent />
+        </Suspense>
+    )
 }
