@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus } from "lucide-react";
+import { Plus, Calendar as CalendarIcon } from "lucide-react";
 import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
 import type { Task } from "@/lib/types";
-import { getYear, getMonth, parseISO, format } from 'date-fns';
+import { getYear, getMonth, parseISO, format, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
@@ -20,6 +20,8 @@ import { YearPicker } from "@/components/YearPicker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsClient } from "@/hooks/useIsClient";
 import { useRouter } from "next/navigation";
+import { WeekPicker } from "@/components/WeekPicker";
+import { cn } from "@/lib/utils";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -46,20 +48,22 @@ export default function Home() {
 
     const selectedYear = getYear(selectedDate);
     const selectedMonth = getMonth(selectedDate);
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1, locale: fr });
+    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1, locale: fr });
 
     return tasks.filter(task => {
       const checkDate = (dateStr: string) => {
         try {
           const taskDate = parseISO(dateStr);
-          const taskYear = getYear(taskDate);
           
           if (timeRange === 'year') {
-            return taskYear === selectedYear;
+            return getYear(taskDate) === selectedYear;
           }
-
           if (timeRange === 'month') {
-            const taskMonth = getMonth(taskDate);
-            return taskYear === selectedYear && taskMonth === selectedMonth;
+            return getYear(taskDate) === selectedYear && getMonth(taskDate) === selectedMonth;
+          }
+          if (timeRange === 'week') {
+            return isWithinInterval(taskDate, { start: weekStart, end: weekEnd });
           }
           return false;
         } catch (e) {
@@ -153,6 +157,19 @@ export default function Home() {
     router.push(`/missions?${params.toString()}`);
   }
 
+  const getDateFilterDisplay = () => {
+    if (!selectedDate) return "Choisir une date";
+    if (timeRange === 'year') return getYear(selectedDate);
+    if (timeRange === 'month') return format(selectedDate, 'LLLL yyyy', { locale: fr });
+    if (timeRange === 'week') {
+        const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+        return `${format(weekStart, 'd MMM', { locale: fr })} - ${format(weekEnd, 'd MMM yyyy', { locale: fr })}`;
+    }
+    return format(selectedDate, 'PPP', { locale: fr });
+  };
+
+
   const renderReport = (category: ReportCategory, title: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
         <div className="grid md:grid-cols-2 gap-6">
@@ -202,7 +219,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-10 w-[180px]" />
-                    <Skeleton className="h-10 w-[90px]" />
+                    <Skeleton className="h-10 w-[100px]" />
                 </div>
                 <Skeleton className="h-10 w-full sm:w-[190px]" />
             </div>
@@ -222,32 +239,29 @@ export default function Home() {
         <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className="w-full sm:w-[180px] justify-start text-left font-normal capitalize"
-                >
-                  {selectedDate ? (
-                    timeRange === 'year' ? 
-                      getYear(selectedDate) : 
-                      format(selectedDate, 'LLLL yyyy', { locale: fr })
-                  ) : (
-                    <span>Choisir une date</span>
-                  )}
-                </Button>
+                 <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full sm:w-[260px] justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {getDateFilterDisplay()}
+                  </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                {timeRange === 'year' ? (
-                  <YearPicker date={selectedDate} onChange={setSelectedDate} />
-                ) : (
-                  <MonthPicker date={selectedDate} onChange={setSelectedDate} />
-                )}
+                {timeRange === 'year' && <YearPicker date={selectedDate} onChange={setSelectedDate} />}
+                {timeRange === 'month' && <MonthPicker date={selectedDate} onChange={setSelectedDate} />}
+                {timeRange === 'week' && <WeekPicker date={selectedDate} onChange={setSelectedDate} />}
               </PopoverContent>
             </Popover>
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[90px]">
+              <SelectTrigger className="w-[110px]">
                 <SelectValue placeholder="Période" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="week">Semaine</SelectItem>
                 <SelectItem value="month">Mois</SelectItem>
                 <SelectItem value="year">Année</SelectItem>
               </SelectContent>

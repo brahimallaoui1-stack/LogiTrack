@@ -20,7 +20,7 @@ import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, Briefcase, Calendar, MapPin, XCircle } from "lucide-react";
 import { useIsClient } from "@/hooks/useIsClient";
-import { getYear, getMonth, parseISO, format } from 'date-fns';
+import { getYear, getMonth, parseISO, format, isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 function MissionsPageComponent() {
@@ -76,20 +76,23 @@ function MissionsPageComponent() {
             const filterDate = parseISO(dateFilter);
             const selectedYear = getYear(filterDate);
             const selectedMonth = getMonth(filterDate);
+            const weekStart = startOfWeek(filterDate, { weekStartsOn: 1, locale: fr });
+            const weekEnd = endOfWeek(filterDate, { weekStartsOn: 1, locale: fr });
 
             filtered = filtered.filter(task => {
                 const checkDate = (dateStr?: string) => {
                     if (!dateStr) return false;
                     try {
                         const taskDate = parseISO(dateStr);
-                        const taskYear = getYear(taskDate);
                         
                         if (timeRangeFilter === 'year') {
-                            return taskYear === selectedYear;
+                            return getYear(taskDate) === selectedYear;
                         }
                         if (timeRangeFilter === 'month') {
-                            const taskMonth = getMonth(taskDate);
-                            return taskYear === selectedYear && taskMonth === selectedMonth;
+                            return getYear(taskDate) === selectedYear && getMonth(taskDate) === selectedMonth;
+                        }
+                        if (timeRangeFilter === 'week') {
+                           return isWithinInterval(taskDate, { start: weekStart, end: weekEnd });
                         }
                         return false;
                     } catch (e) { return false; }
@@ -170,6 +173,11 @@ function MissionsPageComponent() {
           const date = parseISO(dateFilter);
           if (timeRangeFilter === 'year') return `Année: ${getYear(date)}`;
           if (timeRangeFilter === 'month') return `Mois: ${format(date, 'LLLL yyyy', { locale: fr })}`;
+          if (timeRangeFilter === 'week') {
+            const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+            const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+            return `Semaine: ${format(weekStart, 'd MMM')} - ${format(weekEnd, 'd MMM yyyy')}`;
+          }
       } catch {
           return null;
       }
