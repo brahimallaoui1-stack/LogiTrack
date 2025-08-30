@@ -182,7 +182,7 @@ export default function Home() {
                 <>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Rapport de missions par {tableHead.toLowerCase()}</CardTitle>
+                            <CardTitle>Rapport par {tableHead.toLowerCase()}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
@@ -190,7 +190,7 @@ export default function Home() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle>Nombre de missions par {tableHead.toLowerCase()}</CardTitle>
+                            <CardTitle>Nombre par {tableHead.toLowerCase()}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
                              {data.length > 0 ? data.map(({ name, count }) => {

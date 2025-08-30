@@ -216,7 +216,7 @@ function MissionsPageComponent() {
          <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">Missions</h1>
             <p className="text-muted-foreground">
-                Voici la liste complète de toutes les missions enregistrées.
+                la liste complète de toutes les missions.
             </p>
          </div>
          <Button onClick={handleAddNew}>Ajouter une mission</Button>
