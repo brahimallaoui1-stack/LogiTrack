@@ -18,7 +18,7 @@ import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, Briefcase, Calendar, MapPin, XCircle } from "lucide-react";
+import { Eye, Briefcase, MapPin, XCircle, User } from "lucide-react";
 import { useIsClient } from "@/hooks/useIsClient";
 import { getYear, getMonth, parseISO, format, isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -152,17 +152,22 @@ function MissionsPageComponent() {
       return {
         date: task.date,
         ville: task.city,
-        typeMission: task.typeMission
+        typeMission: task.typeMission,
+        gestionnaire: task.gestionnaire
       };
     } else {
       const firstSubMission = task.subMissions?.[0];
       const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
       const uniqueCities = [...new Set(allCities)];
+
+      const allGestionnaires = task.subMissions?.map(s => s.gestionnaire).filter(Boolean) ?? [];
+      const uniqueGestionnaires = [...new Set(allGestionnaires)];
       
       return {
         date: firstSubMission?.date,
         ville: uniqueCities.join(' / ') || 'Hors Casablanca',
-        typeMission: task.label // label is already a concatenation of types
+        typeMission: task.label, // label is already a concatenation of types
+        gestionnaire: uniqueGestionnaires.join(' / ')
       };
     }
   };
@@ -263,6 +268,10 @@ function MissionsPageComponent() {
                                 <Briefcase className="h-4 w-4" />
                                 <span>{displayData.typeMission || 'N/A'}</span>
                             </div>
+                             <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                <span>{displayData.gestionnaire || 'N/A'}</span>
+                            </div>
                         </CardContent>
                     </Card>
                 )
@@ -312,3 +321,5 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
+
+    
