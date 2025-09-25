@@ -72,8 +72,9 @@ export function TaskDistributionChart({ tasks, category, label }: TaskDistributi
             nameKey="name"
             innerRadius={80}
             outerRadius={110}
+            startAngle={180}
+            endAngle={0}
             strokeWidth={5}
-            labelLine={false}
             paddingAngle={5}
             cornerRadius={5}
           >
