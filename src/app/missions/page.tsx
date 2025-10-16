@@ -18,16 +18,19 @@ import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, Briefcase, MapPin, XCircle, User } from "lucide-react";
+import { Eye, Briefcase, MapPin, XCircle, User, Search } from "lucide-react";
 import { useIsClient } from "@/hooks/useIsClient";
 import { getYear, getMonth, parseISO, format, isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Input } from "@/components/ui/input";
 
 function MissionsPageComponent() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isClient = useIsClient();
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Category filters
   const cityFilter = searchParams.get('city');
@@ -49,6 +52,27 @@ function MissionsPageComponent() {
 
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
+
+    // Apply search query first
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase().trim();
+        filtered = filtered.filter(task => {
+            const immat = (task.immatriculation || '').toLowerCase();
+            const reserv = (task.reservation || '').toLowerCase();
+
+            if (task.city === 'Casablanca') {
+                return immat.includes(query) || reserv.includes(query);
+            } else {
+                const subMissionMatch = task.subMissions?.some(sub => 
+                    (sub.immatriculation || '').toLowerCase().includes(query) || 
+                    (sub.reservation || '').toLowerCase().includes(query)
+                );
+                // Also check top-level reservation if it exists
+                return reserv.includes(query) || subMissionMatch;
+            }
+        });
+    }
+
 
     // Apply category filters
     if (cityFilter) {
@@ -112,7 +136,7 @@ function MissionsPageComponent() {
 
     return filtered;
 
-  }, [tasks, cityFilter, managerFilter, typeFilter, timeRangeFilter, dateFilter]);
+  }, [tasks, searchQuery, cityFilter, managerFilter, typeFilter, timeRangeFilter, dateFilter]);
 
   const sortedTasks = useMemo(() => {
     return filteredTasks.sort((a, b) => {
@@ -227,6 +251,17 @@ function MissionsPageComponent() {
          <Button onClick={handleAddNew}>Ajouter une mission</Button>
       </div>
 
+       <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+                placeholder="Rechercher par immat. ou réservation..."
+                className="pl-10 w-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+       </div>
+
+
       {hasFilters && (
         <Card>
             <CardHeader className="p-4 pb-2">
@@ -281,7 +316,7 @@ function MissionsPageComponent() {
         <div className="text-center py-16">
             <h3 className="text-lg font-semibold">Aucune mission trouvée</h3>
             <p className="text-muted-foreground mt-2">
-                {hasFilters ? "Aucune mission ne correspond aux filtres actuels." : "Commencez par ajouter une nouvelle mission."}
+                {searchQuery ? "Aucune mission ne correspond à votre recherche." : (hasFilters ? "Aucune mission ne correspond aux filtres actuels." : "Commencez par ajouter une nouvelle mission.")}
             </p>
         </div>
       )}
