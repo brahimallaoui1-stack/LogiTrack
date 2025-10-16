@@ -244,6 +244,7 @@ export default function ViewMissionPage() {
                                         <TableRow>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Montant</TableHead>
+                                            <TableHead>Remarque</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -251,6 +252,7 @@ export default function ViewMissionPage() {
                                             <TableRow key={expense.id}>
                                                 <TableCell>{expense.typeDepense}</TableCell>
                                                 <TableCell>{formatCurrency(expense.montant)}</TableCell>
+                                                <TableCell>{expense.remarque || 'N/A'}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

@@ -272,7 +272,7 @@ export default function ViewProcessedExpensesPage() {
                             readOnly={!isReadyForConfirmation}
                          />
 
-                         <Label htmlFor="advance" className="sm:text-right sm:self-center">Avance (Tasbiq)</Label>
+                         <Label htmlFor="advance" className="sm:text-right sm:self-center">Avance </Label>
                          <Input
                             id="advance"
                             type="number"
@@ -283,7 +283,7 @@ export default function ViewProcessedExpensesPage() {
                             readOnly={!isReadyForConfirmation}
                          />
 
-                         <Label htmlFor="accountantFees" className="sm:text-right sm:self-center">Frais Comptable (L3omola)</Label>
+                         <Label htmlFor="accountantFees" className="sm:text-right sm:self-center">Frais Comptable </Label>
                          <Input
                             id="accountantFees"
                             type="number"
@@ -297,7 +297,7 @@ export default function ViewProcessedExpensesPage() {
                      <Separator className="my-2 w-full max-w-md self-end"/>
                      <div className="flex justify-between items-center w-full max-w-md self-end">
                         <div className="text-right font-bold text-xl w-full pr-2">
-                           Net à Payer: {formatCurrency(netAmount)}
+                        Le reste: {formatCurrency(netAmount)}
                         </div>
                          {expenseStatus && (
                              <span className={`px-3 py-1.5 text-sm font-semibold rounded-full whitespace-nowrap ${statusConfig[expenseStatus].color}`}>
