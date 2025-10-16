@@ -152,7 +152,7 @@ export default function ViewMissionPage() {
                     <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm md:text-base">
                         <div><span className="font-semibold text-muted-foreground">Marque:</span> {subMission.marqueVehicule || 'N/A'}</div>
-                        <div><span className="font-semibold text-muted-foreground">Immat.:</span> {subMission.typeMission === 'Link' ? 'VHP ' : ''}{subMission.immatriculation || 'N/A'}</div>
+                        <div><span className="font-semibold text-muted-foreground">Immat.:</span> {subMission.immatriculation || 'N/A'}{subMission.typeMission === 'Link' ? ' VHP' : ''}</div>
                     </div>
                 </div>
                 <div>
@@ -220,7 +220,7 @@ export default function ViewMissionPage() {
                                 <h4 className="font-semibold text-base md:text-lg">Informations sur le véhicule</h4>
                                 <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm md:text-base">
                                     <div><span className="font-semibold text-muted-foreground">Marque:</span> {task.marqueVehicule || 'N/A'}</div>
-                                    <div><span className="font-semibold text-muted-foreground">Immat.:</span> {task.typeMission === 'Link' ? 'VHP ' : ''}{task.immatriculation || 'N/A'}</div>
+                                    <div><span className="font-semibold text-muted-foreground">Immat.:</span> {task.immatriculation || 'N/A'}{task.typeMission === 'Link' ? ' VHP' : ''}</div>
                                 </div>
                              </div>
                              <div>
@@ -289,5 +289,7 @@ export default function ViewMissionPage() {
         </>
     );
 }
+
+    
 
     
