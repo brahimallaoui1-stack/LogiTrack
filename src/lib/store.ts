@@ -212,9 +212,21 @@ export const useTaskStore = create<TaskState>()(
         const user = useAuthStore.getState().user;
         if (!user) return;
 
+        const netAmount = batchData.approvedAmount - batchData.advance - batchData.accountantFees;
+        const newStatus: ExpenseStatus = netAmount === 0 ? 'Payé' : 'Confirmé';
+
         const batch = writeBatch(db);
         const tasks = get().tasks;
         let tasksToUpdateLocally: Task[] = [];
+        let paymentInfo;
+
+        if (newStatus === 'Payé') {
+            paymentInfo = {
+                paymentDate: new Date().toISOString(),
+                paymentId: `payment-${Date.now()}`,
+                receivedAmount: batchData.approvedAmount
+            }
+        }
 
         tasks.forEach(task => {
             if (!task.expenses) return;
@@ -225,10 +237,11 @@ export const useTaskStore = create<TaskState>()(
                     hasChanged = true;
                     return {
                         ...exp,
-                        status: 'Confirmé' as ExpenseStatus,
+                        status: newStatus,
                         approvedAmount: batchData.approvedAmount,
                         advance: batchData.advance,
                         accountantFees: batchData.accountantFees,
+                        ...(newStatus === 'Payé' && { payment: paymentInfo })
                     };
                 }
                 return exp;
@@ -241,7 +254,6 @@ export const useTaskStore = create<TaskState>()(
             }
         });
         
-        // Clear the active batch ID
         const activeBatchRef = doc(db, `users/${user.uid}/state/activeBatch`);
         batch.delete(activeBatchRef);
 
