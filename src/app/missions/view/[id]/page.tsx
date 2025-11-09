@@ -141,9 +141,9 @@ export default function ViewMissionPage() {
             <CardContent className="space-y-6">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                     <div><span className="font-semibold text-muted-foreground">Date:</span> {formatDate(subMission.date, "dd-MM-yyyy")}</div>
-                    <div><span className="font-semibold text-muted-foreground">Réservation:</span> {subMission.reservation || 'N/A'}</div>
-                    <div><span className="font-semibold text-muted-foreground">Type:</span> {subMission.typeMission || 'N/A'}</div>
                     <div><span className="font-semibold text-muted-foreground">Ville:</span> {subMission.city || 'N/A'}</div>
+                    <div><span className="font-semibold text-muted-foreground">Type:</span> {subMission.typeMission || 'N/A'}</div>
+                    <div><span className="font-semibold text-muted-foreground">Réservation:</span> {subMission.reservation || 'N/A'}</div>
                     <div><span className="font-semibold text-muted-foreground">Client:</span> {subMission.entreprise || 'N/A'}</div>
                     <div><span className="font-semibold text-muted-foreground">Gestionnaire:</span> {subMission.gestionnaire || 'N/A'}</div>
                 </div>
@@ -207,9 +207,9 @@ export default function ViewMissionPage() {
                         <div className="space-y-6">
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                                 <div><span className="font-semibold text-muted-foreground">Date:</span> {formatDate(task.date, "dd-MM-yyyy")}</div>
-                                <div><span className="font-semibold text-muted-foreground">Réservation:</span> {task.reservation || 'N/A'}</div>
-                                <div><span className="font-semibold text-muted-foreground">Type:</span> {task.typeMission || 'N/A'}</div>
                                 <div><span className="font-semibold text-muted-foreground">Ville:</span> {task.city || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Type:</span> {task.typeMission || 'N/A'}</div>
+                                <div><span className="font-semibold text-muted-foreground">Réservation:</span> {task.reservation || 'N/A'}</div>
                                 <div><span className="font-semibold text-muted-foreground">Client:</span> {task.entreprise || 'N/A'}</div>
                                 <div><span className="font-semibold text-muted-foreground">Gestionnaire:</span> {task.gestionnaire || 'N/A'}</div>
                             </div>
