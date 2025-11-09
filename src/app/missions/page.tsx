@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState, useEffect, Suspense } from "react";
+import { useMemo, useState, useEffect, Suspense, ReactFragment } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import { getYear, getMonth, parseISO, format, isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Input } from "@/components/ui/input";
+import React from "react";
 
 function MissionsPageComponent() {
   const { tasks, isLoading, fetchTasks } = useTaskStore();
@@ -297,25 +298,34 @@ function MissionsPageComponent() {
                                 <MapPin className="h-4 w-4" />
                                 <span>{displayData.ville || 'N/A'}</span>
                             </div>
-                            {isComplex ? (
-                                <div className="flex flex-col space-y-2">
-                                    {task.subMissions?.map((sub, index) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <Briefcase className="h-4 w-4" />
+                            
+                            <div className="grid grid-cols-[auto,1fr] items-center gap-x-2 gap-y-1">
+                                {isComplex ? (
+                                    task.subMissions?.map((sub, index) => (
+                                        <React.Fragment key={index}>
+                                            <div className="flex items-center justify-center">
+                                                <Briefcase className="h-4 w-4" />
+                                            </div>
                                             <span>{sub.typeMission || 'N/A'}</span>
-                                            <User className="h-4 w-4" />
+                                            <div className="flex items-center justify-center">
+                                                <User className="h-4 w-4" />
+                                            </div>
                                             <span>{sub.gestionnaire || 'N/A'}</span>
+                                        </React.Fragment>
+                                    ))
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-center">
+                                            <Briefcase className="h-4 w-4" />
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <Briefcase className="h-4 w-4" />
-                                    <span>{displayData.typeMission || 'N/A'}</span>
-                                    <User className="h-4 w-4" />
-                                    <span>{displayData.gestionnaire || 'N/A'}</span>
-                                </div>
-                            )}
+                                        <span>{displayData.typeMission || 'N/A'}</span>
+                                        <div className="flex items-center justify-center">
+                                            <User className="h-4 w-4" />
+                                        </div>
+                                        <span>{displayData.gestionnaire || 'N/A'}</span>
+                                    </>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
                 )
@@ -365,5 +375,3 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
-
-    
