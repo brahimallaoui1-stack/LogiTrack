@@ -187,8 +187,8 @@ function MissionsPageComponent() {
       return {
         date: firstSubMission?.date,
         ville: uniqueCities.join(' / ') || 'Hors Casablanca',
-        typeMission: '', // This will be handled inside the complex mission mapping
-        gestionnaire: '', // This will be handled inside the complex mission mapping
+        typeMission: '', 
+        gestionnaire: '', 
       };
     }
   };
@@ -298,31 +298,23 @@ function MissionsPageComponent() {
                                 <span>{displayData.ville || 'N/A'}</span>
                             </div>
                             {isComplex ? (
-                                <div className="flex flex-col space-y-1">
+                                <div className="flex flex-col space-y-2">
                                     {task.subMissions?.map((sub, index) => (
-                                        <div key={index} className="flex flex-col">
-                                            <div className="flex items-center gap-2">
-                                                <Briefcase className="h-4 w-4" />
-                                                <span>{sub.typeMission || 'N/A'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 pl-6">
-                                                <User className="h-4 w-4" />
-                                                <span>{sub.gestionnaire || 'N/A'}</span>
-                                            </div>
+                                        <div key={index} className="flex items-center gap-2">
+                                            <Briefcase className="h-4 w-4" />
+                                            <span>{sub.typeMission || 'N/A'}</span>
+                                            <User className="h-4 w-4" />
+                                            <span>{sub.gestionnaire || 'N/A'}</span>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <>
-                                    <div className="flex items-center gap-2">
-                                        <Briefcase className="h-4 w-4" />
-                                        <span>{displayData.typeMission || 'N/A'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 pl-6">
-                                        <User className="h-4 w-4" />
-                                        <span>{displayData.gestionnaire || 'N/A'}</span>
-                                    </div>
-                                </>
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="h-4 w-4" />
+                                    <span>{displayData.typeMission || 'N/A'}</span>
+                                    <User className="h-4 w-4" />
+                                    <span>{displayData.gestionnaire || 'N/A'}</span>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -373,3 +365,5 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
+
+    
