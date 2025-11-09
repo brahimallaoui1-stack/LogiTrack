@@ -177,21 +177,18 @@ function MissionsPageComponent() {
         date: task.date,
         ville: task.city,
         typeMission: `${task.typeMission || 'N/A'} - ${task.gestionnaire || 'N/A'}`,
+        subMissions: []
       };
     } else {
       const firstSubMission = task.subMissions?.[0];
       const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
       const uniqueCities = [...new Set(allCities)];
 
-      const missionManagerString = task.subMissions
-        ?.map(s => `${s.typeMission || ''} - ${s.gestionnaire || ''}`)
-        .filter(s => s.trim() !== '-')
-        .join(' / ') || 'N/A';
-      
       return {
         date: firstSubMission?.date,
         ville: uniqueCities.join(' / ') || 'Hors Casablanca',
-        typeMission: missionManagerString,
+        typeMission: '',
+        subMissions: task.subMissions || []
       };
     }
   };
@@ -286,6 +283,7 @@ function MissionsPageComponent() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {sortedTasks.map((task) => {
                 const displayData = getTaskDisplayData(task);
+                const isComplex = task.city !== 'Casablanca';
                 return (
                     <Card key={task.id}>
                         <CardHeader className="flex flex-row items-center justify-between p-4">
@@ -299,10 +297,21 @@ function MissionsPageComponent() {
                                 <MapPin className="h-4 w-4" />
                                 <span>{displayData.ville || 'N/A'}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Briefcase className="h-4 w-4" />
-                                <span>{displayData.typeMission || 'N/A'}</span>
-                            </div>
+                            {isComplex ? (
+                                <div className="flex flex-col space-y-1">
+                                    {displayData.subMissions.map((sub, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <Briefcase className="h-4 w-4" />
+                                            <span>{sub.typeMission || 'N/A'} - {sub.gestionnaire || 'N/A'}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="h-4 w-4" />
+                                    <span>{displayData.typeMission || 'N/A'}</span>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 )
@@ -352,5 +361,7 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
+
+    
 
     
