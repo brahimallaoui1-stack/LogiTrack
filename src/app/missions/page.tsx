@@ -299,30 +299,32 @@ function MissionsPageComponent() {
                                 <span>{displayData.ville || 'N/A'}</span>
                             </div>
                             
-                            <div className="grid grid-cols-[auto,1fr] items-center gap-x-2 gap-y-1">
+                            <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-x-2 gap-y-1">
                                 {isComplex ? (
                                     task.subMissions?.map((sub, index) => (
                                         <React.Fragment key={index}>
-                                            <div className="flex items-center justify-center">
+                                            <div className="flex items-center gap-2">
                                                 <Briefcase className="h-4 w-4" />
+                                                <span className="truncate">{sub.typeMission || 'N/A'}</span>
                                             </div>
-                                            <span>{sub.typeMission || 'N/A'}</span>
-                                            <div className="flex items-center justify-center">
+                                            <div>-</div>
+                                            <div className="flex items-center gap-2 justify-center">
                                                 <User className="h-4 w-4" />
+                                                <span className="truncate">{sub.gestionnaire || 'N/A'}</span>
                                             </div>
-                                            <span>{sub.gestionnaire || 'N/A'}</span>
                                         </React.Fragment>
                                     ))
                                 ) : (
                                     <>
-                                        <div className="flex items-center justify-center">
+                                        <div className="flex items-center gap-2">
                                             <Briefcase className="h-4 w-4" />
+                                            <span className="truncate">{displayData.typeMission || 'N/A'}</span>
                                         </div>
-                                        <span>{displayData.typeMission || 'N/A'}</span>
-                                        <div className="flex items-center justify-center">
+                                        <div>-</div>
+                                        <div className="flex items-center gap-2 justify-center">
                                             <User className="h-4 w-4" />
+                                            <span className="truncate">{displayData.gestionnaire || 'N/A'}</span>
                                         </div>
-                                        <span>{displayData.gestionnaire || 'N/A'}</span>
                                     </>
                                 )}
                             </div>
@@ -375,3 +377,5 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
+
+    
