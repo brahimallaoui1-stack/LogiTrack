@@ -178,7 +178,6 @@ function MissionsPageComponent() {
         ville: task.city,
         typeMission: task.typeMission,
         gestionnaire: task.gestionnaire,
-        subMissions: []
       };
     } else {
       const firstSubMission = task.subMissions?.[0];
@@ -188,9 +187,8 @@ function MissionsPageComponent() {
       return {
         date: firstSubMission?.date,
         ville: uniqueCities.join(' / ') || 'Hors Casablanca',
-        typeMission: '',
-        gestionnaire: '',
-        subMissions: task.subMissions || []
+        typeMission: '', // This will be handled inside the complex mission mapping
+        gestionnaire: '', // This will be handled inside the complex mission mapping
       };
     }
   };
@@ -301,7 +299,7 @@ function MissionsPageComponent() {
                             </div>
                             {isComplex ? (
                                 <div className="flex flex-col space-y-1">
-                                    {displayData.subMissions.map((sub, index) => (
+                                    {task.subMissions?.map((sub, index) => (
                                         <div key={index} className="flex flex-col">
                                             <div className="flex items-center gap-2">
                                                 <Briefcase className="h-4 w-4" />
@@ -375,5 +373,3 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
-
-    
