@@ -176,22 +176,22 @@ function MissionsPageComponent() {
       return {
         date: task.date,
         ville: task.city,
-        typeMission: task.typeMission,
-        gestionnaire: task.gestionnaire
+        typeMission: `${task.typeMission || 'N/A'} - ${task.gestionnaire || 'N/A'}`,
       };
     } else {
       const firstSubMission = task.subMissions?.[0];
       const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
       const uniqueCities = [...new Set(allCities)];
 
-      const allGestionnaires = task.subMissions?.map(s => s.gestionnaire).filter(Boolean) ?? [];
-      const uniqueGestionnaires = [...new Set(allGestionnaires)];
+      const missionManagerString = task.subMissions
+        ?.map(s => `${s.typeMission || ''} - ${s.gestionnaire || ''}`)
+        .filter(s => s.trim() !== '-')
+        .join(' / ') || 'N/A';
       
       return {
         date: firstSubMission?.date,
         ville: uniqueCities.join(' / ') || 'Hors Casablanca',
-        typeMission: task.label, // label is already a concatenation of types
-        gestionnaire: uniqueGestionnaires.join(' / ')
+        typeMission: missionManagerString,
       };
     }
   };
@@ -303,10 +303,6 @@ function MissionsPageComponent() {
                                 <Briefcase className="h-4 w-4" />
                                 <span>{displayData.typeMission || 'N/A'}</span>
                             </div>
-                             <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                <span>{displayData.gestionnaire || 'N/A'}</span>
-                            </div>
                         </CardContent>
                     </Card>
                 )
@@ -356,3 +352,5 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
+
+    
