@@ -14,7 +14,6 @@ import { getYear, getMonth, parseISO, format, startOfWeek, endOfWeek, isWithinIn
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { MonthPicker } from "@/components/MonthPicker";
 import { YearPicker } from "@/components/YearPicker";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,8 +37,6 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isMissionDialogOpen, setIsMissionDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReportCategory>("city");
-  const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
-  const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
   const filteredTasks = useMemo(() => {
     if (!selectedDate) {
@@ -90,9 +87,7 @@ export default function Home() {
   const reportData = useMemo(() => {
     const flatTasks: (Task & { subMissionIndex?: number })[] = [];
     filteredTasks.forEach(task => {
-        if (task.city === 'Casablanca') {
-            flatTasks.push(task);
-        } else if (task.subMissions) {
+        if (task.subMissions && task.subMissions.length > 0) {
             task.subMissions.forEach((subMission, index) => {
                 flatTasks.push({
                     ...task,
@@ -102,6 +97,8 @@ export default function Home() {
                     subMissionIndex: index
                 });
             });
+        } else {
+            flatTasks.push(task);
         }
     });
 
@@ -140,12 +137,6 @@ export default function Home() {
   }, [filteredTasks]);
 
   const { totalMissions, cityTaskCounts, managerTaskCounts, missionTypeTaskCounts, flatTasks } = reportData;
-
-  const handleCityChoice = (city?: string) => {
-    setPrefilledCity(city);
-    setIsCityChoiceDialogOpen(false);
-    setIsMissionDialogOpen(true);
-  }
   
   const handleReportItemClick = (category: ReportCategory, value: string) => {
     const params = new URLSearchParams();
@@ -267,7 +258,7 @@ export default function Home() {
               </SelectContent>
             </Select>
         </div>
-        <Button onClick={() => setIsCityChoiceDialogOpen(true)} className="w-full sm:w-auto">
+        <Button onClick={() => setIsMissionDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une mission
         </Button>
@@ -287,24 +278,7 @@ export default function Home() {
     <MissionFormDialog
         isOpen={isMissionDialogOpen}
         onOpenChange={setIsMissionDialogOpen}
-        prefilledCity={prefilledCity}
     />
-     <AlertDialog open={isCityChoiceDialogOpen} onOpenChange={setIsCityChoiceDialogOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Type de mission</AlertDialogTitle>
-                <AlertDialogDescription>
-                    La mission se déroule-t-elle à Casablanca ou en dehors ?
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <Button variant="outline" onClick={() => handleCityChoice()}>Hors Casablanca</Button>
-                <Button onClick={() => handleCityChoice('Casablanca')}>Casablanca</Button>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }
-
-    

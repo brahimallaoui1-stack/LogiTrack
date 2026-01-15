@@ -26,7 +26,6 @@ interface MissionFormDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
     task?: Task | null;
-    prefilledCity?: string;
 }
 
 interface ExpenseFormDialogProps {
@@ -126,7 +125,7 @@ function ExpenseFormDialog({ isOpen, onOpenChange, onSave }: ExpenseFormDialogPr
 }
 
 
-export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, prefilledCity }: MissionFormDialogProps) {
+export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: MissionFormDialogProps) {
   const addTask = useTaskStore((state) => state.addTask);
   const updateTask = useTaskStore((state) => state.updateTask);
   
@@ -136,15 +135,6 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
   const [formState, setFormState] = useState(initialFormState);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  
-  const isCasablancaMission = useMemo(() => prefilledCity === 'Casablanca', [prefilledCity]);
-
-   const availableCities = useMemo(() => {
-    if (prefilledCity === 'Casablanca') {
-      return cities;
-    }
-    return cities.filter(city => city.name !== 'Casablanca');
-  }, [cities, prefilledCity]);
 
   const generatedLabel = useMemo(() => {
     const missionTypes = formState.subMissions?.map(sub => sub.typeMission).filter(Boolean) || [];
@@ -160,15 +150,13 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
   useEffect(() => {
     if (isOpen) {
-        const defaultSubMission = isCasablancaMission
-        ? { ...initialSubMissionState, id: `sub-${Date.now()}`, city: 'Casablanca' }
-        : { ...initialSubMissionState, id: `sub-${Date.now()}` };
+        const defaultSubMission = { ...initialSubMissionState, id: `sub-${Date.now()}` };
 
         if (editingTask) {
            const hasSubMissions = editingTask.subMissions && editingTask.subMissions.length > 0;
            setFormState({
-            ...initialFormState, // Base fields
-            ...editingTask, // editingTask data
+            ...initialFormState,
+            ...editingTask,
             subMissions: hasSubMissions ? editingTask.subMissions : [defaultSubMission],
             expenses: editingTask.expenses || [],
           });
@@ -178,7 +166,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     } else {
          setFormState(initialFormState);
     }
-  }, [editingTask, isOpen, prefilledCity, isCasablancaMission]);
+  }, [editingTask, isOpen]);
   
  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
     const { id, value } = e.target;
@@ -233,22 +221,24 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   }
 
   const handleSave = () => {
-    const isComplex = (formState.subMissions?.length ?? 0) > 1 || formState.subMissions?.some(s => s.city !== 'Casablanca');
+    const allCities = formState.subMissions?.map(s => s.city).filter(Boolean) ?? [];
+    const isOnlyCasablanca = allCities.length > 0 && allCities.every(c => c === 'Casablanca');
+    const derivedCity = isOnlyCasablanca ? 'Casablanca' : 'Hors Casablanca';
 
     const taskData: Omit<Task, 'id'> = {
       label: generatedLabel,
-      city: isCasablancaMission && !isComplex ? 'Casablanca' : 'Hors Casablanca',
+      city: derivedCity,
       subMissions: formState.subMissions,
       expenses: formState.expenses,
-      // Clear simple mission fields if it's a complex mission now
-      date: isComplex ? undefined : formState.subMissions?.[0]?.date,
-      reservation: isComplex ? undefined : formState.subMissions?.[0]?.reservation,
-      entreprise: isComplex ? undefined : formState.subMissions?.[0]?.entreprise,
-      gestionnaire: isComplex ? undefined : formState.subMissions?.[0]?.gestionnaire,
-      typeMission: isComplex ? undefined : formState.subMissions?.[0]?.typeMission,
-      marqueVehicule: isComplex ? undefined : formState.subMissions?.[0]?.marqueVehicule,
-      immatriculation: isComplex ? undefined : formState.subMissions?.[0]?.immatriculation,
-      remarque: isComplex ? undefined : formState.subMissions?.[0]?.remarque,
+      // Clear simple mission fields as everything is a complex mission now
+      date: undefined,
+      reservation: undefined,
+      entreprise: undefined,
+      gestionnaire: undefined,
+      typeMission: undefined,
+      marqueVehicule: undefined,
+      immatriculation: undefined,
+      remarque: undefined,
     };
   
     if (editingTask) {
@@ -441,5 +431,3 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
-
-    

@@ -5,14 +5,6 @@ import { useMemo, useState, useEffect, Suspense, ReactFragment } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useTaskStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
 import { MissionFormDialog } from "@/components/MissionFormDialog";
@@ -48,8 +40,6 @@ function MissionsPageComponent() {
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isCityChoiceDialogOpen, setIsCityChoiceDialogOpen] = useState(false);
-  const [prefilledCity, setPrefilledCity] = useState<string | undefined>(undefined);
 
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
@@ -151,14 +141,8 @@ function MissionsPageComponent() {
 
   const handleAddNew = () => {
     setEditingTask(null);
-    setIsCityChoiceDialogOpen(true);
-  };
-
-  const handleCityChoice = (city?: string) => {
-    setPrefilledCity(city);
-    setIsCityChoiceDialogOpen(false);
     setIsDialogOpen(true);
-  }
+  };
 
   const handleClearFilters = () => {
     router.push('/missions');
@@ -326,23 +310,7 @@ function MissionsPageComponent() {
       isOpen={isDialogOpen} 
       onOpenChange={setIsDialogOpen} 
       task={editingTask}
-      prefilledCity={prefilledCity}
     />
-
-    <AlertDialog open={isCityChoiceDialogOpen} onOpenChange={setIsCityChoiceDialogOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Type de mission</AlertDialogTitle>
-                <AlertDialogDescription>
-                    La mission se déroule-t-elle à Casablanca ou en dehors ?
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <Button variant="outline" onClick={() => handleCityChoice()}>Hors Casablanca</Button>
-                <Button onClick={() => handleCityChoice('Casablanca')}>Casablanca</Button>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }
