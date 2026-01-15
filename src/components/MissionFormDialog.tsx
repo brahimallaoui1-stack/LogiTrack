@@ -147,14 +147,10 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   }, [cities, prefilledCity]);
 
   const generatedLabel = useMemo(() => {
-    if (isCasablancaMission) {
-      return formState.typeMission || '';
-    } else {
-       const missionTypes = formState.subMissions?.map(sub => sub.typeMission).filter(Boolean) || [];
-       const uniqueMissionTypes = [...new Set(missionTypes)];
-       return uniqueMissionTypes.join(' / ');
-    }
-  }, [isCasablancaMission, formState.typeMission, formState.subMissions]);
+    const missionTypes = formState.subMissions?.map(sub => sub.typeMission).filter(Boolean) || [];
+    const uniqueMissionTypes = [...new Set(missionTypes)];
+    return uniqueMissionTypes.join(' / ');
+  }, [formState.subMissions]);
 
   useEffect(() => {
     fetchCities();
@@ -164,56 +160,41 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
 
   useEffect(() => {
     if (isOpen) {
+        const defaultSubMission = isCasablancaMission
+        ? { ...initialSubMissionState, id: `sub-${Date.now()}`, city: 'Casablanca' }
+        : { ...initialSubMissionState, id: `sub-${Date.now()}` };
+
         if (editingTask) {
+           const hasSubMissions = editingTask.subMissions && editingTask.subMissions.length > 0;
            setFormState({
-            city: editingTask.city || "",
-            date: editingTask.date || "",
-            reservation: editingTask.reservation || "",
-            entreprise: editingTask.entreprise || "",
-            gestionnaire: editingTask.gestionnaire || "",
-            typeMission: editingTask.typeMission || "",
-            marqueVehicule: editingTask.marqueVehicule || "",
-            immatriculation: editingTask.immatriculation || "",
-            remarque: editingTask.remarque || "",
-            subMissions: editingTask.subMissions && editingTask.subMissions.length > 0 ? editingTask.subMissions : [{...initialSubMissionState, id: `sub-${Date.now()}`}],
+            ...initialFormState, // Base fields
+            ...editingTask, // editingTask data
+            subMissions: hasSubMissions ? editingTask.subMissions : [defaultSubMission],
             expenses: editingTask.expenses || [],
           });
         } else {
-            const cityValue = prefilledCity === 'Casablanca' ? 'Casablanca' : '';
-            setFormState({...initialFormState, city: cityValue });
+            setFormState({...initialFormState, subMissions: [defaultSubMission] });
         }
     } else {
          setFormState(initialFormState);
     }
-  }, [editingTask, isOpen, prefilledCity]);
+  }, [editingTask, isOpen, prefilledCity, isCasablancaMission]);
   
- const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number) => {
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
     const { id, value } = e.target;
-     if (isCasablancaMission) {
-       setFormState(prevState => ({ ...prevState, [id]: value }));
-    } else if (typeof index === 'number') {
-      setFormState(prevState => {
-        const newSubMissions = [...(prevState.subMissions ?? [])];
-        newSubMissions[index] = { ...newSubMissions[index], [id]: value };
-        return { ...prevState, subMissions: newSubMissions };
-      });
-    } else {
-         setFormState(prevState => ({ ...prevState, [id]: value }));
-    }
+    setFormState(prevState => {
+      const newSubMissions = [...(prevState.subMissions ?? [])];
+      newSubMissions[index] = { ...newSubMissions[index], [id]: value };
+      return { ...prevState, subMissions: newSubMissions };
+    });
   };
 
-  const handleSelectChange = (id: string, value: string, index?: number) => {
-     if (isCasablancaMission) {
-       setFormState(prevState => ({ ...prevState, [id]: value }));
-    } else if (typeof index === 'number') {
-       setFormState(prevState => {
-        const newSubMissions = [...(prevState.subMissions ?? [])];
-        newSubMissions[index] = { ...newSubMissions[index], [id]: value };
-        return { ...prevState, subMissions: newSubMissions };
-      });
-    } else {
-       setFormState(prevState => ({ ...prevState, [id]: value }));
-    }
+  const handleSelectChange = (id: string, value: string, index: number) => {
+     setFormState(prevState => {
+      const newSubMissions = [...(prevState.subMissions ?? [])];
+      newSubMissions[index] = { ...newSubMissions[index], [id]: value };
+      return { ...prevState, subMissions: newSubMissions };
+    });
   };
   
   const addSubMission = () => {
@@ -252,26 +233,23 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
   }
 
   const handleSave = () => {
+    const isComplex = (formState.subMissions?.length ?? 0) > 1 || formState.subMissions?.some(s => s.city !== 'Casablanca');
+
     const taskData: Omit<Task, 'id'> = {
       label: generatedLabel,
-      city: isCasablancaMission ? 'Casablanca' : 'Hors Casablanca',
+      city: isCasablancaMission && !isComplex ? 'Casablanca' : 'Hors Casablanca',
+      subMissions: formState.subMissions,
+      expenses: formState.expenses,
+      // Clear simple mission fields if it's a complex mission now
+      date: isComplex ? undefined : formState.subMissions?.[0]?.date,
+      reservation: isComplex ? undefined : formState.subMissions?.[0]?.reservation,
+      entreprise: isComplex ? undefined : formState.subMissions?.[0]?.entreprise,
+      gestionnaire: isComplex ? undefined : formState.subMissions?.[0]?.gestionnaire,
+      typeMission: isComplex ? undefined : formState.subMissions?.[0]?.typeMission,
+      marqueVehicule: isComplex ? undefined : formState.subMissions?.[0]?.marqueVehicule,
+      immatriculation: isComplex ? undefined : formState.subMissions?.[0]?.immatriculation,
+      remarque: isComplex ? undefined : formState.subMissions?.[0]?.remarque,
     };
-  
-    if (isCasablancaMission) {
-      taskData.date = formState.date;
-      taskData.reservation = formState.reservation;
-      taskData.entreprise = formState.entreprise;
-      taskData.gestionnaire = formState.gestionnaire;
-      taskData.typeMission = formState.typeMission;
-      taskData.marqueVehicule = formState.marqueVehicule;
-      taskData.immatriculation = formState.immatriculation;
-      taskData.remarque = formState.remarque;
-      taskData.subMissions = [];
-      taskData.expenses = [];
-    } else {
-      taskData.subMissions = formState.subMissions;
-      taskData.expenses = formState.expenses;
-    }
   
     if (editingTask) {
       updateTask({ ...editingTask, ...taskData });
@@ -330,7 +308,7 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                         <SelectValue placeholder="Sélectionner une ville" />
                     </SelectTrigger>
                     <SelectContent>
-                        {availableCities.map(city => (
+                        {cities.map(city => (
                             <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
                         ))}
                     </SelectContent>
@@ -388,79 +366,10 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
          <ScrollArea className="max-h-[70vh] p-4">
           <div className="grid gap-2">
               <Label htmlFor="label">Libellé de la mission</Label>
-              <Input id="label" value={generatedLabel} disabled placeholder={isCasablancaMission ? 'Ex: Livraison' : 'Ex: Livraison / Récupération'}/>
+              <Input id="label" value={generatedLabel} disabled placeholder={'Ex: Livraison / Récupération'}/>
           </div>
 
           <Separator className="my-6"/>
-
-          {isCasablancaMission ? (
-             <div className="grid gap-6 py-4">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" value={formState.date} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="reservation">Réservation</Label>
-                    <Input id="reservation" value={formState.reservation} onChange={handleInputChange} />
-                </div>
-                 <div className="grid gap-2">
-                    <Label htmlFor="typeMission">Types de Mission</Label>
-                     <Select value={formState.typeMission} onValueChange={(value) => handleSelectChange('typeMission', value)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un type de mission" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {missionTypes.map(type => (
-                                <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="ville">Ville</Label>
-                     <Input id="ville" value="Casablanca" disabled />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="entreprise">Client</Label>
-                    <Input id="entreprise" value={formState.entreprise} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="gestionnaire">Gestionnaire</Label>
-                     <Select value={formState.gestionnaire} onValueChange={(value) => handleSelectChange('gestionnaire', value)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un gestionnaire" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {managers.map(manager => (
-                                <SelectItem key={manager.id} value={manager.name}>{manager.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-              </div>
-
-            <Separator className="my-4"/>
-            
-            <div className="grid gap-4">
-                <h3 className="font-semibold text-lg">Informations sur le véhicule</h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="marqueVehicule">Marque de véhicule</Label>
-                        <Input id="marqueVehicule" value={formState.marqueVehicule} onChange={handleInputChange} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="immatriculation">Immatriculation</Label>
-                        <Input id="immatriculation" value={formState.immatriculation} onChange={handleInputChange} />
-                    </div>
-                </div>
-                 <div className="grid gap-2">
-                  <Label htmlFor="remarque">Remarque</Label>
-                  <Textarea id="remarque" value={formState.remarque} onChange={handleInputChange} />
-              </div>
-             </div>
-            </div>
-          ) : (
             <>
                 {formState.subMissions?.map((sub, index) => renderSubMissionForm(sub, index))}
                 
@@ -516,7 +425,6 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
                     )}
                 </div>
             </>
-          )}
 
         </ScrollArea>
          <DialogFooter className="pt-4 border-t">
@@ -533,3 +441,5 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask, pre
     </>
   );
 }
+
+    
