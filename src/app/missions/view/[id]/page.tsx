@@ -131,12 +131,14 @@ export default function ViewMissionPage() {
         );
     }
     
-    const isCasablancaMission = task.city === 'Casablanca';
+    const hasSubMissions = task.subMissions && task.subMissions.length > 0;
 
-    const renderSubMissionDetails = (subMission: SubMission, index: number) => (
-        <Card key={subMission.id}>
+    const renderSubMissionDetails = (subMission: SubMission, index: number, total: number) => (
+        <Card key={subMission.id || index}>
             <CardHeader>
-                <CardTitle>Étape {index + 1}</CardTitle>
+                <CardTitle>
+                    {hasSubMissions && total > 1 ? `Étape ${index + 1}` : 'Détails de la mission'}
+                </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
@@ -203,9 +205,14 @@ export default function ViewMissionPage() {
                     <CardDescription>Informations complètes sur la mission.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {isCasablancaMission ? (
+                    {hasSubMissions ? (
+                         <div className="space-y-6">
+                            {task.subMissions?.map((sub, index) => renderSubMissionDetails(sub, index, task.subMissions!.length))}
+                         </div>
+                    ) : (
+                        // Fallback for old data structure
                         <div className="space-y-6">
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
+                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm md:text-base">
                                 <div><span className="font-semibold text-muted-foreground">Date:</span> {formatDate(task.date, "dd-MM-yyyy")}</div>
                                 <div><span className="font-semibold text-muted-foreground">Ville:</span> {task.city || 'N/A'}</div>
                                 <div><span className="font-semibold text-muted-foreground">Type:</span> {task.typeMission || 'N/A'}</div>
@@ -228,10 +235,6 @@ export default function ViewMissionPage() {
                                 <p className="text-sm text-muted-foreground break-words">{task.remarque || 'Aucune remarque'}</p>
                             </div>
                         </div>
-                    ) : (
-                         <div className="space-y-6">
-                            {task.subMissions?.map((sub, index) => renderSubMissionDetails(sub, index))}
-                         </div>
                     )}
                     
                     {task.expenses && task.expenses.length > 0 && (
@@ -270,7 +273,6 @@ export default function ViewMissionPage() {
             isOpen={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             task={task}
-            prefilledCity={task.city === 'Casablanca' ? 'Casablanca' : undefined}
         />
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>
@@ -289,7 +291,3 @@ export default function ViewMissionPage() {
         </>
     );
 }
-
-    
-
-    

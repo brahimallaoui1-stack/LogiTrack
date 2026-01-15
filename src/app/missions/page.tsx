@@ -61,16 +61,12 @@ function MissionsPageComponent() {
             const immat = (task.immatriculation || '').toLowerCase();
             const reserv = (task.reservation || '').toLowerCase();
 
-            if (task.city === 'Casablanca') {
-                return immat.includes(query) || reserv.includes(query);
-            } else {
-                const subMissionMatch = task.subMissions?.some(sub => 
-                    (sub.immatriculation || '').toLowerCase().includes(query) || 
-                    (sub.reservation || '').toLowerCase().includes(query)
-                );
-                // Also check top-level reservation if it exists
-                return reserv.includes(query) || subMissionMatch;
-            }
+            const subMissionMatch = task.subMissions?.some(sub => 
+                (sub.immatriculation || '').toLowerCase().includes(query) || 
+                (sub.reservation || '').toLowerCase().includes(query)
+            );
+
+            return reserv.includes(query) || immat.includes(query) || subMissionMatch;
         });
     }
 
@@ -78,20 +74,17 @@ function MissionsPageComponent() {
     // Apply category filters
     if (cityFilter) {
         filtered = filtered.filter(task => {
-            if(task.city === 'Casablanca') return task.city === cityFilter;
-            return task.subMissions?.some(sub => sub.city === cityFilter);
+             return task.subMissions?.some(sub => sub.city === cityFilter) || task.city === cityFilter;
         });
     }
     if (managerFilter) {
         filtered = filtered.filter(task => {
-            if(task.city === 'Casablanca') return task.gestionnaire === managerFilter;
-            return task.subMissions?.some(sub => sub.gestionnaire === managerFilter);
+             return task.subMissions?.some(sub => sub.gestionnaire === managerFilter) || task.gestionnaire === managerFilter;
         });
     }
     if (typeFilter) {
         filtered = filtered.filter(task => {
-            if(task.city === 'Casablanca') return task.typeMission === typeFilter;
-            return task.subMissions?.some(sub => sub.typeMission === typeFilter);
+             return task.subMissions?.some(sub => sub.typeMission === typeFilter) || task.typeMission === typeFilter;
         });
     }
 
@@ -123,11 +116,10 @@ function MissionsPageComponent() {
                     } catch (e) { return false; }
                 };
 
-                if (task.city === 'Casablanca') {
-                    return checkDate(task.date);
-                } else {
-                    return task.subMissions?.some(sub => checkDate(sub.date));
-                }
+                const primaryDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
+                if (checkDate(primaryDate)) return true;
+
+                return task.subMissions?.some(sub => checkDate(sub.date));
             });
         } catch (e) {
             console.error("Invalid date filter format:", dateFilter);
@@ -170,28 +162,6 @@ function MissionsPageComponent() {
 
   const handleClearFilters = () => {
     router.push('/missions');
-  };
-
-  const getTaskDisplayData = (task: Task) => {
-    if (task.city === 'Casablanca') {
-      return {
-        date: task.date,
-        ville: task.city,
-        typeMission: task.typeMission,
-        gestionnaire: task.gestionnaire,
-      };
-    } else {
-      const firstSubMission = task.subMissions?.[0];
-      const allCities = task.subMissions?.map(s => s.city).filter(Boolean) ?? [];
-      const uniqueCities = [...new Set(allCities)];
-
-      return {
-        date: firstSubMission?.date,
-        ville: uniqueCities.join(' / ') || 'Hors Casablanca',
-        typeMission: '', 
-        gestionnaire: '', 
-      };
-    }
   };
   
   const getDateFilterDisplay = () => {
@@ -283,12 +253,22 @@ function MissionsPageComponent() {
       {sortedTasks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {sortedTasks.map((task) => {
-                const displayData = getTaskDisplayData(task);
-                const isComplex = task.city !== 'Casablanca';
+                const hasSubMissions = task.subMissions && task.subMissions.length > 0;
+                const primaryDate = hasSubMissions ? task.subMissions![0].date : task.date;
+
+                let displayVille: string;
+                if (hasSubMissions) {
+                    const allCities = task.subMissions!.map(s => s.city).filter(Boolean);
+                    const uniqueCities = [...new Set(allCities)];
+                    displayVille = uniqueCities.join(' / ') || 'N/A';
+                } else {
+                    displayVille = task.city || 'N/A';
+                }
+
                 return (
                     <Card key={task.id}>
                         <CardHeader className="flex flex-row items-center justify-between p-4">
-                            <CardTitle className="text-base break-words">{formatDate(displayData.date, "dd-MM-yyyy")}</CardTitle>
+                            <CardTitle className="text-base break-words">{formatDate(primaryDate, "dd-MM-yyyy")}</CardTitle>
                              <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">
                                 <Eye className="h-4 w-4" />
                             </Button>
@@ -296,13 +276,13 @@ function MissionsPageComponent() {
                         <CardContent className="space-y-2 text-sm text-muted-foreground p-4 pt-0">
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4" />
-                                <span>{displayData.ville || 'N/A'}</span>
+                                <span>{displayVille}</span>
                             </div>
                             
                             <div className="space-y-1">
-                                {isComplex ? (
-                                    task.subMissions?.map((sub, index) => (
-                                        <div key={index} className="grid grid-cols-2 items-center">
+                                {hasSubMissions ? (
+                                    task.subMissions!.map((sub, index) => (
+                                        <div key={sub.id || index} className="grid grid-cols-2 items-center">
                                             <div className="flex items-center gap-2">
                                                 <Briefcase className="h-4 w-4" />
                                                 <span className="truncate">{sub.typeMission || 'N/A'}</span>
@@ -317,11 +297,11 @@ function MissionsPageComponent() {
                                     <div className="grid grid-cols-2 items-center">
                                         <div className="flex items-center gap-2">
                                             <Briefcase className="h-4 w-4" />
-                                            <span className="truncate">{displayData.typeMission || 'N/A'}</span>
+                                            <span className="truncate">{task.typeMission || 'N/A'}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <User className="h-4 w-4" />
-                                            <span className="truncate">{displayData.gestionnaire || 'N/A'}</span>
+                                            <span className="truncate">{task.gestionnaire || 'N/A'}</span>
                                         </div>
                                     </div>
                                 )}
@@ -375,7 +355,3 @@ export default function MissionsPage() {
         </Suspense>
     )
 }
-
-    
-
-    
