@@ -49,38 +49,32 @@ export default function Home() {
     const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1, locale: fr });
 
     return tasks.filter(task => {
-      const checkDate = (dateStr: string) => {
-        try {
-          const taskDate = parseISO(dateStr);
-          
-          if (timeRange === 'year') {
-            return getYear(taskDate) === selectedYear;
-          }
-          if (timeRange === 'month') {
-            return getYear(taskDate) === selectedYear && getMonth(taskDate) === selectedMonth;
-          }
-          if (timeRange === 'week') {
-            return isWithinInterval(taskDate, { start: weekStart, end: weekEnd });
-          }
-          return false;
-        } catch (e) {
-          return false;
-        }
-      };
-      
-      const primaryDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
-      if (!primaryDate) return false;
+        const checkDate = (dateStr?: string | null) => {
+            if (!dateStr) return false;
+            try {
+                const taskDate = parseISO(dateStr);
+                if (timeRange === 'year') {
+                    return getYear(taskDate) === selectedYear;
+                }
+                if (timeRange === 'month') {
+                    return getYear(taskDate) === selectedYear && getMonth(taskDate) === selectedMonth;
+                }
+                if (timeRange === 'week') {
+                    return isWithinInterval(taskDate, { start: weekStart, end: weekEnd });
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        };
 
-      if (task.city === 'Casablanca') {
-        if (!task.date) return false;
+        // Since all new tasks have subMissions, we primarily check their dates.
+        if (task.subMissions && task.subMissions.length > 0) {
+            return task.subMissions.some(sub => checkDate(sub.date));
+        }
+
+        // Fallback for old data structure that might only have a root date.
         return checkDate(task.date);
-      } else {
-         if (!task.subMissions || task.subMissions.length === 0) return false;
-         return task.subMissions.some(sub => {
-            if (!sub.date) return false;
-            return checkDate(sub.date);
-         });
-      }
     });
   }, [tasks, timeRange, selectedDate]);
   
@@ -109,7 +103,7 @@ export default function Home() {
             if (category === 'city') {
                 key = task.city;
             } else {
-                key = task[category];
+                key = task[category] as string | undefined;
             }
 
             if (key) {
