@@ -231,14 +231,14 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
       subMissions: formState.subMissions,
       expenses: formState.expenses,
       // Clear simple mission fields as everything is a complex mission now
-      date: undefined,
-      reservation: undefined,
-      entreprise: undefined,
-      gestionnaire: undefined,
-      typeMission: undefined,
-      marqueVehicule: undefined,
-      immatriculation: undefined,
-      remarque: undefined,
+      date: null,
+      reservation: null,
+      entreprise: null,
+      gestionnaire: null,
+      typeMission: null,
+      marqueVehicule: null,
+      immatriculation: null,
+      remarque: null,
     };
   
     if (editingTask) {

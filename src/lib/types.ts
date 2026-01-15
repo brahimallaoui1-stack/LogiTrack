@@ -46,14 +46,14 @@ export interface Task {
   city: string; // Casablanca ou Hors Casablanca
   
   // Pour les missions simples (Casablanca)
-  date?: string;
-  reservation?: string;
-  entreprise?: string; 
-  gestionnaire?: string;
-  typeMission?: string;
-  marqueVehicule?: string;
-  immatriculation?: string;
-  remarque?: string;
+  date?: string | null;
+  reservation?: string | null;
+  entreprise?: string | null;
+  gestionnaire?: string | null;
+  typeMission?: string | null;
+  marqueVehicule?: string | null;
+  immatriculation?: string | null;
+  remarque?: string | null;
   
   // Pour les missions complexes (Hors Casablanca)
   subMissions?: SubMission[];
