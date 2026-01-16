@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -265,9 +264,9 @@ export default function Home() {
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
             <TabsTrigger value="typeMission">Missions</TabsTrigger>
         </TabsList>
-         {renderReport('city', 'Nombre de missions par ville', cityTaskCounts, 'Villes', 'Ville')}
-         {renderReport('gestionnaire', 'Nombre de missions par gestionnaire', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeMission', 'Nombre de missions par type', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+         {renderReport('city', 'Rapport', cityTaskCounts, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Rapport', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeMission', 'Rapport', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
