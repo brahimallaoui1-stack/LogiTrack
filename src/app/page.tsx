@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -78,7 +79,7 @@ export default function Home() {
   }, [tasks, timeRange, selectedDate]);
   
   const reportData = useMemo(() => {
-    const allFlatTasks: (Task & { subMissionIndex?: number, status?: 'Terminée' | 'Annulée' })[] = [];
+    const allFlatTasks: (Partial<Task> & { subMissionIndex?: number, status?: 'Terminée' | 'Annulée' })[] = [];
     filteredTasks.forEach(task => {
         if (task.subMissions && task.subMissions.length > 0) {
             task.subMissions.forEach((subMission, index) => {
@@ -98,41 +99,42 @@ export default function Home() {
 
     const completedFlatTasks = allFlatTasks.filter(task => task.status === 'Terminée');
 
-    const getCounts = (category: ReportCategory) => {
-        const counts = completedFlatTasks.reduce((acc, task) => {
-            let key: string | undefined;
+    const getBreakdown = (category: ReportCategory) => {
+        const categoryTotals: Record<string, { completed: number; total: number }> = {};
 
-            if (category === 'city') {
-                key = task.city;
-            } else {
-                key = task[category] as string | undefined;
-            }
-
+        allFlatTasks.forEach(task => {
+            const key = task[category] as string | undefined;
+            
             if (key) {
-                acc[key] = (acc[key] || 0) + 1;
+                if (!categoryTotals[key]) {
+                    categoryTotals[key] = { completed: 0, total: 0 };
+                }
+                categoryTotals[key].total++;
+                if (task.status === 'Terminée') {
+                    categoryTotals[key].completed++;
+                }
             }
-            return acc;
-        }, {} as Record<string, number>);
+        });
 
-        return Object.entries(counts)
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count);
+        return Object.entries(categoryTotals)
+            .map(([name, counts]) => ({ name, ...counts }))
+            .sort((a, b) => b.completed - a.completed);
     };
 
-    const cityTaskCounts = getCounts('city');
-    const managerTaskCounts = getCounts('gestionnaire');
-    const missionTypeTaskCounts = getCounts('typeMission');
+    const cityTaskBreakdown = getBreakdown('city');
+    const managerTaskBreakdown = getBreakdown('gestionnaire');
+    const missionTypeTaskBreakdown = getBreakdown('typeMission');
     
     return {
         totalMissions: allFlatTasks.length,
         completedMissions: completedFlatTasks.length,
-        cityTaskCounts,
-        managerTaskCounts,
-        missionTypeTaskCounts,
+        cityTaskBreakdown,
+        managerTaskBreakdown,
+        missionTypeTaskBreakdown,
     };
   }, [filteredTasks]);
 
-  const { totalMissions, completedMissions, cityTaskCounts, managerTaskCounts, missionTypeTaskCounts } = reportData;
+  const { totalMissions, completedMissions, cityTaskBreakdown, managerTaskBreakdown, missionTypeTaskBreakdown } = reportData;
   
   const handleReportItemClick = (category: ReportCategory, value: string) => {
     const params = new URLSearchParams();
@@ -157,12 +159,12 @@ export default function Home() {
   };
 
 
-  const renderReport = (category: ReportCategory, title: string, data: {name: string, count: number}[], chartLabel: string, tableHead: string) => (
+  const renderReport = (category: ReportCategory, title: string, data: {name: string, completed: number, total: number}[], chartLabel: string, tableHead: string) => (
      <TabsContent value={category} className="mt-0">
         <div className="grid md:grid-cols-2 gap-6">
             {isLoading ? (
                 <>
-                    <Card><CardContent className="p-6"><Skeleton className="h-[120px] w-full" /></CardContent></Card>
+                    <Card><CardContent className="p-6"><Skeleton className="h-[152px] w-full" /></CardContent></Card>
                     <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
                 </>
             ) : (
@@ -175,16 +177,14 @@ export default function Home() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle>Nombre par {tableHead.toLowerCase()}</CardTitle>
+                            <CardTitle>{`Nombre par ${tableHead.toLowerCase()}`}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                             {data.length > 0 ? data.map(({ name, count }) => {
-                                const percentage = completedMissions > 0 ? ((count / completedMissions) * 100).toFixed(1) : 0;
+                             {data.length > 0 ? data.map(({ name, completed, total }) => {
                                 return (
-                                    <div key={name} className="grid grid-cols-3 items-center p-2 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
+                                    <div key={name} className="grid grid-cols-2 items-center p-2 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
                                         <span className="font-medium truncate">{name}</span>
-                                        <span className="font-bold text-center">{count}</span>
-                                        <span className="text-xs text-muted-foreground text-right">{percentage}%</span>
+                                        <span className="font-bold text-right">{`${completed}/${total}`}</span>
                                     </div>
                                 );
                             }) : (
@@ -264,9 +264,9 @@ export default function Home() {
             <TabsTrigger value="gestionnaire">Gestionnaires</TabsTrigger>
             <TabsTrigger value="typeMission">Missions</TabsTrigger>
         </TabsList>
-         {renderReport('city', 'Rapport', cityTaskCounts, 'Villes', 'Ville')}
-         {renderReport('gestionnaire', 'Rapport', managerTaskCounts, 'Gestionnaires', 'Gestionnaire')}
-         {renderReport('typeMission', 'Rapport', missionTypeTaskCounts, 'Missions', 'Type de Mission')}
+         {renderReport('city', 'Rapport', cityTaskBreakdown, 'Villes', 'Ville')}
+         {renderReport('gestionnaire', 'Rapport', managerTaskBreakdown, 'Gestionnaires', 'Gestionnaire')}
+         {renderReport('typeMission', 'Rapport', missionTypeTaskBreakdown, 'Missions', 'Type de Mission')}
       </Tabs>
     </div>
     <MissionFormDialog
