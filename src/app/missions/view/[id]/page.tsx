@@ -136,8 +136,11 @@ export default function ViewMissionPage() {
     const renderSubMissionDetails = (subMission: SubMission, index: number, total: number) => (
         <Card key={subMission.id || index}>
             <CardHeader>
-                <CardTitle>
-                    {hasSubMissions && total > 1 ? `Étape ${index + 1} : ${subMission.typeMission || 'N/A'}` : 'Détails de la mission'}
+                <CardTitle className="flex items-center gap-3">
+                     <div className={`h-3 w-3 flex-shrink-0 rounded-full ${subMission.status === 'Annulée' ? 'bg-destructive' : 'bg-green-500'}`} />
+                     <span>
+                        {hasSubMissions && total > 1 ? `Étape ${index + 1} : ${subMission.typeMission || 'N/A'}` : 'Détails de la mission'}
+                     </span>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -291,3 +294,5 @@ export default function ViewMissionPage() {
         </>
     );
 }
+
+    
