@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { WeekPicker } from "@/components/WeekPicker";
 import { cn } from "@/lib/utils";
 import { CircularCounter } from "@/components/CircularCounter";
+import { Progress } from "@/components/ui/progress";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -179,12 +179,16 @@ export default function Home() {
                         <CardHeader>
                             <CardTitle>{`Nombre par ${tableHead.toLowerCase()}`}</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
+                        <CardContent className="space-y-3">
                              {data.length > 0 ? data.map(({ name, completed, total }) => {
+                                const percentage = total > 0 ? (completed / total) * 100 : 0;
                                 return (
-                                    <div key={name} className="grid grid-cols-2 items-center p-2 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
-                                        <span className="font-medium truncate">{name}</span>
-                                        <span className="font-bold text-right">{`${completed}/${total}`}</span>
+                                    <div key={name} className="p-3 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-medium truncate">{name}</span>
+                                            <span className="font-bold text-right text-sm">{`${completed}/${total}`}</span>
+                                        </div>
+                                        <Progress value={percentage} className="h-2" />
                                     </div>
                                 );
                             }) : (
