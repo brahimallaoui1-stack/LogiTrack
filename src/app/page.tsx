@@ -162,15 +162,15 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-6">
             {isLoading ? (
                 <>
-                    <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                    <Card><CardContent className="p-6"><Skeleton className="h-[120px] w-full" /></CardContent></Card>
                     <Card><CardHeader><Skeleton className="h-8 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></CardHeader><CardContent><Skeleton className="h-[250px] w-full" /></CardContent></Card>
                 </>
             ) : (
                 <>
                     <Card>
                         <CardContent className="flex justify-center items-center gap-8 p-6">
-                            <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-10))" />
                             <CircularCounter value={completedMissions} label="Missions terminées" color="hsl(var(--chart-13))" />
+                            <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-10))" />
                         </CardContent>
                     </Card>
                      <Card>
