@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -168,10 +169,7 @@ export default function Home() {
             ) : (
                 <>
                     <Card>
-                        <CardHeader>
-                            <CardTitle>Rapport</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex justify-center items-center gap-8 h-[250px]">
+                        <CardContent className="flex justify-center items-center gap-8 p-6">
                             <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-10))" />
                             <CircularCounter value={completedMissions} label="Missions terminées" color="hsl(var(--chart-13))" />
                         </CardContent>
