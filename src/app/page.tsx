@@ -167,7 +167,7 @@ export default function Home() {
                 <>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Rapport par {tableHead.toLowerCase()}</CardTitle>
+                            <CardTitle>Rapport</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
