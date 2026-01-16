@@ -268,6 +268,7 @@ function MissionsPageComponent() {
                                     task.subMissions!.map((sub, index) => (
                                         <div key={sub.id || index} className="grid grid-cols-2 items-center">
                                             <div className="flex items-center gap-2">
+                                                <div className={`h-2 w-2 flex-shrink-0 rounded-full ${sub.status === 'Annulée' ? 'bg-destructive' : 'bg-green-500'}`} />
                                                 <Briefcase className="h-4 w-4" />
                                                 <span className="truncate">{sub.typeMission || 'N/A'}</span>
                                             </div>
@@ -280,6 +281,7 @@ function MissionsPageComponent() {
                                 ) : (
                                     <div className="grid grid-cols-2 items-center">
                                         <div className="flex items-center gap-2">
+                                            <div className="h-2 w-2 flex-shrink-0 rounded-full bg-green-500" />
                                             <Briefcase className="h-4 w-4" />
                                             <span className="truncate">{task.typeMission || 'N/A'}</span>
                                         </div>
