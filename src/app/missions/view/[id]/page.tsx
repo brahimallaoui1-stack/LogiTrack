@@ -137,7 +137,7 @@ export default function ViewMissionPage() {
         <Card key={subMission.id || index}>
             <CardHeader>
                 <CardTitle>
-                    {hasSubMissions && total > 1 ? `Étape ${index + 1}` : 'Détails de la mission'}
+                    {hasSubMissions && total > 1 ? `Étape ${index + 1} : ${subMission.typeMission || 'N/A'}` : 'Détails de la mission'}
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
