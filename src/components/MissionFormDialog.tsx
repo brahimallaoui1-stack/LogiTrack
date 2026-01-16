@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "./ui/separator";
+import { Switch } from "./ui/switch";
 
 interface MissionFormDialogProps {
     isOpen: boolean;
@@ -44,19 +45,20 @@ const initialSubMissionState: Omit<SubMission, 'id'> = {
   marqueVehicule: "",
   immatriculation: "",
   remarque: "",
+  status: 'Terminée',
 };
 
 
 const initialFormState: Omit<Task, 'id' | 'label' | 'city'> & { city: string } = {
   city: "",
-  date: "",
-  reservation: "",
-  entreprise: "",
-  gestionnaire: "",
-  typeMission: "",
-  marqueVehicule: "",
-  immatriculation: "",
-  remarque: "",
+  date: null,
+  reservation: null,
+  entreprise: null,
+  gestionnaire: null,
+  typeMission: null,
+  marqueVehicule: null,
+  immatriculation: null,
+  remarque: null,
   subMissions: [{...initialSubMissionState, id: `sub-${Date.now()}`}],
   expenses: [] as Expense[],
 };
@@ -154,10 +156,16 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
 
         if (editingTask) {
            const hasSubMissions = editingTask.subMissions && editingTask.subMissions.length > 0;
+           const subMissionsWithStatus = (hasSubMissions ? editingTask.subMissions! : [defaultSubMission]).map(sub => ({
+                ...initialSubMissionState,
+                ...sub,
+                status: sub.status || 'Terminée',
+           }));
+
            setFormState({
             ...initialFormState,
             ...editingTask,
-            subMissions: hasSubMissions ? editingTask.subMissions : [defaultSubMission],
+            subMissions: subMissionsWithStatus,
             expenses: editingTask.expenses || [],
           });
         } else {
@@ -181,6 +189,15 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
      setFormState(prevState => {
       const newSubMissions = [...(prevState.subMissions ?? [])];
       newSubMissions[index] = { ...newSubMissions[index], [id]: value };
+      return { ...prevState, subMissions: newSubMissions };
+    });
+  };
+
+  const handleSwitchChange = (checked: boolean, index: number) => {
+    const newStatus = checked ? 'Annulée' : 'Terminée';
+    setFormState(prevState => {
+      const newSubMissions = [...(prevState.subMissions ?? [])];
+      newSubMissions[index] = { ...newSubMissions[index], status: newStatus };
       return { ...prevState, subMissions: newSubMissions };
     });
   };
@@ -261,14 +278,28 @@ export function MissionFormDialog({ isOpen, onOpenChange, task: editingTask }: M
   
   const renderSubMissionForm = (subMission: SubMission, index: number) => (
      <div key={subMission.id} className="grid gap-6 py-4 border-b pb-8 mb-4 relative">
-        { (formState.subMissions?.length ?? 0) > 1 &&
-            <div className="flex justify-between items-center">
-                 <h4 className="font-semibold text-lg">Étape {index + 1}</h4>
-                 <Button variant="ghost" size="icon" onClick={() => removeSubMission(index)} className="text-destructive">
-                    <Trash2 className="h-4 w-4"/>
-                </Button>
+        <div className="flex justify-between items-center">
+            <h4 className="font-semibold text-lg">
+                {(formState.subMissions?.length ?? 0) > 1 ? `Étape ${index + 1}` : 'Détails de la mission'}
+            </h4>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <Label htmlFor={`status-${index}`} className="text-sm font-medium text-muted-foreground">
+                        Annulée
+                    </Label>
+                    <Switch
+                        id={`status-${index}`}
+                        checked={subMission.status === 'Annulée'}
+                        onCheckedChange={(checked) => handleSwitchChange(checked, index)}
+                    />
+                </div>
+                {(formState.subMissions?.length ?? 0) > 1 &&
+                    <Button variant="ghost" size="icon" onClick={() => removeSubMission(index)} className="text-destructive">
+                        <Trash2 className="h-4 w-4"/>
+                    </Button>
+                }
             </div>
-        }
+        </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor={`date-${index}`}>Date</Label>

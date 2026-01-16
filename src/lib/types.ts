@@ -38,6 +38,7 @@ export interface SubMission {
   marqueVehicule?: string;
   immatriculation?: string;
   remarque?: string;
+  status: 'Terminée' | 'Annulée';
 }
 
 export interface Task {
