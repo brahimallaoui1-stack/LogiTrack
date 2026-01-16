@@ -181,7 +181,7 @@ export default function Home() {
                         </CardHeader>
                         <CardContent className="space-y-3">
                              {data.length > 0 ? data.map(({ name, completed, total }) => {
-                                const percentage = total > 0 ? (completed / total) * 100 : 0;
+                                const percentage = totalMissions > 0 ? (total / totalMissions) * 100 : 0;
                                 return (
                                     <div key={name} className="p-3 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
                                         <div className="grid grid-cols-3 items-center mb-1">
