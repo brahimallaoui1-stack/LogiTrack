@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus, Calendar as CalendarIcon } from "lucide-react";
-import { TaskDistributionChart } from "@/components/TaskDistributionChart";
 import { useTaskStore } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
 import type { Task } from "@/lib/types";
@@ -21,6 +19,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import { useRouter } from "next/navigation";
 import { WeekPicker } from "@/components/WeekPicker";
 import { cn } from "@/lib/utils";
+import { CircularCounter } from "@/components/CircularCounter";
 
 type ReportCategory = 'city' | 'gestionnaire' | 'typeMission';
 
@@ -79,25 +78,28 @@ export default function Home() {
   }, [tasks, timeRange, selectedDate]);
   
   const reportData = useMemo(() => {
-    const flatTasks: (Task & { subMissionIndex?: number })[] = [];
+    const allFlatTasks: (Task & { subMissionIndex?: number, status?: 'Terminée' | 'Annulée' })[] = [];
     filteredTasks.forEach(task => {
         if (task.subMissions && task.subMissions.length > 0) {
             task.subMissions.forEach((subMission, index) => {
-                flatTasks.push({
+                allFlatTasks.push({
                     ...task,
                     city: subMission.city || task.city,
                     gestionnaire: subMission.gestionnaire || task.gestionnaire,
                     typeMission: subMission.typeMission || task.typeMission,
+                    status: subMission.status || 'Terminée',
                     subMissionIndex: index
                 });
             });
         } else {
-            flatTasks.push(task);
+            allFlatTasks.push({ ...task, status: 'Terminée' });
         }
     });
 
+    const completedFlatTasks = allFlatTasks.filter(task => task.status === 'Terminée');
+
     const getCounts = (category: ReportCategory) => {
-        const counts = flatTasks.reduce((acc, task) => {
+        const counts = completedFlatTasks.reduce((acc, task) => {
             let key: string | undefined;
 
             if (category === 'city') {
@@ -122,15 +124,15 @@ export default function Home() {
     const missionTypeTaskCounts = getCounts('typeMission');
     
     return {
-        totalMissions: flatTasks.length,
+        totalMissions: allFlatTasks.length,
+        completedMissions: completedFlatTasks.length,
         cityTaskCounts,
         managerTaskCounts,
         missionTypeTaskCounts,
-        flatTasks,
     };
   }, [filteredTasks]);
 
-  const { totalMissions, cityTaskCounts, managerTaskCounts, missionTypeTaskCounts, flatTasks } = reportData;
+  const { totalMissions, completedMissions, cityTaskCounts, managerTaskCounts, missionTypeTaskCounts } = reportData;
   
   const handleReportItemClick = (category: ReportCategory, value: string) => {
     const params = new URLSearchParams();
@@ -169,8 +171,9 @@ export default function Home() {
                         <CardHeader>
                             <CardTitle>Rapport</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <TaskDistributionChart tasks={flatTasks} category={category} label={chartLabel} />
+                        <CardContent className="flex justify-center items-center gap-8 h-[250px]">
+                            <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-5))" />
+                            <CircularCounter value={completedMissions} label="Missions terminées" color="hsl(var(--chart-2))" />
                         </CardContent>
                     </Card>
                      <Card>
@@ -179,7 +182,7 @@ export default function Home() {
                         </CardHeader>
                         <CardContent className="space-y-2">
                              {data.length > 0 ? data.map(({ name, count }) => {
-                                const percentage = totalMissions > 0 ? ((count / totalMissions) * 100).toFixed(1) : 0;
+                                const percentage = completedMissions > 0 ? ((count / completedMissions) * 100).toFixed(1) : 0;
                                 return (
                                     <div key={name} className="grid grid-cols-3 items-center p-2 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
                                         <span className="font-medium truncate">{name}</span>
