@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -182,6 +183,7 @@ export default function Home() {
                         <CardContent className="space-y-3">
                              {data.length > 0 ? data.map(({ name, completed, total }) => {
                                 const percentage = totalMissions > 0 ? (total / totalMissions) * 100 : 0;
+                                const completionPercentage = total > 0 ? (completed / total) * 100 : 0;
                                 return (
                                     <div key={name} className="p-3 rounded-md border hover:bg-muted cursor-pointer" onClick={() => handleReportItemClick(category, name)}>
                                         <div className="grid grid-cols-3 items-center mb-1">
@@ -189,7 +191,7 @@ export default function Home() {
                                             <span className="font-bold text-center text-sm">{`${completed}/${total}`}</span>
                                             <span className="font-bold text-right text-sm">{`${Math.round(percentage)}%`}</span>
                                         </div>
-                                        <Progress value={percentage} className="h-2" />
+                                        <Progress value={completionPercentage} className="h-2" />
                                     </div>
                                 );
                             }) : (
