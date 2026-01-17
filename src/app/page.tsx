@@ -173,7 +173,7 @@ export default function Home() {
                     <Card>
                         <CardContent className="flex justify-center items-center gap-8 p-6">
                             <CircularCounter value={completedMissions} label="Missions terminées" color="hsl(var(--primary))" />
-                            <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-10))" />
+                            <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-1))" />
                         </CardContent>
                     </Card>
                      <Card>
