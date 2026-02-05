@@ -69,12 +69,10 @@ export default function Home() {
             }
         };
 
-        // Since all new tasks have subMissions, we primarily check their dates.
         if (task.subMissions && task.subMissions.length > 0) {
             return task.subMissions.some(sub => checkDate(sub.date));
         }
 
-        // Fallback for old data structure that might only have a root date.
         return checkDate(task.date);
     });
   }, [tasks, timeRange, selectedDate]);
@@ -99,6 +97,7 @@ export default function Home() {
     });
 
     const completedFlatTasks = allFlatTasks.filter(task => task.status === 'Terminée');
+    const cancelledFlatTasks = allFlatTasks.filter(task => task.status === 'Annulée');
 
     const getBreakdown = (category: ReportCategory) => {
         const categoryTotals: Record<string, { completed: number; total: number }> = {};
@@ -129,13 +128,14 @@ export default function Home() {
     return {
         totalMissions: allFlatTasks.length,
         completedMissions: completedFlatTasks.length,
+        cancelledMissions: cancelledFlatTasks.length,
         cityTaskBreakdown,
         managerTaskBreakdown,
         missionTypeTaskBreakdown,
     };
   }, [filteredTasks]);
 
-  const { totalMissions, completedMissions, cityTaskBreakdown, managerTaskBreakdown, missionTypeTaskBreakdown } = reportData;
+  const { totalMissions, completedMissions, cancelledMissions, cityTaskBreakdown, managerTaskBreakdown, missionTypeTaskBreakdown } = reportData;
   
   const handleReportItemClick = (category: ReportCategory, value: string) => {
     const params = new URLSearchParams();
@@ -171,8 +171,9 @@ export default function Home() {
             ) : (
                 <>
                     <Card>
-                        <CardContent className="flex justify-center items-center gap-8 p-6">
+                        <CardContent className="flex flex-wrap justify-center items-center gap-6 p-6">
                             <CircularCounter value={completedMissions} label="Missions terminées" color="hsl(var(--primary))" />
+                            <CircularCounter value={cancelledMissions} label="Missions annulées" color="hsl(var(--destructive))" />
                             <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-1))" />
                         </CardContent>
                     </Card>
