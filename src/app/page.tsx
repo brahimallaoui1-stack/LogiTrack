@@ -172,9 +172,9 @@ export default function Home() {
                 <>
                     <Card>
                         <CardContent className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 p-4 sm:p-6">
-                            <CircularCounter value={completedMissions} label="Missions terminées" color="hsl(var(--primary))" />
-                            <CircularCounter value={cancelledMissions} label="Missions annulées" color="hsl(var(--destructive))" />
-                            <CircularCounter value={totalMissions} label="Missions totales" color="hsl(var(--chart-1))" />
+                            <CircularCounter value={completedMissions} label="Terminées" color="hsl(var(--primary))" />
+                            <CircularCounter value={cancelledMissions} label="Annulées" color="hsl(var(--destructive))" />
+                            <CircularCounter value={totalMissions} label="Totales" color="hsl(var(--chart-1))" />
                         </CardContent>
                     </Card>
                      <Card>
