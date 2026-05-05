@@ -18,7 +18,7 @@
     --muted-foreground: 0 0% 65%;
     --accent: 213 47% 24%;
     --accent-foreground: 168 100% 70%;
-    --destructive: 0 79% 57%;
+    --destructive: 0 98% 55%; /* #FD1D1D */
     --destructive-foreground: 0 0% 98%;
     --border: 213 47% 24%;
     --input: 213 47% 28%;
@@ -63,7 +63,7 @@
     --muted-foreground: 0 0% 65%;
     --accent: 213 47% 24%;
     --accent-foreground: 168 100% 70%;
-    --destructive: 0 63% 51%;
+    --destructive: 0 98% 55%; /* #FD1D1D */
     --destructive-foreground: 0 0% 98%;
     --border: 213 47% 24%;
     --input: 213 47% 28%;
