@@ -332,13 +332,20 @@ function MissionsPageComponent() {
                     displayVille = task.city || 'N/A';
                 }
 
+                const hasHotel = task.expenses?.some(e => e.typeDepense === 'Hôtel');
+
                 return (
                     <Card key={task.id}>
                         <CardHeader className="flex flex-row items-center justify-between p-4">
                             <div className="flex items-center gap-2">
                                 <CardTitle className="text-base break-words">{formatDate(primaryDate, "dd-MM-yyyy")}</CardTitle>
                                 {task.expenses && task.expenses.length > 0 && (
-                                    <Banknote className="h-4 w-4 text-primary" />
+                                    <div className="flex items-center gap-1">
+                                        <Banknote className="h-4 w-4 text-primary" />
+                                        {hasHotel && (
+                                            <span className="text-[10px] font-black border border-primary text-primary w-4 h-4 flex items-center justify-center rounded-sm leading-none" title="Contient un hôtel">H</span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                              <Button variant="outline" size="icon" onClick={() => handleView(task.id)} className="h-8 w-8">

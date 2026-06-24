@@ -26,6 +26,7 @@ type GroupedExpense = {
   displayDate?: string;
   ville?: string;
   totalAmount: number;
+  hasHotel?: boolean;
 };
 
 
@@ -34,6 +35,7 @@ type GroupedProcessedExpense = {
   processedDate: string;
   totalAmount: number;
   status: ExpenseStatus;
+  hasHotel?: boolean;
 };
 
 export default function DepensesPage() {
@@ -64,6 +66,7 @@ export default function DepensesPage() {
     
             if (unprocessedExpenses && unprocessedExpenses.length > 0) {
                 const totalAmount = unprocessedExpenses.reduce((sum, exp) => sum + exp.montant, 0);
+                const hasHotel = unprocessedExpenses.some(exp => exp.typeDepense === 'Hôtel');
                 
                 const displayDate = task.date || (task.subMissions && task.subMissions.length > 0 ? task.subMissions[0].date : undefined);
                 let ville = task.city;
@@ -77,7 +80,8 @@ export default function DepensesPage() {
                     id: task.id,
                     displayDate,
                     ville,
-                    totalAmount
+                    totalAmount,
+                    hasHotel
                 });
             }
         });
@@ -107,9 +111,14 @@ export default function DepensesPage() {
                             processedDate: expense.processedDate || new Date().toISOString(),
                             totalAmount: 0,
                             status: expense.status,
+                            hasHotel: false,
                         };
                     }
                     
+                    if (expense.typeDepense === 'Hôtel') {
+                        grouped[batchId].hasHotel = true;
+                    }
+
                     if (filterStatus === 'Comptabilisé') {
                         grouped[batchId].totalAmount += expense.montant;
                     } else if (filterStatus === 'Confirmé') {
@@ -394,7 +403,12 @@ export default function DepensesPage() {
                     groupedUnprocessedExpenses.map((group) => (
                         <Card key={group.id}>
                             <CardHeader className="flex flex-row items-center justify-between p-4">
-                                <CardTitle className="text-base break-words">{formatDate(group.displayDate, "dd-MM-yyyy")}</CardTitle>
+                                <div className="flex items-center gap-2">
+                                    <CardTitle className="text-base break-words">{formatDate(group.displayDate, "dd-MM-yyyy")}</CardTitle>
+                                    {group.hasHotel && (
+                                        <span className="text-[10px] font-black border border-primary text-primary w-4 h-4 flex items-center justify-center rounded-sm leading-none" title="Hôtel">H</span>
+                                    )}
+                                </div>
                                 <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
                                     <Eye className="h-4 w-4" />
                                 </Button>
@@ -417,7 +431,12 @@ export default function DepensesPage() {
                         return (
                                 <Card key={group.id}>
                                 <CardHeader className="flex flex-row items-center justify-between p-4">
-                                    <CardTitle className="text-base break-words">{formatDate(group.processedDate, "dd-MM-yyyy")}</CardTitle>
+                                    <div className="flex items-center gap-2">
+                                        <CardTitle className="text-base break-words">{formatDate(group.processedDate, "dd-MM-yyyy")}</CardTitle>
+                                        {group.hasHotel && (
+                                            <span className="text-[10px] font-black border border-primary text-primary w-4 h-4 flex items-center justify-center rounded-sm leading-none" title="Hôtel">H</span>
+                                        )}
+                                    </div>
                                     <Button variant="outline" size="icon" onClick={() => handleView(group.id)} className="h-8 w-8">
                                         <Eye className="h-4 w-4" />
                                     </Button>
@@ -445,5 +464,3 @@ export default function DepensesPage() {
         </div>
     );
 }
-
-    
