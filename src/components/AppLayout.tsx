@@ -4,9 +4,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { PanelLeft, LayoutDashboard, ListTodo, Settings, CreditCard, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Settings, CreditCard, FileText, LogOut, Truck } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
-import Image from 'next/image';
 
 import {
   SidebarProvider,
@@ -20,8 +19,6 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Toaster } from "@/components/ui/toaster";
 import { Separator } from './ui/separator';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -44,7 +41,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <div className="flex flex-col items-center gap-4">
-                    <Image src="/icons/icon-192x192.png?v=2" alt="Logi Track Logo" width={48} height={48} className="animate-pulse" />
+                    <Truck className="h-12 w-12 text-primary animate-pulse" />
                     <p className="text-muted-foreground">Chargement de Logi Track...</p>
                 </div>
             </div>
@@ -79,15 +76,15 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
     <>
        <Sidebar>
             <SidebarHeader className="p-4">
-                <div className="flex items-center gap-3">
-                <Link href="/" className="flex items-center gap-3">
-                    <Image src="/icons/icon-192x192.png?v=2" alt="Logi Track Logo" width={32} height={32} />
+                <Link href="/" className="flex items-center gap-3" onClick={handleLinkClick}>
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                        <Truck className="h-6 w-6 text-primary" />
+                    </div>
                     <h1 className="text-xl font-headline">
                         <span className="font-bold">Logi</span>
                         <span>Track</span>
                     </h1>
                 </Link>
-                </div>
             </SidebarHeader>
             <SidebarContent>
                 <div className="flex flex-col h-full">
@@ -176,6 +173,9 @@ function MainAppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger>
                  <span className="text-2xl text-primary font-bold">☰</span>
             </SidebarTrigger>
+            <div className="flex-1 flex justify-center md:hidden">
+                <Truck className="h-6 w-6 text-primary" />
+            </div>
             </header>
             <main className="flex-1 p-4 sm:p-6">
             {children}

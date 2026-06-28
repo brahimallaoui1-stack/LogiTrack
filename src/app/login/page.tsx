@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Image from "next/image";
+import { Truck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function LoginPage() {
@@ -49,7 +49,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Image src="/icons/icon-192x192.png?v=2" alt="Logi Track Logo" width={40} height={40} />
+              <div className="bg-primary/10 p-3 rounded-xl">
+                <Truck className="h-10 w-10 text-primary" />
+              </div>
             </div>
           <CardTitle className="text-2xl">Logi Track</CardTitle>
           <CardDescription>
