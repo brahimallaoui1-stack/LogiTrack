@@ -16,8 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Truck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.preventDefault) => {
     e.preventDefault();
     let success = false;
     if (isSignUp) {
@@ -50,7 +50,14 @@ export default function LoginPage() {
         <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <div className="bg-primary/10 p-3 rounded-xl">
-                <Truck className="h-10 w-10 text-primary" />
+                <div className="relative w-16 h-16">
+                    <Image 
+                        src="/icon-192x192.png" 
+                        alt="Logo Logi Track" 
+                        fill 
+                        className="object-contain"
+                    />
+                </div>
               </div>
             </div>
           <CardTitle className="text-2xl">Logi Track</CardTitle>
