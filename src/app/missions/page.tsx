@@ -135,46 +135,6 @@ function MissionsPageComponent() {
       return dateB.getTime() - dateA.getTime();
     });
   }, [filteredTasks]);
-
-  const statsBreakdown = useMemo(() => {
-    if (!cityFilter && !managerFilter && !typeFilter) return null;
-
-    const stats: {
-      villes: Record<string, { total: number; completed: number }>;
-      gestionnaires: Record<string, { total: number; completed: number }>;
-      missions: Record<string, { total: number; completed: number }>;
-    } = { villes: {}, gestionnaires: {}, missions: {} };
-
-    filteredTasks.forEach(task => {
-      const processItem = (city: string | undefined, mgr: string | undefined, type: string | undefined, isCompleted: boolean) => {
-        if (city) {
-          if (!stats.villes[city]) stats.villes[city] = { total: 0, completed: 0 };
-          stats.villes[city].total++;
-          if (isCompleted) stats.villes[city].completed++;
-        }
-        if (mgr) {
-          if (!stats.gestionnaires[mgr]) stats.gestionnaires[mgr] = { total: 0, completed: 0 };
-          stats.gestionnaires[mgr].total++;
-          if (isCompleted) stats.gestionnaires[mgr].completed++;
-        }
-        if (type) {
-          if (!stats.missions[type]) stats.missions[type] = { total: 0, completed: 0 };
-          stats.missions[type].total++;
-          if (isCompleted) stats.missions[type].completed++;
-        }
-      };
-
-      if (task.subMissions && task.subMissions.length > 0) {
-        task.subMissions.forEach(sub => {
-          processItem(sub.city || task.city, sub.gestionnaire || task.gestionnaire, sub.typeMission || task.typeMission, sub.status === 'Terminée');
-        });
-      } else {
-        processItem(task.city, task.gestionnaire, task.typeMission, true);
-      }
-    });
-
-    return stats;
-  }, [filteredTasks, cityFilter, managerFilter, typeFilter]);
   
   const handleView = (taskId: string) => {
     router.push(`/missions/view/${taskId}`);
@@ -231,28 +191,6 @@ function MissionsPageComponent() {
     );
   }
 
-  const renderStatList = (title: string, data: Record<string, { total: number; completed: number }>) => {
-    const entries = Object.entries(data).sort((a, b) => b[1].total - a[1].total);
-    if (entries.length === 0) return null;
-
-    return (
-      <div className="space-y-3">
-        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{title}</h4>
-        <div className="grid gap-2">
-          {entries.map(([name, counts]) => (
-            <div key={name} className="p-2 rounded-md border bg-card">
-              <div className="flex justify-between items-center mb-1 text-xs">
-                <span className="font-medium truncate max-w-[120px]">{name}</span>
-                <span className="font-bold">{counts.completed}/{counts.total}</span>
-              </div>
-              <Progress value={(counts.completed / counts.total) * 100} className="h-1.5" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
     <div className="flex flex-col gap-6">
@@ -275,27 +213,6 @@ function MissionsPageComponent() {
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
        </div>
-
-      {statsBreakdown && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Statistiques détaillées</CardTitle>
-            <CardDescription>Analyse de la sélection actuelle</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-            {!cityFilter && renderStatList("Villes", statsBreakdown.villes)}
-            {!managerFilter && renderStatList("Gestionnaires", statsBreakdown.gestionnaires)}
-            {!typeFilter && renderStatList("Types de Mission", statsBreakdown.missions)}
-            
-            {/* If a filter is active, show the others. If all are active, show a summary */}
-            {cityFilter && managerFilter && typeFilter && (
-                <div className="md:col-span-3 text-center py-4">
-                    <p className="text-sm font-medium">Tous les filtres sont actifs pour cette sélection.</p>
-                </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {hasFilters && (
         <Card>
